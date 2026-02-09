@@ -28,14 +28,14 @@ MicroPOS is a POS System and Inventory Management System for Sari Sari Store Own
 * Beside 'Apache', click the checkbox []
 * Beside 'MySQL', click the checkbox []
 
-## 4. Change MySQL Port to 3307
+#### 4. Change MySQL Port to 3307
 * How to change XAMPP MySQL Port to 3307:
 * [https://youtu.be/u96rVINbAUI?si=Q_RhHPAlpDtVy730](https://youtu.be/u96rVINbAUI?si=Q_RhHPAlpDtVy730)
 
 #### 5. Clone repository into XAMPP's htdocs folder
 
-* Download ZIP of main branch on GitHub
-* Extract the project folder to your ```xampp/htdocs``` folder
+* On GitHub Desktop, click clone repository
+* Select the location: ```xampp/htdocs``` folder
 * To find the htdocs folder, open your XAMPP Control Panel and press [Explorer] to open
 the file location of the xampp folder.
 
