@@ -13,17 +13,17 @@ MicroPOS is a POS System and Inventory Management System for Sari Sari Store Own
 
 * MySQL
 
-### Installation (Please follow each tutorial in order)
+## Installation (Please follow each tutorial in order)
 
-## 1. Install XAMPP
+#### 1. Install XAMPP
 * How to Install XAMPP:
 * [https://www.youtube.com/watch?v=VCHXCusltqI](https://www.youtube.com/watch?v=VCHXCusltqI)
 
-## 2. Run XAMPP as Administrator (make sure you always run the xampp.control app)
+#### 2. Run XAMPP as Administrator (make sure you always run the xampp.control app)
 * How to run XAMPP as Administrator:
 * [https://www.youtube.com/watch?v=29M9beAcrLw&t=1s](https://www.youtube.com/watch?v=29M9beAcrLw&t=1s)
 
-## 3. Click the Checkboxes for Apache and MySQL in the XAMPP.CONTROL App
+#### 3. Click the Checkboxes for Apache and MySQL in the XAMPP.CONTROL App
 * Open xampp.control in the xampp folder
 * Beside 'Apache', click the checkbox []
 * Beside 'MySQL', click the checkbox []
@@ -32,9 +32,7 @@ MicroPOS is a POS System and Inventory Management System for Sari Sari Store Own
 * How to change XAMPP MySQL Port to 3307:
 * [https://youtu.be/u96rVINbAUI?si=Q_RhHPAlpDtVy730](https://youtu.be/u96rVINbAUI?si=Q_RhHPAlpDtVy730)
 
-
-
-## 4. Clone repository into XAMPP's htdocs folder
+#### 5. Clone repository into XAMPP's htdocs folder
 
 * Download ZIP of main branch on GitHub
 * Extract the project folder to your ```xampp/htdocs``` folder
@@ -47,9 +45,6 @@ the file location of the xampp folder.
 
 #### Step 2: Copy paste the script into myphpadmin
 1. tba
-
-#### Step 3: Repeat the steps for stored procedures & triggers
-* Repeat the Steps above for the ```procedures.sql``` and ```triggers.sql``` script to complete the DB.
 
 ### Populating the DATABASE
 1. PREREQUISITE: Ensure the [TBA] schema exists in your phpadmin databases
@@ -65,9 +60,9 @@ the file location of the xampp folder.
 * Open the MySQL service
 - Wait for the "MySQL" label on the left to be highlighted green
 
-* On your browser, enter the following URL to access the Bahay Ni Kuya login page
+* On your browser, enter the following URL to access the login page
 ```
-localhost/ITDBADM-Bahay-Ni-Kuya/views/login.php
+localhost/folder-name/views/login.php
 ```
 
 ## Help
@@ -93,7 +88,7 @@ This typically occurs when MySQL cannot remove the database folder from the file
 ### 0. Try dropping the Database first
 
 On the SQL tab in myphpadmin, use the following SQL statement:
-```  DROP SCHEMA bahaynikuya_db;  ```
+```  DROP SCHEMA micropos_db;  ```
 
 ## If Schema is not dropping:
 
@@ -115,13 +110,13 @@ Navigate to the MySQL data folder:
 ```C:\xampp\mysql\data\```
 
 
-Find the folder named after your database (e.g., `bahaynikuya_db`).
+Find the folder named after your database (e.g., `micropos_db`).
 
 ---
 
 ### 3. Delete the Database Folder Manually
 
-- Right-click the folder (e.g., `bahaynikuya_db`)
+- Right-click the folder (e.g., `micropos_db`)
 - Select **Delete**
 - If Windows prevents deletion, restart your computer or confirm MySQL is fully stopped
 
@@ -147,9 +142,7 @@ If the folder contains leftover files like:
 ### 5. Run the DB Scripts
 
 - In the myphpadmin SQL menu, copy paste and run the following scripts:
-- bnk-schema.sql
-- procedures.sql
-- triggers.sql
+- schema tba
 
 Your database should now be removed from phpMyAdmin.
 
