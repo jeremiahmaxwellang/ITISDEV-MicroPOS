@@ -1,6 +1,6 @@
 <?php
     // Database configuration
-    require_once('../includes/dbconfig.php');
+    // require_once('../includes/dbconfig.php');
     // include('../assets/php/register_controller.php');
 ?>
 

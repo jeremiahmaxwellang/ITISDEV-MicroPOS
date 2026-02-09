@@ -39,17 +39,6 @@ MicroPOS is a POS System and Inventory Management System for Sari Sari Store Own
 * To find the htdocs folder, open your XAMPP Control Panel and press [Explorer] to open
 the file location of the xampp folder.
 
-### TBA: Creating the DATABASE
-#### Step 1: Find the sql scripts in database/scripts
-* Under the ```database/scripts``` subfolder, find the [???-schema.sql] script
-
-#### Step 2: Copy paste the script into myphpadmin
-1. tba
-
-### Populating the DATABASE
-1. PREREQUISITE: Ensure the [TBA] schema exists in your phpadmin databases
-
-
 ### Executing program
 
 * Open XAMPP Control Panel
@@ -62,7 +51,7 @@ the file location of the xampp folder.
 
 * On your browser, enter the following URL to access the login page
 ```
-localhost/folder-name/views/login.php
+localhost/ITISDEV-MicroPOS/views/login.php
 ```
 
 ## Help

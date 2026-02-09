@@ -1,6 +1,6 @@
 <?php
 // Database configuration
-require_once('../includes/dbconfig.php');
+// require_once('../includes/dbconfig.php');
 // include('../src/controllers/login_controller.php');
 
 // session_start();
