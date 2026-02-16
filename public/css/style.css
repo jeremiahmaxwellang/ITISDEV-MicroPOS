@@ -1,0 +1,648 @@
+@import url('vars.css');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+/* Start of player_analysis styles */
+/* Global styles */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Prevents horizontal overflow */
+}
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    background-color: var(--porcelain); /* Background color from Figma variables */
+}
+
+.container {
+    width: 100%;
+    height: 100%;
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: 150px;
+    background-color: var(--carbon-black); /* Sidebar background color from Figma variables */
+    padding: 10px;
+    height: auto;
+    flex-shrink: 0; /* Prevents sidebar from shrinking */
+}
+
+.sidebar ul {
+    list-style-type: none; /* Removes default list bullets */
+    padding: 0;
+    margin: 0; /* Removes default margin */
+}
+
+.sidebar ul li {
+    text-align: center; /* Ensures the text is centered if there's text next to the image */
+}
+
+.sidebar ul li a {
+    margin-bottom: 20px;
+    color: var(--porcelain); /* Default text color */
+    text-decoration: none; /* Removes underline from links */
+    display: flex; /* Make <a> a flex container */
+    flex-direction: column; /* Stack the image and text vertically */
+    align-items: center; /* Center the content inside the link */
+    justify-content: center; /* Ensure items are centered inside the <a> */
+    width: 100%;
+}
+
+.sidebar ul li a img {
+    width: 50%; /* Adjust image size */
+    height: auto; /* Maintain aspect ratio */
+    margin-bottom: 5px; /* Space between image and text */
+    transition: filter 0.3s ease; /* Smooth transition for the image */
+}
+
+.sidebar ul li a:hover {
+    background-color: #f0f0f0; /* Hover effect */
+    border-radius: 5px;
+    color: var(--carbon-black); /* Invert text color on hover */
+}
+
+.sidebar ul li a:hover img {
+    filter: invert(1); /* Inverts the color of the logo image */
+}
+
+/* Main content styles */
+.main-content {
+    flex-grow: 1; /* Allows the main content to take the remaining space */
+    background-color: var(--gunmetal); /* Main content background color */
+    height: 100vh; /* Ensure the main content fills the height */
+}
+
+/* Adjust layout of sidebar and main content */
+.content-wrapper {
+    display: flex;
+    width: 100%;
+}
+
+header h1, header h2 {
+    margin: 0;
+    color: var(--gunmetal);
+}
+
+.header_title {
+    font-family: var(--font-road-rage); /* Using the Road Rage font */
+    font-size: 48px;
+    margin-left: 30px;
+    color: var(--porcelain);
+}
+
+.header_container {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--carbon-black); /* Dark background similar to the image */
+    padding: 10px 20px;
+    color: var(--porcelain); /* Text color */
+}
+
+.header_container .logo {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100px;
+    height: 100px;
+    margin-right: 10px;
+}
+
+.header_container .logo img{
+    width: 100px;
+    height: 100px;
+    margin-right: 10px;
+    margin-left: 20px;
+}
+
+.header_container .team-name {
+    font-size: 36px;
+    color: var(--porcelain); 
+    margin-left: auto;
+    margin-right: 20px;
+}
+
+.header_container .profile-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--iron-gray); /* Placeholder background for profile icon */
+}
+
+/* Player Profile Details Section */
+.player_info_section {
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+/* Left Rectangle Container Column */
+.player-info {
+    margin: 20px;
+    padding: 20px;
+    background-color: var(--porcelain); /* Player info background color from Figma variables */
+    border-radius: 20px;
+    height: auto;
+    display: inline-block;
+}
+
+.profile-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+}
+
+.player-info .player-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.player-info .profile_with_details {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.player-info .player-details h3 {
+    font-size: 24px;
+    margin: 0;
+    color: var(--carbon-black); /* Player name color from Figma variables */
+}
+
+.player-info .player-details p {
+    margin: 0px;
+    padding: 5px 0;
+    color: var(--carbon-black); /* Player details color from Figma variables */
+}
+
+.player_contact {
+    margin-top: 10px;
+}
+
+.player_contact h3 {
+    font-size: 20px;
+    padding-bottom: 5px;
+    margin: 0;
+    color: var(--carbon-black); /* Contact info header color from Figma variables */
+}
+
+.player_contact p {
+    margin: 0;
+    padding-bottom: 5px;
+    color: var(--carbon-black); /* Contact info text color from Figma variables */
+}
+
+/* Styles for Selected Player Dropdown */
+.player-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.player-dropdown-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--carbon-black);
+    cursor: pointer;
+}
+
+.player-dropdown-btn::after {
+    content: " ▾";
+    font-size: 36px;
+}
+
+.player-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #fff;
+    min-width: 220px;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.player-dropdown-menu a {
+    display: block;
+    padding: 10px 14px;
+    text-decoration: none;
+    color: var(--carbon-black);
+    font-size: 14px;
+}
+
+.player-dropdown-menu a:hover {
+    background-color: #f2f2f2;
+}
+
+/* Show dropdown on hover */
+.player-dropdown:hover .player-dropdown-menu {
+    display: block;
+}
+
+/* Left Column for Player Details, Rank, and Student Information */
+.rank_and_student_info {
+    margin: 0;
+    gap: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Player's Current and Peak Rank */
+/* Top Container for Right Side */
+.rank_container {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: var(--porcelain); /* Rank container background color from Figma variables */
+    border-radius: 20px;
+    display: flex;
+    flex-direction: row;
+}
+
+.rank_and_student_info .rank_container .current_rank, .peak_rank {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+}
+
+.rank_and_student_info .rank_container .current_rank h3,
+.rank_and_student_info .rank_container .peak_rank h3,
+.rank_and_student_info .rank_container .current_rank p,
+.rank_and_student_info .rank_container .peak_rank p {
+    margin: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+    color: var(--carbon-black); /* Rank text color from Figma variables */
+}
+
+.vertical_line {
+  width: 5px;
+  background-color: #000; /* Black color for the vertical line */
+  height: 100%; /* Adjust the height as needed */
+}
+
+.rank_icon {
+    height: 90px;
+    width: 90px;
+}
+
+/* Student's Information */
+/* Bottom Container for Left Side */
+.student_info_container {
+    padding: 20px;
+    background-color: var(--porcelain); /* Student info container background color from Figma variables */
+    border-radius: 20px;
+    height: auto;
+    width: auto;
+    display: inline-block;
+}
+
+.student_info_container h3 {
+    font-size: 24px;
+    padding: 5px 0;
+    margin: 0;
+    color: var(--carbon-black); /* Student info header color from Figma variables */
+}
+
+.student_info_container p {
+    margin: 0;
+    padding: 5px 0;
+    color: var(--carbon-black); /* Student info text color from Figma variables */
+}
+
+/* Styles of the Tabs for Details Section */
+/* Tabs bar */
+.tabs {
+  margin-top: 20px;
+}
+
+.tabs ul {
+  list-style: none;
+  display: flex;
+  gap: 0;               /* we'll use separators instead */
+  padding: 0;
+  margin: 0;
+  align-items: center;
+}
+
+/* Each tab item */
+.tabs li {
+  position: relative;
+  padding: 0 10px;
+}
+
+.tabs li:not(:first-child)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 5px;
+  height: 100%;
+  background-color: var(--carbon-black);
+}
+
+/* Tab links */
+.tabs a {
+  position: relative;
+  text-decoration: none;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+/* Base underline (hidden by default) */
+.tabs a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 3px;
+  background-color: #fff;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+
+/* Show underline on hover */
+.tabs a:hover::after {
+  transform: scaleX(1);
+}
+
+/* Keep underline on active tab */
+.tabs a.active::after {
+  transform: scaleX(1);
+}
+
+/* Overview Overlay Styles */
+
+
+
+/* Make tabs sit on top so Overview/other buttons remain visible above the overlay */
+.tabs {
+  margin-top: 20px;
+  position: relative;
+  z-index: 10;
+}
+
+/* Player Analysis Overlay Styles */
+
+/* Minimal overlay styles */
+.overlay {
+    box-sizing: border-box; /* include padding in width calculations */
+    width: auto;
+    max-width: calc(100% - 30px); /* leave 15px margin on each side without causing overflow */
+    margin: 15px; /* uniform margin around overlay */
+    background-color: var(--porcelain); /* White background for content area */
+    padding: 15px;
+    border-radius: 10px;
+    overflow: visible; /* prevent internal scrollbars */
+    word-break: break-word; /* break long words to avoid overflow */
+}
+
+@media (max-width: 480px) {
+  .overlay {
+    margin: 10px;
+    max-width: calc(100% - 20px);
+    padding: 12px;
+  }
+}
+
+/* Ensure the overview container does not force overflow */
+.overview-container {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+/* Constrain images inside overlays */
+.overview-container img,
+.match-history img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.header-row {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.match-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #f1f1f1;
+    padding-bottom: 10px;
+}
+
+.header-text {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.ranked {
+    background-color: #4CAF50;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* Dropdown Button Styles */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    color: var(--carbon-black);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 21px;
+    cursor: pointer;
+    border: none;
+}
+
+/* Adding an upside-down triangle (caret) next to the button */
+.dropdown-btn::after {
+    content: "▼"; /* Unicode character for the downwards triangle */
+    margin-left: 5px; /* Space between text and triangle */
+    font-size: 12px;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    z-index: 1;
+    border-radius: 5px;
+    box-shadow: 0px 8px 16px var(--carbon-black);
+    margin-top: 5px;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 10px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.player_average_info {
+    background-color: #626262;
+    border-radius: 18px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 28px;
+    overflow: hidden;
+}
+
+/* Each section inside the stat bar */
+.player_average_info > div {
+    display: flex;
+}
+
+/* Winrate donut + text */
+.winrate {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    position: relative;
+    padding-left: 96px; /* space for the donut */
+}
+
+.winrate::before {
+    content: "";
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: conic-gradient(#28b5ff 0 40%, #ff6b6b 40% 72%, #ffd866 72% 100%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+
+/* create inner hole for donut */
+.winrate::after {
+    content: "";
+    position: absolute;
+    left: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #626262;
+    box-shadow: inset 0 0 0 3px rgba(255,255,255,0.03);
+}
+
+/* third column for KDA info */
+.winrate .percentWin {
+    font-size: 28px;
+    font-weight: 600;
+    font-family: 'Roboto', sans-serif;
+    color: var(--porcelain);
+}
+
+.winrate .totalGames {
+    font-size: 21px;
+    color: var(--porcelain);
+    font-family: 'Roboto', sans-serif;
+}
+
+.stat-values {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* KDA block (3rd Column) */
+.KDA_info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 140px;
+}
+
+.KDA_info .KDA {
+    font-size: 28px;
+    font-weight: 600;
+    font-family: 'Roboto', sans-serif;
+    color: var(--porcelain);
+}
+
+.KDA_info .Summarized_KDA {
+    font-size: 21px;
+    color: var(--porcelain);
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Most played champion block */
+.recently_played_champion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.champion-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+
+.recently_played_champion .champion-stats {
+    display: flex;
+    flex-direction: column;
+}
+
+.recently_played_champion .kda-1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--porcelain);
+}
+
+.recently_played_champion .note {
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    font-weight: 400;
+    margin-left: 6px;
+}
+
+.recently_played_champion .kda-2 {
+    font-size: 14px;
+    color: rgba(255,255,255,0.95);
+}
+
+/* Example small typographic styles */
+.header-text{ font-weight: 700; }
+.match-history{ margin-top: 12px; }
+
+/* End of player_analysis styles */

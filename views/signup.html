@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TeamForge Sign Up</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: url("/images/background_photo.png") no-repeat center center / cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .signup-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 40px;
+            width: 400px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .signup-box h2 {
+            margin-bottom: 25px;
+        }
+
+        .signup-box label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .signup-box input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .signup-box button {
+            width: 70%;
+            padding: 12px;
+            background: black;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .signup-box button:hover {
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="signup-box">
+        <h2>Create an Account</h2>
+
+        <label>Email</label>
+        <input type="email" placeholder="Enter your email">
+
+        <label>Password</label>
+        <input type="password" placeholder="Enter your password">
+
+        <label>Confirm Password</label>
+        <input type="password" placeholder="Confirm your password">
+
+        <button onclick="window.location.href='/register'">Continue</button>
+    </div>
+
+</body>
+</html>
