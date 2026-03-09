@@ -14,8 +14,8 @@ app.use(express.static(path.join(process.cwd(), './public')));
 global.viewsPath = path.join(process.cwd(), 'views');
 
 // Routes 
-// app.use("/", require("./routes/authRoutes")); // login routes
-// app.use('/player_analysis', require('./routes/playerAnalysisRoutes'));
+app.use("/", require("./routes/authRoutes")); // login routes
+app.use("/debts", require("./routes/debtRoutes")); // Debt Tracker routes
 
 
 // mySqlPool.query('SELECT 1').then(() => {
