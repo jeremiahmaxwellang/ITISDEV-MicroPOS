@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `micropos_db`.`customers` (
   `phone_number` VARCHAR(20) NULL,
   `debt_balance` DECIMAL(10,2) NULL,
   `is_blacklisted` ENUM('T', 'F') NULL,
+  `facebook_profile` TEXT NULL,
   PRIMARY KEY (`customer_id`))
 ENGINE = InnoDB;
 
@@ -143,6 +144,32 @@ CREATE TABLE IF NOT EXISTS `micropos_db`.`product_batches` (
   CONSTRAINT `fk_product_batches_products1`
     FOREIGN KEY (`product_id`)
     REFERENCES `micropos_db`.`products` (`product_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `micropos_db`.`debts`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `micropos_db`.`debts` (
+  `debt_id` INT NOT NULL AUTO_INCREMENT,
+  `customer_id` INT NULL,
+  `debt_amount` DECIMAL(10,2) NULL,
+  `status` ENUM('Unpaid', 'Overdue', 'Paid') NULL,
+  `transaction_id` INT NULL,
+  `debt_due` DATE NULL,
+  PRIMARY KEY (`debt_id`),
+  INDEX `fk_debts_customers1_idx` (`customer_id` ASC) VISIBLE,
+  INDEX `fk_debts_transactions1_idx` (`transaction_id` ASC) VISIBLE,
+  CONSTRAINT `fk_debts_customers1`
+    FOREIGN KEY (`customer_id`)
+    REFERENCES `micropos_db`.`customers` (`customer_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_debts_transactions1`
+    FOREIGN KEY (`transaction_id`)
+    REFERENCES `micropos_db`.`transactions` (`transaction_id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

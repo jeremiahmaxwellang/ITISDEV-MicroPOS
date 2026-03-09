@@ -18,9 +18,9 @@ app.use("/", require("./routes/authRoutes")); // login routes
 app.use("/debts", require("./routes/debtRoutes")); // Debt Tracker routes
 
 
-// mySqlPool.query('SELECT 1').then(() => {
-//     console.log('MySQL DB Connected');
-// })
+mySqlPool.query('SELECT 1').then(() => {
+    console.log(`MySQL ${process.env.DB_NAME} Connected`);
+})
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

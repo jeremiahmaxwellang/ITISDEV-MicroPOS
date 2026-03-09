@@ -39,10 +39,16 @@ npm install express mysql2 dotenv hbs path express-fileupload express-session co
 ```
 
 #### Configuring the Database
-* In the project folder, navigate to the 'db_design' folder
+* In the project folder, navigate to the ```db_design``` folder
 * Find the micropos_db.sql file
 * Copy paste the script in MySQL Workbench and run it
 
+##### Set up Database Details in /src/.env
+* In the project's  ```/src``` folder, create a file named ```.env```
+* DB_HOST=localhost
+* DB_USER=root
+* DB_PASSWORD=<YOUR_SQL_PASSWORD_HERE>
+* DB_NAME=micropos_db
 
 ### Executing program
 
