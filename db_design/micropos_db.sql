@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS `micropos_db`.`customers` (
   `last_name` VARCHAR(100) NULL,
   `phone_number` VARCHAR(20) NULL,
   `debt_balance` DECIMAL(10,2) NULL,
+  `debt_limit` DECIMAL(10,2) NULL,
   `is_blacklisted` ENUM('T', 'F') NULL,
   `facebook_profile` TEXT NULL,
   PRIMARY KEY (`customer_id`))
