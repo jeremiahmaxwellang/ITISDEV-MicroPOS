@@ -1,45 +1,53 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-    getDebts();
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    const tableBody = document.querySelector('#debts-table tbody');
 
-    // Helper for fetching Customer Debts
-    function getDebts() {
-        fetch(`/debts/get-all`)
-            .then(res => {
-                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    function formatDate(dateStr) {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('en-PH', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    }
 
-                return res.json();
-            })
-            .then(data => {
-                console.log(data);
-                const tableBody = document.querySelector("#debts-table tbody");
+    function getInitials(firstName, lastName) {
+        return `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase();
+    }
 
-                tableBody.innerHTML = "";
+    function renderRows(debts) {
+        if (!debts.length) {
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:2rem;">No records found.</td></tr>`;
+            return;
+        }
 
-                data.forEach((item) => {
-                    const row = document.createElement("tr");
+        tableBody.innerHTML = debts.map(d => {
+            const initials = getInitials(d.first_name, d.last_name);
+            const fullName = `${d.first_name} ${d.last_name}`;
+            const status = d.status.toLowerCase();
 
-                    var fn = item.first_name
-                    ? item.first_name.charAt(0).toUpperCase() 
-                    : "";
-
-                    var ln = item.last_name
-                    ? item.last_name.charAt(0).toUpperCase() 
-                    : "";
-
-                    var status = item.status.toLowerCase();
-
-                    row.innerHTML = `
+            return `
+                <tr>
                     <td>
                         <div class="td-name">
-                        <div class="td-avatar">${fn}${ln}</div>
-                        ${item.first_name} ${item.last_name}
+                        <div class="td-avatar">${initials}</div>
+                        ${fullName}
                         </div>
                     </td>
-                    <td class="td-phone">${item.phone_number}</td>
-                    <td><span class="td-peso ${status}">₱${item.debt_balance}</span></td>
-                    <td>${item.debt_due}</td>
-                    <td><span class="status-badge ${status}">${item.status}</span></td>
+                    <td class="td-phone">${d.phone_number}</td>
+                    <td><span class="td-peso ${status}">₱${d.debt_balance}</span></td>
+                    <td>
+                        <span class="td-date ${status}">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            ${formatDate(d.debt_due)}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge ${status}">${d.status}</span>
+                    </td>
                     <div class="actions">
                         <button class="btn-details">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -56,12 +64,45 @@ document.addEventListener('DOMContentLoaded', function () {
                             Pay
                         </button>
                     </div>
-                `;
+                </td>
+                </tr>
+            `;
+        }).join('');
 
-                    tableBody.appendChild(row);
-                });
-            })
-            .catch((err) => console.error("✗ Error loading debts:", err));
+        
     }
+
+    // Map tab index
+    const endpoints = [
+        '/debts/active',
+        '/debts/paid'
+    ];
+
+    async function loadDebts(tabIndex) {
+        tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Loading...</td></tr>`;
+
+        try {
+            const res = await fetch(endpoints[tabIndex]);
+            if(!res.ok) throw new Error(`Server error: ${res.status}`);
+            const data = await res.json();
+
+            renderRows(data);
+        } catch (err) {
+            tableBody.innerHTML =`<tr><td colspan="6" style="text-align:center;color:red;padding:2rem;">Failed to load data.</td></tr>`;
+            console.error(err);
+        }
+    }
+
+    // Tab click handler
+    tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => { t.classList.remove('active'); t.classList.add('inactive'); });
+            tab.classList.add('active'); // set to active
+            tab.classList.remove('inactive');
+            loadDebts(index);
+        });
+    });
+
+    loadDebts(0);
 
 });

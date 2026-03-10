@@ -12,6 +12,9 @@ const debtsController = require('../controllers/debtsController');
 // Controller
 router.get('/get-all', debtsController.getAllDebts);
 
+router.get('/active', debtsController.getActiveDebts);
+router.get('/paid', debtsController.getPaidDebts);
+
 // Route for /debts
 router.get('/', (req, res) => {
     res.sendFile(path.join(viewsPath, 'debt-tracker.html'));
