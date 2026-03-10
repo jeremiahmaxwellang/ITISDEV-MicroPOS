@@ -4,17 +4,16 @@ const db = require("../config/database");
 exports.getActiveDebts = async (req, res) => {
     try {
         const sql = `
-            SELECT
+            SELECT 
             c.first_name,
             c.last_name,
-            c.phone_number,
-            c.debt_balance,
-            d.debt_due,
+            c.facebook_profile,
+            d.debt_amount,
             d.status,
-            c.is_blacklisted
+            d.debt_due
             FROM debts d
             JOIN customers c ON c.customer_id = d.customer_id
-            WHERE d.status = 'Unpaid' OR d.status = 'Overdue'
+            WHERE d.status = 'Paid'
             ORDER BY d.debt_due
         `;
         const [results] = await db.query(sql);
@@ -28,41 +27,17 @@ exports.getActiveDebts = async (req, res) => {
 exports.getPaidDebts = async (req, res) => {
     try {
         const sql = `
-            SELECT
+            SELECT 
             c.first_name,
             c.last_name,
-            c.phone_number,
-            c.debt_balance,
-            d.debt_due,
+            c.facebook_profile,
+            d.debt_amount,
             d.status,
-            c.is_blacklisted
+            d.debt_due
             FROM debts d
             JOIN customers c ON c.customer_id = d.customer_id
-            WHERE d.status = 'Paid'
-            ORDER BY d.debt_due    
-        `;
-        const [results] = await db.query(sql);
-        res.json(results);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
-
-// Fetch all debts
-exports.getAllDebts = async (req, res) => {
-    try {
-        const sql = `
-            SELECT
-            c.first_name,
-            c.last_name,
-            c.phone_number,
-            c.debt_balance,
-            d.debt_due,
-            d.status,
-            c.is_blacklisted
-            FROM debts d
-            JOIN customers c ON c.customer_id = d.customer_id
-            ORDER BY d.debt_due
+            WHERE d.status != 'Paid'
+            ORDER BY d.debt_due, status
         `;
         const [results] = await db.query(sql);
         res.json(results);

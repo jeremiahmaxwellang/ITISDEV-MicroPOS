@@ -10,8 +10,6 @@ const router = express.Router();
 const debtsController = require('../controllers/debtsController');
 
 // Controller
-router.get('/get-all', debtsController.getAllDebts);
-
 router.get('/active', debtsController.getActiveDebts);
 router.get('/paid', debtsController.getPaidDebts);
 

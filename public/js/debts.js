@@ -32,8 +32,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${fullName}
                         </div>
                     </td>
-                    <td class="td-phone">${d.phone_number}</td>
-                    <td><span class="td-peso ${status}">₱${d.debt_balance}</span></td>
+
+                    <td class="td-phone">
+                        ${d.facebook_profile 
+                            ? `<a href="${d.facebook_profile}" target="_blank">${d.facebook_profile}</a>` 
+                            : '—'}
+                    </td>
+
+                    <td><span class="td-peso ${status}">₱${d.debt_amount}</span></td>
+
                     <td>
                         <span class="td-date ${status}">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -45,9 +52,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             ${formatDate(d.debt_due)}
                         </span>
                     </td>
+
                     <td>
                         <span class="status-badge ${status}">${d.status}</span>
                     </td>
+
+                    <td>
                     <div class="actions">
                         <button class="btn-details">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -64,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             Pay
                         </button>
                     </div>
-                </td>
+                    </td>
                 </tr>
             `;
         }).join('');
@@ -74,8 +84,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Map tab index
     const endpoints = [
-        '/debts/active',
-        '/debts/paid'
+        '/debts/paid',
+        '/debts/active'
     ];
 
     async function loadDebts(tabIndex) {
