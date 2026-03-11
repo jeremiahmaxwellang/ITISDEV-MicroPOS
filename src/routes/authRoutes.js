@@ -26,6 +26,11 @@ router.get('/register', (req, res) => {
     res.sendFile(path.join(viewsPath, 'register.html'));
 });
 
+// Reports page
+router.get('/reports', (req, res) => {
+    res.sendFile(path.join(viewsPath, 'reports.html'));
+});
+
 // Dashboard pages
 // router.get('/manager_dashboard.html', (req, res) => {
 //     res.sendFile(path.join(viewsPath, 'manager_dashboard.html'));
