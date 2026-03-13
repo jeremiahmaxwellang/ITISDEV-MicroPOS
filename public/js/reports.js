@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const highlightCard = document.getElementById("highlightCard");
   const listTitle = document.getElementById("listTitle");
   const tabButtons = document.querySelectorAll(".segment");
+  const reportsGrid = document.querySelector(".reports-grid");
+  const topListCard = document.querySelector(".top-list-card");
 
   const state = {
     period: "7",
@@ -163,6 +165,54 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
+  function renderCategoryPieChart() {
+    const categories = categoriesByPeriod[state.period];
+    const totalRevenue = categories.reduce((sum, item) => sum + item.revenue, 0);
+    const colors = ["#2f62da", "#7e1ef2", "#f39a00", "#11ba7a", "#6f778d", "#d83c6a"];
+
+    let currentAngle = 0;
+
+    const slices = categories
+      .map((item, index) => {
+        const percent = totalRevenue ? (item.revenue / totalRevenue) * 100 : 0;
+        const start = currentAngle;
+        const end = currentAngle + percent;
+        currentAngle = end;
+        return `${colors[index % colors.length]} ${start.toFixed(2)}% ${end.toFixed(2)}%`;
+      })
+      .join(", ");
+
+    const labels = categories
+      .map((item, index) => {
+        const percent = totalRevenue ? (item.revenue / totalRevenue) * 100 : 0;
+        return `
+          <li class="pie-legend-item">
+            <span class="pie-dot" style="background:${colors[index % colors.length]}"></span>
+            <span>${item.name}</span>
+            <strong>${percent.toFixed(0)}%</strong>
+          </li>
+        `;
+      })
+      .join("");
+
+    highlightCard.innerHTML = `
+      <h3 class="highlight-title pie-title">Category Sales Share</h3>
+      <p class="highlight-meta">Revenue distribution for the last ${state.period} days.</p>
+      <div class="pie-chart-wrap">
+        <div class="pie-chart" style="background: conic-gradient(${slices});" role="img" aria-label="Category sales distribution pie chart"></div>
+      </div>
+      <ul class="pie-legend">
+        ${labels}
+      </ul>
+    `;
+  }
+
+  function syncLayoutByTab() {
+    const isProducts = state.activeTab === "products";
+    reportsGrid.classList.toggle("categories-view", !isProducts);
+    topListCard.hidden = !isProducts;
+  }
+
   function renderTopList() {
     const isProducts = state.activeTab === "products";
     const list = isProducts
@@ -210,8 +260,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderAll() {
     renderMetrics();
-    renderHighlight();
-    renderTopList();
+    syncLayoutByTab();
+
+    if (state.activeTab === "products") {
+      renderHighlight();
+      renderTopList();
+      return;
+    }
+
+    renderCategoryPieChart();
   }
 
   tabButtons.forEach((tab) => {
@@ -219,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
       tabButtons.forEach((btn) => btn.classList.remove("active"));
       tab.classList.add("active");
       state.activeTab = tab.dataset.tab;
-      renderTopList();
+      renderAll();
     });
   });
 
