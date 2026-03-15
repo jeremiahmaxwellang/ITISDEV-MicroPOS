@@ -1,5 +1,24 @@
 const db = require("../config/database");
 
+/**
+ * Return all barcode variants to try so the scan works regardless of
+ * whether the product was stored as EAN-13 or UPC-A (they overlap by
+ * a leading '0').  Any other format is stored & matched exactly.
+ */
+function barcodeVariants(raw) {
+  const b = raw.trim().replace(/\s+/g, "");
+  const variants = [b];
+  // EAN-13 (13 digits starting with 0)  →  UPC-A (drop the leading 0)
+  if (/^\d{13}$/.test(b) && b.startsWith("0")) {
+    variants.push(b.slice(1));
+  }
+  // UPC-A (12 digits)  →  EAN-13 (prepend 0)
+  if (/^\d{12}$/.test(b)) {
+    variants.push("0" + b);
+  }
+  return [...new Set(variants)];
+}
+
 // Scan barcode and retrieve product
 exports.scanBarcode = async (req, res) => {
   const { barcode } = req.body;
@@ -7,6 +26,9 @@ exports.scanBarcode = async (req, res) => {
   if (!barcode || barcode.trim() === "") {
     return res.status(400).json({ error: "Barcode is required" });
   }
+
+  const variants = barcodeVariants(barcode);
+  const placeholders = variants.map(() => "?").join(", ");
 
   try {
     const [rows] = await db.query(
@@ -29,9 +51,10 @@ exports.scanBarcode = async (req, res) => {
         ) AS available_stock
       FROM products p
       LEFT JOIN product_batches pb ON p.product_id = pb.product_id
-      WHERE p.barcode = ?
-      GROUP BY p.product_id, p.name, p.barcode, p.product_type, p.selling_price`,
-      [barcode.trim()]
+      WHERE p.barcode IN (${placeholders})
+      GROUP BY p.product_id, p.name, p.barcode, p.product_type, p.selling_price
+      LIMIT 1`,
+      variants
     );
 
     if (rows.length === 0) {

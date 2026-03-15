@@ -12,18 +12,13 @@
 
   <link rel="stylesheet" href="/css/modern.css">
   <link rel="stylesheet" href="/css/sidebar.css">
-
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@latest/dist/quagga.js"></script>
 </head>
 
 <body class="with-sidebar">
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <i data-lucide="store" style="width: 24px; height: 24px;"></i>
-    </div>
+    <div class="sidebar-logo">M</div>
     <div class="sidebar-nav">
       <a href="/pos" class="sidebar-nav-icon" title="Point of Sale">
         <i data-lucide="shopping-cart"></i>
@@ -59,41 +54,44 @@
       </div>
       <div class="main-header-right">
         <div class="navbar-user">
-          <div class="user-avatar" id="userAvatar">JD</div>
+          <div class="user-avatar">JD</div>
           <div>
-            <div style="font-weight: 600;" id="userName">Juan Dela Cruz</div>
-            <div style="font-size: 0.75rem; color: #718096;" id="userRole">Store Owner</div>
+            <div style="font-weight:600;">Juan Dela Cruz</div>
+            <div style="font-size:0.75rem;color:#718096;">Store Owner</div>
           </div>
         </div>
       </div>
     </header>
 
     <div class="main-content">
-      <div style="padding: 1.5rem; max-width: 1400px; margin: 0 auto;">
+      <div style="padding:1.5rem;max-width:1400px;margin:0 auto;">
 
         <!-- TAB BAR -->
-        <div style="display: flex; gap: 0; margin-bottom: 2rem; border-bottom: 2px solid #e2e8f0; align-items: flex-end;">
-          <button class="tab-btn active" data-tab="inventory" style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;border:none;background:none;cursor:pointer;font-family:Outfit,sans-serif;font-size:0.95rem;font-weight:600;color:#4f46e5;border-bottom:3px solid #4f46e5;margin-bottom:-2px;">
+        <div style="display:flex;gap:0;margin-bottom:2rem;border-bottom:2px solid #e2e8f0;align-items:flex-end;">
+          <button class="tab-btn active" data-tab="inventory"
+            style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;border:none;background:none;cursor:pointer;font-family:Outfit,sans-serif;font-size:0.95rem;font-weight:600;color:#4f46e5;border-bottom:3px solid #4f46e5;margin-bottom:-2px;">
             <i data-lucide="package" style="width:18px;height:18px;"></i> Inventory
           </button>
-          <button class="tab-btn" data-tab="insights" style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;border:none;background:none;cursor:pointer;font-family:Outfit,sans-serif;font-size:0.95rem;font-weight:600;color:#718096;">
+          <button class="tab-btn" data-tab="insights"
+            style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;border:none;background:none;cursor:pointer;font-family:Outfit,sans-serif;font-size:0.95rem;font-weight:600;color:#718096;">
             <i data-lucide="trending-up" style="width:18px;height:18px;"></i> Inventory Insights
           </button>
-          <button class="tab-btn" data-tab="reported" style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;border:none;background:none;cursor:pointer;font-family:Outfit,sans-serif;font-size:0.95rem;font-weight:600;color:#718096;">
+          <button class="tab-btn" data-tab="reported"
+            style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;border:none;background:none;cursor:pointer;font-family:Outfit,sans-serif;font-size:0.95rem;font-weight:600;color:#718096;">
             <i data-lucide="alert-circle" style="width:18px;height:18px;"></i> Reported Products
           </button>
         </div>
 
-        <!-- ── INVENTORY TAB ── -->
+        <!-- INVENTORY TAB -->
         <div id="tab-inventory">
-          <!-- Toolbar -->
           <div style="display:flex;gap:1rem;margin-bottom:1.5rem;align-items:center;flex-wrap:wrap;">
             <div style="flex:1;min-width:220px;position:relative;">
               <i data-lucide="search" style="width:18px;height:18px;position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#718096;pointer-events:none;"></i>
               <input type="text" id="searchInput" placeholder="Search products or barcode…"
                 style="padding:0.75rem 1rem 0.75rem 2.75rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:0.9rem;width:100%;box-sizing:border-box;">
             </div>
-            <select id="categoryFilter" style="padding:0.75rem 1rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:0.9rem;background:white;cursor:pointer;">
+            <select id="categoryFilter"
+              style="padding:0.75rem 1rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:0.9rem;background:white;cursor:pointer;">
               <option value="">All Categories</option>
               <option value="Beverages">Beverages</option>
               <option value="Canned Goods">Canned Goods</option>
@@ -104,15 +102,16 @@
               <option value="Services">Services</option>
               <option value="Other">Other</option>
             </select>
-            <button id="addProductBtn" style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.25rem;background:#4f46e5;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;white-space:nowrap;">
+            <button id="addProductBtn"
+              style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.25rem;background:#4f46e5;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;white-space:nowrap;">
               <i data-lucide="plus" style="width:18px;height:18px;"></i> Add Product
             </button>
-            <button id="exportBtn" style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.25rem;background:white;color:#4f46e5;border:1px solid #4f46e5;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;white-space:nowrap;">
+            <button id="exportBtn"
+              style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.25rem;background:white;color:#4f46e5;border:1px solid #4f46e5;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;white-space:nowrap;">
               <i data-lucide="download" style="width:18px;height:18px;"></i> Export
             </button>
           </div>
 
-          <!-- Table -->
           <div style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;">
             <table id="productsTable" style="width:100%;border-collapse:collapse;">
               <thead>
@@ -128,7 +127,6 @@
               <tbody id="productsContainer">
                 <tr>
                   <td colspan="6" style="padding:3rem;text-align:center;color:#718096;">
-                    <i data-lucide="loader" style="width:32px;height:32px;margin-bottom:0.5rem;opacity:0.4;display:block;margin-left:auto;margin-right:auto;"></i>
                     Loading products…
                   </td>
                 </tr>
@@ -137,22 +135,22 @@
           </div>
         </div>
 
-        <!-- ── INSIGHTS TAB ── -->
+        <!-- INSIGHTS TAB -->
         <div id="tab-insights" style="display:none;">
           <div id="insightsContent" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:2rem;text-align:center;color:#718096;">
-            <i data-lucide="trending-up" style="width:48px;height:48px;margin-bottom:1rem;opacity:0.4;display:block;margin-left:auto;margin-right:auto;"></i>
-            <p>Loading insights…</p>
+            Loading insights…
           </div>
         </div>
 
-        <!-- ── REPORTED TAB ── -->
+        <!-- REPORTED TAB -->
         <div id="tab-reported" style="display:none;">
           <div style="display:flex;gap:1rem;margin-bottom:1.5rem;align-items:center;justify-content:space-between;">
             <div>
               <div style="font-size:1.125rem;font-weight:600;color:#1a2035;">Reported Items</div>
               <div style="font-size:0.875rem;color:#718096;">Track product losses and quality issues</div>
             </div>
-            <button id="reportDamagedBtn" style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.25rem;background:#ef4444;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;">
+            <button id="reportDamagedBtn"
+              style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.25rem;background:#ef4444;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;">
               <i data-lucide="plus" style="width:18px;height:18px;"></i> Report Damaged Item
             </button>
           </div>
@@ -171,10 +169,7 @@
               </thead>
               <tbody id="reportedContainer">
                 <tr>
-                  <td colspan="7" style="padding:3rem;text-align:center;color:#718096;">
-                    <i data-lucide="check-circle" style="width:32px;height:32px;margin-bottom:0.5rem;opacity:0.4;display:block;margin-left:auto;margin-right:auto;"></i>
-                    No reported items
-                  </td>
+                  <td colspan="7" style="padding:3rem;text-align:center;color:#718096;">No reported items</td>
                 </tr>
               </tbody>
             </table>
@@ -186,11 +181,16 @@
   </div>
 
   <!-- ADD / EDIT PRODUCT MODAL -->
-  <div id="productModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:1rem;">
-    <div style="background:white;border-radius:0.75rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.2);">
-      <div style="padding:1.25rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
-        <h3 id="modalTitle" style="font-size:1.125rem;font-weight:700;color:#1a2035;margin:0;">Add Product</h3>
-        <button id="closeModal" style="background:none;border:none;cursor:pointer;color:#718096;padding:0.25rem;display:flex;align-items:center;">
+  <div id="productModal"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:1rem;">
+    <div
+      style="background:white;border-radius:0.75rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+      <div
+        style="padding:1.25rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+        <h3 id="modalTitle"
+          style="font-size:1.125rem;font-weight:700;color:#1a2035;margin:0;">Add Product</h3>
+        <button id="closeModal"
+          style="background:none;border:none;cursor:pointer;color:#718096;padding:0.25rem;display:flex;align-items:center;">
           <i data-lucide="x" style="width:20px;height:20px;"></i>
         </button>
       </div>
@@ -204,21 +204,23 @@
             style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;">
         </div>
 
-        <!-- BARCODE ROW -->
         <div>
           <label style="display:block;font-weight:600;color:#1a2035;margin-bottom:0.4rem;font-size:0.9rem;">Barcode</label>
           <div style="display:flex;gap:0.5rem;">
             <input type="text" id="productBarcode" placeholder="Enter barcode or scan via camera"
               style="flex:1;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;">
-            <button id="scanBarcodeBtn" title="Scan with camera" style="padding:0.75rem;background:#4f46e5;color:white;border:none;border-radius:0.375rem;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:44px;">
+            <button id="scanBarcodeBtn" title="Scan with camera"
+              style="padding:0.75rem;background:#4f46e5;color:white;border:none;border-radius:0.375rem;cursor:pointer;display:flex;align-items:center;justify-content:center;min-width:44px;">
               <i data-lucide="scan-line" style="width:18px;height:18px;"></i>
             </button>
           </div>
-          <!-- inline camera for barcode scanning in modal -->
-          <div id="barcodeScannerModal" style="display:none;margin-top:0.5rem;border:1px solid #e2e8f0;border-radius:0.375rem;overflow:hidden;position:relative;">
-            <video id="modalCameraFeed" style="width:100%;display:block;aspect-ratio:4/3;background:#000;"></video>
-            <button id="stopModalScanBtn" style="position:absolute;top:0.5rem;right:0.5rem;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:0.25rem;padding:0.4rem 0.6rem;cursor:pointer;display:flex;align-items:center;gap:0.3rem;font-size:0.75rem;">
-              <i data-lucide="x" style="width:14px;height:14px;"></i> Stop
+          <div id="barcodeScannerModal"
+            style="display:none;margin-top:0.5rem;border:1px solid #e2e8f0;border-radius:0.375rem;overflow:hidden;position:relative;">
+            <video id="modalCameraFeed"
+              style="width:100%;display:block;aspect-ratio:4/3;background:#000;"></video>
+            <button id="stopModalScanBtn"
+              style="position:absolute;top:0.5rem;right:0.5rem;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:0.25rem;padding:0.4rem 0.6rem;cursor:pointer;font-size:0.75rem;">
+              Stop Camera
             </button>
           </div>
           <div id="barcodeHint" style="font-size:0.75rem;color:#718096;margin-top:0.3rem;"></div>
@@ -255,10 +257,12 @@
       </div>
 
       <div style="padding:1rem 1.5rem;border-top:1px solid #e2e8f0;display:flex;gap:1rem;justify-content:flex-end;">
-        <button id="cancelModal" style="padding:0.75rem 1.25rem;background:white;border:1px solid #e2e8f0;color:#1a2035;border-radius:0.375rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;">
+        <button id="cancelModal"
+          style="padding:0.75rem 1.25rem;background:white;border:1px solid #e2e8f0;color:#1a2035;border-radius:0.375rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;">
           Cancel
         </button>
-        <button id="saveProductBtn" style="padding:0.75rem 1.25rem;background:#4f46e5;color:white;border:none;border-radius:0.375rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:0.5rem;">
+        <button id="saveProductBtn"
+          style="padding:0.75rem 1.25rem;background:#4f46e5;color:white;border:none;border-radius:0.375rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:0.5rem;">
           <i data-lucide="save" style="width:16px;height:16px;"></i> Save Product
         </button>
       </div>
@@ -266,163 +270,181 @@
   </div>
 
   <!-- TOAST -->
-  <div id="toast" style="position:fixed;bottom:2rem;right:2rem;padding:0.875rem 1.25rem;background:white;border-radius:0.5rem;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);display:none;z-index:2000;max-width:320px;font-family:Outfit,sans-serif;font-size:0.9rem;border-left:4px solid #4f46e5;">
+  <div id="toast"
+    style="position:fixed;bottom:2rem;right:2rem;padding:0.875rem 1.25rem;background:white;border-radius:0.5rem;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);display:none;z-index:2000;max-width:320px;font-family:Outfit,sans-serif;font-size:0.9rem;border-left:4px solid #4f46e5;">
     <div id="toastMsg"></div>
   </div>
 
+  <!-- Lucide & Quagga loaded at end of body so DOM is ready -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@latest/dist/quagga.js"></script>
+
   <script>
-    const CATEGORIES = ['Beverages','Canned Goods','Instant Foods','Snacks','Dairy','Coffee','Services','Other'];
+    // ─────────────────────────────────────────────────────────────
+    // STATE
+    // ─────────────────────────────────────────────────────────────
+    var allProducts = [];
+    var modalCameraStream = null;
+    var quaggaModalRunning = false;
 
-    let allProducts = [];
-    let modalCameraStream = null;
+    function icons() {
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
 
-    // ── TOAST ──────────────────────────────────────────────
-    function showToast(msg, type = 'info') {
-      const toast = document.getElementById('toast');
-      const colors = { success: '#38a169', error: '#ef4444', info: '#4f46e5' };
+    // ─────────────────────────────────────────────────────────────
+    // TOAST
+    // ─────────────────────────────────────────────────────────────
+    function showToast(msg, type) {
+      var colors = { success: '#38a169', error: '#ef4444', info: '#4f46e5' };
+      var toast = document.getElementById('toast');
       toast.style.borderLeftColor = colors[type] || colors.info;
       document.getElementById('toastMsg').textContent = msg;
       toast.style.display = 'block';
-      setTimeout(() => toast.style.display = 'none', 3500);
+      setTimeout(function() { toast.style.display = 'none'; }, 3500);
     }
 
-    // ── LOAD PRODUCTS ──────────────────────────────────────
-    async function loadProducts() {
-      try {
-        const res = await fetch('/products/items');
-        const data = await res.json();
-        allProducts = data.items || [];
-        renderProducts(allProducts);
-        buildInsights(allProducts);
-      } catch (e) {
-        document.getElementById('productsContainer').innerHTML = `
-          <tr><td colspan="6" style="padding:2rem;text-align:center;color:#ef4444;">
-            <i data-lucide="alert-circle" style="width:32px;height:32px;margin-bottom:0.5rem;display:block;margin-left:auto;margin-right:auto;"></i>
-            Failed to load products
-          </td></tr>`;
-        lucide.createIcons();
-      }
+    // ─────────────────────────────────────────────────────────────
+    // PRODUCTS LOAD & RENDER
+    // ─────────────────────────────────────────────────────────────
+    function loadProducts() {
+      var container = document.getElementById('productsContainer');
+      container.innerHTML = '<tr><td colspan="6" style="padding:2rem;text-align:center;color:#718096;">Loading…</td></tr>';
+
+      fetch('/products/items')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          allProducts = data.items || [];
+          renderProducts(allProducts);
+          buildInsights(allProducts);
+        })
+        .catch(function() {
+          container.innerHTML = '<tr><td colspan="6" style="padding:2rem;text-align:center;color:#ef4444;">Failed to load products. Is the server running?</td></tr>';
+        });
     }
 
-    // ── RENDER TABLE ───────────────────────────────────────
     function renderProducts(products) {
-      const container = document.getElementById('productsContainer');
+      var container = document.getElementById('productsContainer');
+
       if (!products.length) {
-        container.innerHTML = `
-          <tr><td colspan="6" style="padding:3rem;text-align:center;color:#718096;">
-            <i data-lucide="package" style="width:32px;height:32px;margin-bottom:0.5rem;display:block;margin-left:auto;margin-right:auto;opacity:0.4;"></i>
-            No products found
-          </td></tr>`;
-        lucide.createIcons();
+        container.innerHTML = '<tr><td colspan="6" style="padding:3rem;text-align:center;color:#718096;">No products found</td></tr>';
         return;
       }
 
-      container.innerHTML = products.map(p => {
-        const isLow = p.stock <= 5 && p.stock > 0;
-        const isOut = p.stock === 0 && p.category !== 'Services';
-        const stockBg   = isOut ? '#fee2e2' : isLow ? '#fff3cd' : '#dcfce7';
-        const stockText = isOut ? '#991b1b' : isLow ? '#92400e' : '#166534';
-        const stockLabel = p.category === 'Services' ? '—' : p.stock;
+      var html = '';
+      for (var i = 0; i < products.length; i++) {
+        var p = products[i];
+        var stock = p.stock;
+        var isService = p.category === 'Services';
+        var isLow = !isService && stock > 0 && stock <= 5;
+        var isOut = !isService && stock === 0;
 
-        return `
-          <tr style="border-bottom:1px solid #e2e8f0;transition:background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
-            <td style="padding:0.875rem 1rem;">
-              <div style="display:flex;align-items:center;gap:0.75rem;">
-                <div style="width:40px;height:40px;background:linear-gradient(135deg,#f0f4ff,#edf2f7);border-radius:0.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <i data-lucide="package" style="width:20px;height:20px;color:#4f46e5;opacity:0.7;"></i>
-                </div>
-                <div>
-                  <div style="font-weight:600;color:#1a2035;">${p.name}</div>
-                  <div style="font-size:0.75rem;color:#718096;">${p.barcode ? p.barcode : '<em>No barcode</em>'}</div>
-                </div>
-              </div>
-            </td>
-            <td style="padding:0.875rem 1rem;color:#718096;font-size:0.9rem;">${p.manufacturer || '—'}</td>
-            <td style="padding:0.875rem 1rem;color:#718096;font-size:0.9rem;">${p.category || '—'}</td>
-            <td style="padding:0.875rem 1rem;font-weight:600;color:#1a2035;">₱${parseFloat(p.price||0).toFixed(2)}</td>
-            <td style="padding:0.875rem 1rem;">
-              ${p.category === 'Services'
-                ? '<span style="color:#718096;font-size:0.875rem;">Unlimited</span>'
-                : `<span style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.75rem;background:${stockBg};color:${stockText};border-radius:9999px;font-size:0.8rem;font-weight:600;">
-                    ${isLow ? '<i data-lucide="alert-triangle" style="width:13px;height:13px;"></i>' : ''}
-                    ${stockLabel}
-                  </span>`}
-            </td>
-            <td style="padding:0.875rem 1rem;">
-              <div style="display:flex;gap:0.4rem;">
-                <button onclick="openEditModal(${p.id})" title="Edit" style="width:34px;height:34px;border:1px solid #e2e8f0;background:white;border-radius:0.375rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#4f46e5;">
-                  <i data-lucide="edit-2" style="width:15px;height:15px;"></i>
-                </button>
-                <button onclick="confirmDelete(${p.id},'${p.name.replace(/'/g,"\\'")}\')" title="Delete" style="width:34px;height:34px;border:1px solid #fee2e2;background:#fef2f2;border-radius:0.375rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#ef4444;">
-                  <i data-lucide="trash-2" style="width:15px;height:15px;"></i>
-                </button>
-              </div>
-            </td>
-          </tr>`;
-      }).join('');
-      lucide.createIcons();
+        var stockBg   = isOut ? '#fee2e2' : isLow ? '#fff3cd' : '#dcfce7';
+        var stockText = isOut ? '#991b1b' : isLow ? '#92400e' : '#166534';
+
+        var stockCell = isService
+          ? '<span style="color:#718096;font-size:0.875rem;">Unlimited</span>'
+          : '<span style="padding:0.35rem 0.75rem;background:' + stockBg + ';color:' + stockText + ';border-radius:9999px;font-size:0.8rem;font-weight:600;">' + stock + '</span>';
+
+        html += '<tr style="border-bottom:1px solid #e2e8f0;">'
+          + '<td style="padding:0.875rem 1rem;">'
+          +   '<div style="display:flex;align-items:center;gap:0.75rem;">'
+          +     '<div style="width:40px;height:40px;background:linear-gradient(135deg,#f0f4ff,#edf2f7);border-radius:0.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+          +       '<i data-lucide="package" style="width:20px;height:20px;color:#4f46e5;opacity:0.7;"></i>'
+          +     '</div>'
+          +     '<div>'
+          +       '<div style="font-weight:600;color:#1a2035;">' + escHtml(p.name) + '</div>'
+          +       '<div style="font-size:0.75rem;color:#718096;">' + (p.barcode ? escHtml(p.barcode) : '<em>No barcode</em>') + '</div>'
+          +     '</div>'
+          +   '</div>'
+          + '</td>'
+          + '<td style="padding:0.875rem 1rem;color:#718096;font-size:0.9rem;">' + escHtml(p.manufacturer || '—') + '</td>'
+          + '<td style="padding:0.875rem 1rem;color:#718096;font-size:0.9rem;">' + escHtml(p.category || '—') + '</td>'
+          + '<td style="padding:0.875rem 1rem;font-weight:600;color:#1a2035;">₱' + parseFloat(p.price || 0).toFixed(2) + '</td>'
+          + '<td style="padding:0.875rem 1rem;">' + stockCell + '</td>'
+          + '<td style="padding:0.875rem 1rem;">'
+          +   '<div style="display:flex;gap:0.4rem;">'
+          +     '<button class="edit-btn" data-id="' + p.id + '" title="Edit" style="width:34px;height:34px;border:1px solid #e2e8f0;background:white;border-radius:0.375rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#4f46e5;">'
+          +       '<i data-lucide="edit-2" style="width:15px;height:15px;"></i>'
+          +     '</button>'
+          +     '<button class="delete-btn" data-id="' + p.id + '" data-name="' + escAttr(p.name) + '" title="Delete" style="width:34px;height:34px;border:1px solid #fee2e2;background:#fef2f2;border-radius:0.375rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#ef4444;">'
+          +       '<i data-lucide="trash-2" style="width:15px;height:15px;"></i>'
+          +     '</button>'
+          +   '</div>'
+          + '</td>'
+          + '</tr>';
+      }
+
+      container.innerHTML = html;
+      icons();
     }
 
-    // ── INSIGHTS ───────────────────────────────────────────
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function escAttr(str) {
+      return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // INSIGHTS
+    // ─────────────────────────────────────────────────────────────
     function buildInsights(products) {
-      const critical = products.filter(p => p.category !== 'Services' && p.stock <= 5 && p.stock > 0);
-      const outOf    = products.filter(p => p.category !== 'Services' && p.stock === 0);
-      const total    = products.length;
+      var outOf    = products.filter(function(p) { return p.category !== 'Services' && p.stock === 0; });
+      var critical = products.filter(function(p) { return p.category !== 'Services' && p.stock > 0 && p.stock <= 5; });
+      var total    = products.length;
 
-      document.getElementById('insightsContent').innerHTML = `
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;">
-          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:0.75rem;padding:1.25rem;text-align:center;">
-            <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.5rem;">
-              <i data-lucide="alert-triangle" style="width:20px;height:20px;color:#ef4444;"></i>
-              <span style="font-weight:700;color:#ef4444;font-size:1.125rem;">${outOf.length}</span>
-            </div>
-            <div style="font-weight:600;color:#991b1b;">Out of Stock</div>
-          </div>
-          <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:0.75rem;padding:1.25rem;text-align:center;">
-            <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.5rem;">
-              <i data-lucide="alert-circle" style="width:20px;height:20px;color:#d97706;"></i>
-              <span style="font-weight:700;color:#d97706;font-size:1.125rem;">${critical.length}</span>
-            </div>
-            <div style="font-weight:600;color:#92400e;">Low Stock (≤5)</div>
-          </div>
-          <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:0.75rem;padding:1.25rem;text-align:center;">
-            <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.5rem;">
-              <i data-lucide="package" style="width:20px;height:20px;color:#38a169;"></i>
-              <span style="font-weight:700;color:#38a169;font-size:1.125rem;">${total}</span>
-            </div>
-            <div style="font-weight:600;color:#166534;">Total Products</div>
-          </div>
-        </div>
-        ${(critical.length || outOf.length) ? `
-        <div style="background:white;border:1px solid #e2e8f0;border-radius:0.75rem;overflow:hidden;">
-          <div style="padding:1rem 1.25rem;background:#f8fafc;font-weight:600;color:#1a2035;border-bottom:1px solid #e2e8f0;">Products Needing Attention</div>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead><tr style="background:#f8fafc;">
-              <th style="padding:0.75rem 1rem;text-align:left;font-weight:600;font-size:0.875rem;color:#718096;">Product</th>
-              <th style="padding:0.75rem 1rem;text-align:left;font-weight:600;font-size:0.875rem;color:#718096;">Category</th>
-              <th style="padding:0.75rem 1rem;text-align:left;font-weight:600;font-size:0.875rem;color:#718096;">Stock</th>
-              <th style="padding:0.75rem 1rem;text-align:left;font-weight:600;font-size:0.875rem;color:#718096;">Status</th>
-            </tr></thead>
-            <tbody>
-              ${[...outOf, ...critical].map(p => `
-                <tr style="border-top:1px solid #e2e8f0;">
-                  <td style="padding:0.75rem 1rem;font-weight:500;color:#1a2035;">${p.name}</td>
-                  <td style="padding:0.75rem 1rem;color:#718096;">${p.category}</td>
-                  <td style="padding:0.75rem 1rem;font-weight:600;color:#1a2035;">${p.stock}</td>
-                  <td style="padding:0.75rem 1rem;">
-                    ${p.stock === 0
-                      ? '<span style="background:#fee2e2;color:#991b1b;padding:0.25rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:600;">OUT OF STOCK</span>'
-                      : '<span style="background:#fff3cd;color:#92400e;padding:0.25rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:600;">LOW STOCK</span>'}
-                  </td>
-                </tr>`).join('')}
-            </tbody>
-          </table>
-        </div>` : '<p style="color:#718096;text-align:center;">All products are well-stocked.</p>'}
-      `;
-      lucide.createIcons();
+      var rows = '';
+      var attention = outOf.concat(critical);
+      for (var i = 0; i < attention.length; i++) {
+        var p = attention[i];
+        var badge = p.stock === 0
+          ? '<span style="background:#fee2e2;color:#991b1b;padding:0.25rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:600;">OUT OF STOCK</span>'
+          : '<span style="background:#fff3cd;color:#92400e;padding:0.25rem 0.6rem;border-radius:9999px;font-size:0.75rem;font-weight:600;">LOW STOCK</span>';
+        rows += '<tr style="border-top:1px solid #e2e8f0;">'
+          + '<td style="padding:0.75rem 1rem;font-weight:500;color:#1a2035;">' + escHtml(p.name) + '</td>'
+          + '<td style="padding:0.75rem 1rem;color:#718096;">' + escHtml(p.category) + '</td>'
+          + '<td style="padding:0.75rem 1rem;font-weight:600;color:#1a2035;">' + p.stock + '</td>'
+          + '<td style="padding:0.75rem 1rem;">' + badge + '</td>'
+          + '</tr>';
+      }
+
+      var table = attention.length
+        ? '<div style="background:white;border:1px solid #e2e8f0;border-radius:0.75rem;overflow:hidden;margin-top:1rem;">'
+          + '<div style="padding:1rem 1.25rem;background:#f8fafc;font-weight:600;color:#1a2035;border-bottom:1px solid #e2e8f0;">Products Needing Attention</div>'
+          + '<table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#f8fafc;">'
+          + '<th style="padding:0.75rem 1rem;text-align:left;font-size:0.875rem;color:#718096;font-weight:600;">Product</th>'
+          + '<th style="padding:0.75rem 1rem;text-align:left;font-size:0.875rem;color:#718096;font-weight:600;">Category</th>'
+          + '<th style="padding:0.75rem 1rem;text-align:left;font-size:0.875rem;color:#718096;font-weight:600;">Stock</th>'
+          + '<th style="padding:0.75rem 1rem;text-align:left;font-size:0.875rem;color:#718096;font-weight:600;">Status</th>'
+          + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+        : '<p style="color:#718096;text-align:center;margin-top:1rem;">All products are well-stocked.</p>';
+
+      document.getElementById('insightsContent').innerHTML =
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">'
+        + '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:0.75rem;padding:1.25rem;text-align:center;">'
+        +   '<div style="font-weight:700;color:#ef4444;font-size:1.75rem;">' + outOf.length + '</div>'
+        +   '<div style="font-weight:600;color:#991b1b;margin-top:0.25rem;">Out of Stock</div>'
+        + '</div>'
+        + '<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:0.75rem;padding:1.25rem;text-align:center;">'
+        +   '<div style="font-weight:700;color:#d97706;font-size:1.75rem;">' + critical.length + '</div>'
+        +   '<div style="font-weight:600;color:#92400e;margin-top:0.25rem;">Low Stock (≤5)</div>'
+        + '</div>'
+        + '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:0.75rem;padding:1.25rem;text-align:center;">'
+        +   '<div style="font-weight:700;color:#38a169;font-size:1.75rem;">' + total + '</div>'
+        +   '<div style="font-weight:600;color:#166534;margin-top:0.25rem;">Total Products</div>'
+        + '</div>'
+        + '</div>'
+        + table;
     }
 
-    // ── MODAL HELPERS ──────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // MODAL
+    // ─────────────────────────────────────────────────────────────
     function openAddModal() {
       document.getElementById('modalTitle').textContent = 'Add Product';
       document.getElementById('editProductId').value = '';
@@ -434,13 +456,17 @@
       document.getElementById('barcodeHint').textContent = '';
       document.getElementById('stockField').style.display = '';
       document.getElementById('productModal').style.display = 'flex';
-      document.getElementById('productName').focus();
-      lucide.createIcons();
+      setTimeout(function() { document.getElementById('productName').focus(); }, 50);
+      icons();
     }
 
     function openEditModal(id) {
-      const p = allProducts.find(x => x.id === id);
+      var p = null;
+      for (var i = 0; i < allProducts.length; i++) {
+        if (allProducts[i].id === id) { p = allProducts[i]; break; }
+      }
       if (!p) return;
+
       document.getElementById('modalTitle').textContent = 'Edit Product';
       document.getElementById('editProductId').value = id;
       document.getElementById('productName').value = p.name;
@@ -448,10 +474,10 @@
       document.getElementById('productPrice').value = p.price || '';
       document.getElementById('productCategory').value = p.category || '';
       document.getElementById('barcodeHint').textContent = '';
-      document.getElementById('stockField').style.display = 'none'; // don't change stock on edit
+      document.getElementById('stockField').style.display = 'none';
       document.getElementById('productModal').style.display = 'flex';
-      document.getElementById('productName').focus();
-      lucide.createIcons();
+      setTimeout(function() { document.getElementById('productName').focus(); }, 50);
+      icons();
     }
 
     function closeModal() {
@@ -459,171 +485,205 @@
       document.getElementById('productModal').style.display = 'none';
     }
 
-    function confirmDelete(id, name) {
-      if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
-      deleteProduct(id, name);
-    }
-
-    // ── MODAL CAMERA BARCODE SCAN ──────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // BARCODE CAMERA IN MODAL
+    // ─────────────────────────────────────────────────────────────
     function stopModalCamera() {
-      if (typeof Quagga !== 'undefined') {
+      if (typeof Quagga !== 'undefined' && quaggaModalRunning) {
         try { Quagga.stop(); } catch(e) {}
+        quaggaModalRunning = false;
       }
       if (modalCameraStream) {
-        modalCameraStream.getTracks().forEach(t => t.stop());
+        modalCameraStream.getTracks().forEach(function(t) { t.stop(); });
         modalCameraStream = null;
       }
       document.getElementById('barcodeScannerModal').style.display = 'none';
     }
 
-    async function startModalCamera() {
-      const scannerDiv = document.getElementById('barcodeScannerModal');
-      const videoEl   = document.getElementById('modalCameraFeed');
-
-      try {
-        modalCameraStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 } }
-        });
-        videoEl.srcObject = modalCameraStream;
-        videoEl.play();
-        scannerDiv.style.display = 'block';
-
-        Quagga.init({
-          inputStream: {
-            name: 'ModalScan',
-            type: 'LiveStream',
-            target: videoEl,
-            constraints: { facingMode: 'environment', width: 640 }
-          },
-          decoder: {
-            readers: ['ean_reader','ean_8_reader','upc_reader','upc_e_reader','code_128_reader','code_39_reader']
-          },
-          locator: { halfSample: true, patchSize: 'medium' }
-        }, function(err) {
-          if (err) { showToast('Scanner init failed: ' + err, 'error'); stopModalCamera(); return; }
-          Quagga.start();
-          Quagga.onDetected(function(result) {
-            const code = result && result.codeResult && result.codeResult.code;
-            if (code) {
-              document.getElementById('productBarcode').value = code;
-              document.getElementById('barcodeHint').textContent = `Detected: ${code}`;
-              if (navigator.vibrate) navigator.vibrate(100);
-              stopModalCamera();
-            }
-          });
-        });
-      } catch (err) {
-        showToast('Camera error: ' + err.message, 'error');
+    function startModalCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast('Camera not supported on this device/browser', 'error');
+        return;
       }
+
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 640 } } })
+        .then(function(stream) {
+          modalCameraStream = stream;
+          var videoEl = document.getElementById('modalCameraFeed');
+          videoEl.srcObject = stream;
+          videoEl.play();
+          document.getElementById('barcodeScannerModal').style.display = 'block';
+
+          if (typeof Quagga === 'undefined') {
+            showToast('Barcode library not loaded', 'error');
+            return;
+          }
+
+          Quagga.init({
+            numOfWorkers: 1,
+            inputStream: {
+              name: 'ModalScan',
+              type: 'LiveStream',
+              target: videoEl,
+              constraints: { facingMode: 'environment', width: 640 }
+            },
+            decoder: {
+              readers: [
+                'ean_reader',      // EAN-13
+                'ean_8_reader',    // EAN-8
+                'upc_reader',      // UPC-A
+                'upc_e_reader',    // UPC-E
+                'code_128_reader', // Code 128
+                'code_39_reader',  // Code 39
+                'code_93_reader',  // Code 93
+                'codabar_reader',  // Codabar
+                'i2of5_reader'     // ITF
+              ],
+              multiple: false
+            },
+            locator: { halfSample: true, patchSize: 'medium' }
+          }, function(err) {
+            if (err) { showToast('Scanner error: ' + err, 'error'); stopModalCamera(); return; }
+            Quagga.start();
+            quaggaModalRunning = true;
+            Quagga.onDetected(function(result) {
+              var code = result && result.codeResult && result.codeResult.code;
+              if (code) {
+                document.getElementById('productBarcode').value = code;
+                document.getElementById('barcodeHint').textContent = 'Scanned: ' + code;
+                stopModalCamera();
+              }
+            });
+          });
+        })
+        .catch(function(err) {
+          showToast('Camera error: ' + err.message, 'error');
+        });
     }
 
-    // ── SAVE PRODUCT ───────────────────────────────────────
-    async function saveProduct() {
-      const editId   = document.getElementById('editProductId').value;
-      const name     = document.getElementById('productName').value.trim();
-      const barcode  = document.getElementById('productBarcode').value.trim();
-      const price    = document.getElementById('productPrice').value;
-      const stock    = document.getElementById('productStock').value;
-      const category = document.getElementById('productCategory').value;
+    // ─────────────────────────────────────────────────────────────
+    // SAVE PRODUCT
+    // ─────────────────────────────────────────────────────────────
+    function saveProduct() {
+      var editId   = document.getElementById('editProductId').value;
+      var name     = document.getElementById('productName').value.trim();
+      var barcode  = document.getElementById('productBarcode').value.trim();
+      var price    = document.getElementById('productPrice').value;
+      var stock    = document.getElementById('productStock').value;
+      var category = document.getElementById('productCategory').value;
 
-      if (!name) { showToast('Product name is required', 'error'); return; }
+      if (!name)     { showToast('Product name is required', 'error'); return; }
       if (!category) { showToast('Category is required', 'error'); return; }
 
-      const btn = document.getElementById('saveProductBtn');
+      var btn = document.getElementById('saveProductBtn');
       btn.disabled = true;
       btn.textContent = 'Saving…';
 
-      try {
-        let res, data;
-        if (editId) {
-          res  = await fetch(`/products/api/${editId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, category, price, barcode })
-          });
-          data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Update failed');
-          showToast('Product updated', 'success');
-        } else {
-          res  = await fetch('/products/api/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, category, price, stock, barcode })
-          });
-          data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Add failed');
-          showToast('Product added', 'success');
-        }
-        closeModal();
-        loadProducts();
-      } catch (err) {
-        showToast(err.message, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;"></i> Save Product';
-        lucide.createIcons();
-      }
+      var url    = editId ? ('/products/api/' + editId) : '/products/api/add';
+      var method = editId ? 'PUT' : 'POST';
+      var body   = { name: name, category: category, price: price, barcode: barcode };
+      if (!editId) body.stock = stock;
+
+      fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(res) {
+          if (!res.ok) throw new Error(res.data.error || 'Failed');
+          showToast(editId ? 'Product updated' : 'Product added', 'success');
+          closeModal();
+          loadProducts();
+        })
+        .catch(function(err) {
+          showToast(err.message, 'error');
+        })
+        .finally(function() {
+          btn.disabled = false;
+          btn.textContent = 'Save Product';
+          icons();
+        });
     }
 
-    // ── DELETE PRODUCT ─────────────────────────────────────
-    async function deleteProduct(id, name) {
-      try {
-        const res  = await fetch(`/products/api/${id}`, { method: 'DELETE' });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Delete failed');
-        showToast(data.message || 'Product deleted', 'success');
-        loadProducts();
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
+    // ─────────────────────────────────────────────────────────────
+    // DELETE PRODUCT
+    // ─────────────────────────────────────────────────────────────
+    function deleteProduct(id, name) {
+      if (!confirm('Delete "' + name + '"? This cannot be undone.')) return;
+
+      fetch('/products/api/' + id, { method: 'DELETE' })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(res) {
+          if (!res.ok) throw new Error(res.data.error || 'Delete failed');
+          showToast(res.data.message || 'Product deleted', 'success');
+          loadProducts();
+        })
+        .catch(function(err) { showToast(err.message, 'error'); });
     }
 
-    // ── EXPORT ─────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // EXPORT
+    // ─────────────────────────────────────────────────────────────
     function exportCSV() {
-      const rows = [['Name','Barcode','Category','Price','Stock']];
-      allProducts.forEach(p => rows.push([p.name, p.barcode||'', p.category, p.price, p.stock]));
-      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-      const a = document.createElement('a');
+      var rows = [['Name','Barcode','Category','Price','Stock']];
+      allProducts.forEach(function(p) {
+        rows.push([p.name, p.barcode || '', p.category, p.price, p.stock]);
+      });
+      var csv = rows.map(function(r) {
+        return r.map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(',');
+      }).join('\n');
+      var a = document.createElement('a');
       a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-      a.download = `inventory_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = 'inventory_' + new Date().toISOString().slice(0,10) + '.csv';
       a.click();
     }
 
-    // ── TAB SWITCHING ──────────────────────────────────────
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => {
-          b.style.color = '#718096';
-          b.style.borderBottom = 'none';
-          b.style.marginBottom = '0';
-        });
-        btn.style.color = '#4f46e5';
-        btn.style.borderBottom = '3px solid #4f46e5';
-        btn.style.marginBottom = '-2px';
-
-        ['inventory','insights','reported'].forEach(t => {
-          const el = document.getElementById('tab-' + t);
-          if (el) el.style.display = btn.dataset.tab === t ? 'block' : 'none';
-        });
-      });
-    });
-
-    // ── EVENT WIRING ───────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
+    // ─────────────────────────────────────────────────────────────
+    // INIT — runs after scripts load (scripts are at end of body)
+    // ─────────────────────────────────────────────────────────────
+    function init() {
+      icons();
       loadProducts();
 
+      // Tab switching
+      document.querySelectorAll('.tab-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.tab-btn').forEach(function(b) {
+            b.style.color = '#718096';
+            b.style.borderBottom = 'none';
+            b.style.marginBottom = '0';
+          });
+          btn.style.color = '#4f46e5';
+          btn.style.borderBottom = '3px solid #4f46e5';
+          btn.style.marginBottom = '-2px';
+
+          ['inventory', 'insights', 'reported'].forEach(function(t) {
+            var el = document.getElementById('tab-' + t);
+            if (el) el.style.display = btn.dataset.tab === t ? 'block' : 'none';
+          });
+        });
+      });
+
+      // Add product button
       document.getElementById('addProductBtn').addEventListener('click', openAddModal);
+
+      // Modal close buttons
       document.getElementById('closeModal').addEventListener('click', closeModal);
       document.getElementById('cancelModal').addEventListener('click', closeModal);
-      document.getElementById('productModal').addEventListener('click', e => {
+      document.getElementById('productModal').addEventListener('click', function(e) {
         if (e.target.id === 'productModal') closeModal();
       });
+
+      // Save product
       document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
+
+      // Export
       document.getElementById('exportBtn').addEventListener('click', exportCSV);
 
-      document.getElementById('scanBarcodeBtn').addEventListener('click', () => {
-        const scannerDiv = document.getElementById('barcodeScannerModal');
+      // Barcode camera scan button
+      document.getElementById('scanBarcodeBtn').addEventListener('click', function() {
+        var scannerDiv = document.getElementById('barcodeScannerModal');
         if (scannerDiv.style.display === 'none' || scannerDiv.style.display === '') {
           startModalCamera();
         } else {
@@ -632,20 +692,35 @@
       });
       document.getElementById('stopModalScanBtn').addEventListener('click', stopModalCamera);
 
+      // Edit / Delete via event delegation on the table body
+      document.getElementById('productsContainer').addEventListener('click', function(e) {
+        var editBtn   = e.target.closest('.edit-btn');
+        var deleteBtn = e.target.closest('.delete-btn');
+        if (editBtn)   openEditModal(parseInt(editBtn.dataset.id, 10));
+        if (deleteBtn) deleteProduct(parseInt(deleteBtn.dataset.id, 10), deleteBtn.dataset.name);
+      });
+
       // Search & filter
       document.getElementById('searchInput').addEventListener('input', filterProducts);
       document.getElementById('categoryFilter').addEventListener('change', filterProducts);
-    });
+    }
 
     function filterProducts() {
-      const q   = document.getElementById('searchInput').value.toLowerCase();
-      const cat = document.getElementById('categoryFilter').value;
-      const filtered = allProducts.filter(p => {
-        const matchQ = !q || p.name.toLowerCase().includes(q) || (p.barcode||'').toLowerCase().includes(q);
-        const matchC = !cat || p.category === cat;
+      var q   = document.getElementById('searchInput').value.toLowerCase();
+      var cat = document.getElementById('categoryFilter').value;
+      var filtered = allProducts.filter(function(p) {
+        var matchQ = !q || p.name.toLowerCase().indexOf(q) !== -1 || (p.barcode || '').toLowerCase().indexOf(q) !== -1;
+        var matchC = !cat || p.category === cat;
         return matchQ && matchC;
       });
       renderProducts(filtered);
+    }
+
+    // Run init once DOM + scripts are ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
     }
   </script>
 </body>

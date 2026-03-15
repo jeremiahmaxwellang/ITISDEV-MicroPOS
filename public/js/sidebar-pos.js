@@ -13,6 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
     mode: "products",
     cameraActive: false,
     cameraStream: null,
+    quaggaRunning: false,
+    lastScanMs: 0,
     tax_rate: 0.0,
     debounceTimers: {},
     allProducts: []
@@ -324,10 +326,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function startCamera() {
     try {
-      // Stop any existing Quagga instance
-      if (typeof Quagga !== "undefined" && Quagga.initialized()) {
-        Quagga.stop();
-        Quagga.close();
+      // Stop any existing Quagga instance safely (no .initialized() in Quagga2)
+      if (typeof Quagga !== "undefined" && state.quaggaRunning) {
+        try { Quagga.stop(); } catch (e) {}
+        state.quaggaRunning = false;
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -372,12 +374,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function stopCamera() {
     // Stop Quagga2
-    if (typeof Quagga !== "undefined") {
-      try {
-        Quagga.stop();
-      } catch (e) {
-        console.error("Error stopping Quagga:", e);
-      }
+    if (typeof Quagga !== "undefined" && state.quaggaRunning) {
+      try { Quagga.stop(); } catch (e) {}
+      state.quaggaRunning = false;
     }
 
     // Stop camera stream
@@ -406,6 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       Quagga.init(
         {
+          numOfWorkers: 2,
           inputStream: {
             name: "Live",
             type: "LiveStream",
@@ -417,9 +417,19 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           },
           decoder: {
-            workers: { numWorkers: 2 },
-            multiple: false,
-            formats: ["code_128", "code_39", "code_93", "ean_13", "ean_8", "upc_a", "upc_e", "qr"]
+            // All linear barcode types Quagga2 supports — covers store barcodes worldwide
+            readers: [
+              "ean_reader",       // EAN-13 (most common retail)
+              "ean_8_reader",     // EAN-8 (small packaging)
+              "upc_reader",       // UPC-A (US retail)
+              "upc_e_reader",     // UPC-E (compressed UPC)
+              "code_128_reader",  // Code 128 (logistics, custom)
+              "code_39_reader",   // Code 39 (older systems)
+              "code_93_reader",   // Code 93
+              "codabar_reader",   // Codabar (libraries, blood banks)
+              "i2of5_reader"      // ITF / Interleaved 2 of 5
+            ],
+            multiple: false
           },
           locator: { halfSample: true, patchSize: "medium" },
           frequency: 10
@@ -433,14 +443,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
           try {
             Quagga.start();
+            state.quaggaRunning = true;
 
             Quagga.onDetected(function (result) {
-              if (result && result.codeResult && result.codeResult.code) {
-                const barcode = result.codeResult.code;
-                scanBarcode(barcode);
-                if (navigator.vibrate) navigator.vibrate(200);
-                showMessage(`Detected: ${barcode}`, "success");
-              }
+              if (!result || !result.codeResult || !result.codeResult.code) return;
+              // Debounce: ignore repeated scans within 1.5 s
+              const now = Date.now();
+              if (now - state.lastScanMs < 1500) return;
+              state.lastScanMs = now;
+
+              const barcode = result.codeResult.code;
+              if (navigator.vibrate) navigator.vibrate(150);
+              scanBarcode(barcode);
             });
 
             Quagga.onProcessingError(function (err) {
