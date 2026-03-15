@@ -98,6 +98,7 @@ exports.getReportMetrics = async (req, res) => {
             },
             topProducts: topProducts.map(p => ({
                 name: p.name,
+                category: p.category || "",
                 units: p.units,
                 revenue: parseFloat(p.revenue),
                 profit: 0
