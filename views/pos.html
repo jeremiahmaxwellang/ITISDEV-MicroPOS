@@ -19,39 +19,14 @@
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@latest/dist/quagga.js"></script>
 
+  <script defer src="/js/sidebar.js"></script>
   <script defer src="/js/barcodeParser.js"></script>
   <script defer src="/js/sidebar-pos.js"></script>
 </head>
 
 <body class="with-sidebar">
-  <!-- SIDEBAR NAVIGATION -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">M</div>
-    
-    <div class="sidebar-nav">
-      <div class="sidebar-nav-icon active" title="Point of Sale">
-        <i data-lucide="shopping-cart"></i>
-      </div>
-      <a href="/products" class="sidebar-nav-icon" title="Products">
-        <i data-lucide="package"></i>
-      </a>
-      <a href="/debts" class="sidebar-nav-icon" title="Debts">
-        <i data-lucide="alert-circle"></i>
-      </a>
-      <a href="/reports" class="sidebar-nav-icon" title="Reports">
-        <i data-lucide="bar-chart-2"></i>
-      </a>
-    </div>
-
-    <div class="sidebar-bottom">
-      <div class="sidebar-nav-icon" title="Settings">
-        <i data-lucide="settings"></i>
-      </div>
-      <div class="sidebar-logout" title="Logout">
-        <i data-lucide="log-out"></i>
-      </div>
-    </div>
-  </aside>
+  <!-- SIDEBAR — populated by /js/sidebar.js -->
+  <aside class="sidebar"></aside>
 
   <!-- MAIN CONTENT -->
   <div class="main-wrapper">

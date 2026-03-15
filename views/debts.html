@@ -16,6 +16,7 @@
 
   <!-- Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+  <script defer src="/js/sidebar.js"></script>
 
   <style>
     body {
@@ -143,42 +144,8 @@
 </head>
 
 <body class="with-sidebar">
-  <!-- SIDEBAR NAVIGATION -->
-  <aside class="sidebar">
-    <div class="sidebar-logo" style="background: #1a2035; border: 2px solid rgba(255,255,255,0.15);">
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
-      </svg>
-    </div>
-
-    <div class="sidebar-nav">
-      <a href="/" class="sidebar-nav-icon" title="Home">
-        <i data-lucide="home"></i>
-      </a>
-      <a href="/pos" class="sidebar-nav-icon" title="Point of Sale">
-        <i data-lucide="shopping-cart"></i>
-      </a>
-      <a href="/products" class="sidebar-nav-icon" title="Products">
-        <i data-lucide="package"></i>
-      </a>
-      <div class="sidebar-nav-icon active" title="Debt Tracker">
-        <i data-lucide="file-text"></i>
-      </div>
-      <a href="/reports" class="sidebar-nav-icon" title="Reports">
-        <i data-lucide="bar-chart-2"></i>
-      </a>
-      <div class="sidebar-nav-icon" title="Settings">
-        <i data-lucide="settings"></i>
-      </div>
-    </div>
-
-    <div class="sidebar-bottom">
-      <div class="sidebar-logout" title="Logout">
-        <i data-lucide="log-out"></i>
-      </div>
-    </div>
-  </aside>
+  <!-- SIDEBAR — populated by /js/sidebar.js -->
+  <aside class="sidebar"></aside>
 
   <!-- MAIN CONTENT -->
   <div class="main-wrapper">

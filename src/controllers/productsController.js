@@ -134,7 +134,7 @@ exports.addProduct = async (req, res) => {
     if (err.code === "ER_DUP_ENTRY") {
       return res.status(400).json({ error: "Barcode already exists for another product" });
     }
-    res.status(500).json({ error: "Failed to add product" });
+    res.status(500).json({ error: "Failed to add product", detail: err.message });
   }
 };
 

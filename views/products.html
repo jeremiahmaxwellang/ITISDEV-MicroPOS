@@ -12,36 +12,15 @@
 
   <link rel="stylesheet" href="/css/modern.css">
   <link rel="stylesheet" href="/css/sidebar.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+  <script defer src="/js/sidebar.js"></script>
 </head>
 
 <body class="with-sidebar">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">M</div>
-    <div class="sidebar-nav">
-      <a href="/pos" class="sidebar-nav-icon" title="Point of Sale">
-        <i data-lucide="shopping-cart"></i>
-      </a>
-      <div class="sidebar-nav-icon active" title="Inventory">
-        <i data-lucide="package"></i>
-      </div>
-      <a href="/debts" class="sidebar-nav-icon" title="Debts">
-        <i data-lucide="receipt"></i>
-      </a>
-      <a href="/reports" class="sidebar-nav-icon" title="Reports">
-        <i data-lucide="bar-chart-2"></i>
-      </a>
-    </div>
-    <div class="sidebar-bottom">
-      <div class="sidebar-nav-icon" title="Settings">
-        <i data-lucide="settings"></i>
-      </div>
-      <div class="sidebar-logout" title="Logout">
-        <i data-lucide="log-out"></i>
-      </div>
-    </div>
-  </aside>
+  <!-- SIDEBAR — populated by /js/sidebar.js -->
+  <aside class="sidebar"></aside>
 
   <!-- MAIN CONTENT -->
   <div class="main-wrapper">
@@ -286,6 +265,8 @@
     var allProducts = [];
     var modalCameraStream = null;
     var quaggaModalRunning = false;
+    var quaggaDetected = false;       // lock: accept only the first detection per session
+    var quaggaHandler  = null;        // reference kept so we can remove it cleanly
 
     function icons() {
       if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -490,13 +471,17 @@
     // ─────────────────────────────────────────────────────────────
     function stopModalCamera() {
       if (typeof Quagga !== 'undefined' && quaggaModalRunning) {
+        // Remove the specific handler before stopping to prevent stale callbacks
+        try { if (quaggaHandler) Quagga.offDetected(quaggaHandler); } catch(e) {}
         try { Quagga.stop(); } catch(e) {}
         quaggaModalRunning = false;
+        quaggaHandler = null;
       }
       if (modalCameraStream) {
         modalCameraStream.getTracks().forEach(function(t) { t.stop(); });
         modalCameraStream = null;
       }
+      quaggaDetected = false;
       document.getElementById('barcodeScannerModal').style.display = 'none';
     }
 
@@ -535,8 +520,6 @@
                 'upc_e_reader',    // UPC-E
                 'code_128_reader', // Code 128
                 'code_39_reader',  // Code 39
-                'code_93_reader',  // Code 93
-                'codabar_reader',  // Codabar
                 'i2of5_reader'     // ITF
               ],
               multiple: false
@@ -546,14 +529,20 @@
             if (err) { showToast('Scanner error: ' + err, 'error'); stopModalCamera(); return; }
             Quagga.start();
             quaggaModalRunning = true;
-            Quagga.onDetected(function(result) {
+            quaggaDetected = false;
+
+            // Store handler reference so stopModalCamera() can remove it precisely
+            quaggaHandler = function(result) {
+              // Lock: ignore every fire after the first confirmed read
+              if (quaggaDetected) return;
               var code = result && result.codeResult && result.codeResult.code;
-              if (code) {
-                document.getElementById('productBarcode').value = code;
-                document.getElementById('barcodeHint').textContent = 'Scanned: ' + code;
-                stopModalCamera();
-              }
-            });
+              if (!code) return;
+              quaggaDetected = true;
+              document.getElementById('productBarcode').value = code;
+              document.getElementById('barcodeHint').textContent = 'Scanned: ' + code;
+              stopModalCamera();
+            };
+            Quagga.onDetected(quaggaHandler);
           });
         })
         .catch(function(err) {
@@ -577,7 +566,7 @@
 
       var btn = document.getElementById('saveProductBtn');
       btn.disabled = true;
-      btn.textContent = 'Saving…';
+      btn.innerHTML = '<i data-lucide="loader" style="width:16px;height:16px;"></i> Saving…';
 
       var url    = editId ? ('/products/api/' + editId) : '/products/api/add';
       var method = editId ? 'PUT' : 'POST';
@@ -591,7 +580,7 @@
       })
         .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
         .then(function(res) {
-          if (!res.ok) throw new Error(res.data.error || 'Failed');
+          if (!res.ok) throw new Error(res.data.detail || res.data.error || 'Failed');
           showToast(editId ? 'Product updated' : 'Product added', 'success');
           closeModal();
           loadProducts();
@@ -601,7 +590,7 @@
         })
         .finally(function() {
           btn.disabled = false;
-          btn.textContent = 'Save Product';
+          btn.innerHTML = '<i data-lucide="save" style="width:16px;height:16px;"></i> Save Product';
           icons();
         });
     }

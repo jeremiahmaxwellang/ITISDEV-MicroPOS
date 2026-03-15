@@ -1,9 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════════════
    SIDEBAR NAVIGATION & MAIN LAYOUT
+   Sidebar collapses to 80 px (icons only).
+   Hover expands to 240 px, revealing nav labels.
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --sidebar-width: 80px;
+  --sidebar-width:    80px;
+  --sidebar-expanded: 240px;
 }
 
 body.with-sidebar {
@@ -12,45 +15,168 @@ body.with-sidebar {
   overflow: hidden;
 }
 
-/* SIDEBAR */
+/* ── SIDEBAR SHELL ───────────────────────────────────────────────────── */
 .sidebar {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, #1a2035 0%, #2d3748 100%);
+  background: #061432;
   position: fixed;
   left: 0;
   top: 0;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   padding: 1rem 0;
-  gap: 2rem;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 200;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  /* Expand on hover */
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0 18px 18px 0;
+  box-shadow: 2px 0 16px rgba(0, 0, 0, 0.35);
 }
 
+.sidebar:hover {
+  width: var(--sidebar-expanded);
+}
+
+/* ── LOGO / BRAND AREA ───────────────────────────────────────────────── */
+.sidebar-logo-area {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  /* left pad: 10px margin + 19px inner = 29px total → centres 22-px icon in 80-px rail */
+  padding: 0.25rem 0 1.25rem 29px;
+  white-space: nowrap;
+}
+
+/* Legacy logo div – kept so pages that haven't been migrated don't break */
 .sidebar-logo {
   width: 48px;
   height: 48px;
   border-radius: 0.5rem;
-  background: linear-gradient(135deg, #3b5bdb, #5a7ae8);
+  background: rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   color: white;
   font-size: 1.25rem;
-  box-shadow: 0 4px 12px rgba(59, 91, 219, 0.4);
+  flex-shrink: 0;
 }
 
+.sidebar-brand {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+/* ── NAV CONTAINER ───────────────────────────────────────────────────── */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 4px;
   flex: 1;
+  width: 100%;
+  padding: 0;
 }
 
+/* ── NAV LINKS ───────────────────────────────────────────────────────── */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #8898c0;
+  /* Inset from sidebar edges so the pill doesn't touch the walls.
+     Available width in collapsed rail: 80 - 2×10 = 60 px.
+     To centre the 22-px icon: padding-left = (60 - 22) / 2 = 19 px. */
+  width: calc(100% - 20px);
+  margin: 0 10px;
+  border-radius: 12px;
+  padding: 10px 8px 10px 19px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #c4ceea;
+}
+
+/* ── COLLAPSED active state: blue pill centred on the icon ───────────── */
+.sidebar-link.active {
+  background: rgba(21, 93, 252, 0.28);
+  color: white;
+}
+
+/* ── EXPANDED active state (sidebar hovered): full-width + left accent ── */
+.sidebar:hover .sidebar-link.active {
+  background: rgba(21, 93, 252, 0.22);
+  border-left: 3px solid #155DFC;
+  padding-left: 16px; /* compensate for the 3-px border */
+}
+
+/* ── ICON WRAPPER ────────────────────────────────────────────────────── */
+.sidebar-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-icon svg,
+.sidebar-icon i {
+  width: 22px;
+  height: 22px;
+}
+
+/* ── LABEL TEXT ──────────────────────────────────────────────────────── */
+/* The sidebar overflow:hidden clips labels at 80 px; they are revealed
+   when the sidebar expands to 240 px on hover — no JS needed. */
+.sidebar-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  /* Smooth label fade-in as sidebar opens */
+  opacity: 0;
+  transition: opacity 0.15s ease 0.08s;
+}
+
+.sidebar:hover .sidebar-label {
+  opacity: 1;
+}
+
+/* ── BOTTOM UTILITIES ────────────────────────────────────────────────── */
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 0 0 0.5rem;
+}
+
+/* Logout link */
+.sidebar-logout-link {
+  color: #c97070 !important;
+}
+
+.sidebar-logout-link:hover {
+  background: rgba(229, 62, 62, 0.12) !important;
+  color: #e63946 !important;
+}
+
+/* ── LEGACY CLASSES (pages not yet migrated) ─────────────────────────── */
 .sidebar-nav-icon {
   width: 48px;
   height: 48px;
@@ -62,31 +188,11 @@ body.with-sidebar {
   transition: all 0.2s ease;
   color: #a0aec0;
   border: 2px solid transparent;
-  position: relative;
 }
 
-.sidebar-nav-icon:hover {
-  color: #3b5bdb;
-  background: rgba(59, 91, 219, 0.1);
-}
-
-.sidebar-nav-icon.active {
-  color: #3b5bdb;
-  background: rgba(59, 91, 219, 0.15);
-  border-color: #3b5bdb;
-  box-shadow: 0 0 12px rgba(59, 91, 219, 0.3);
-}
-
-.sidebar-nav-icon i {
-  width: 24px;
-  height: 24px;
-}
-
-.sidebar-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+.sidebar-nav-icon:hover  { color: #3b5bdb; background: rgba(59, 91, 219, 0.1); }
+.sidebar-nav-icon.active { color: #3b5bdb; background: rgba(59, 91, 219, 0.15); border-color: #3b5bdb; }
+.sidebar-nav-icon i      { width: 24px; height: 24px; }
 
 .sidebar-logout {
   width: 48px;
@@ -100,12 +206,7 @@ body.with-sidebar {
   border: 2px solid transparent;
   transition: all 0.2s ease;
 }
-
-.sidebar-logout:hover {
-  color: #e53e3e;
-  background: rgba(229, 62, 62, 0.1);
-  border-color: #e53e3e;
-}
+.sidebar-logout:hover { color: #e53e3e; background: rgba(229, 62, 62, 0.1); border-color: #e53e3e; }
 
 /* MAIN CONTENT WRAPPER */
 .main-wrapper {
