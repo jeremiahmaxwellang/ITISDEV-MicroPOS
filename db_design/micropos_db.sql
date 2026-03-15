@@ -76,7 +76,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `micropos_db`.`products` (
   `product_id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL,
-  `product_type` ENUM('Product', 'Service') NOT NULL,
+  `product_type` ENUM('Beverages', 'Canned Goods', 'Instant Foods', 'Snacks', 'Services') NOT NULL,
   `selling_price` DECIMAL(10,2) NULL,
   PRIMARY KEY (`product_id`))
 ENGINE = InnoDB;

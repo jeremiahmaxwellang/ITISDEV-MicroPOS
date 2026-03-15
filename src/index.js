@@ -16,6 +16,7 @@ global.viewsPath = path.join(process.cwd(), 'views');
 // Routes 
 app.use("/", require("./routes/authRoutes")); // login routes
 app.use("/debts", require("./routes/debtRoutes")); // Debt Tracker routes
+app.use("/reports", require("./routes/reportsRoutes")); // Reports API routes
 
 
 mySqlPool.query('SELECT 1').then(() => {
