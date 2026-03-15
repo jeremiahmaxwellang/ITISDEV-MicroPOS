@@ -4,246 +4,219 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>POS - MicroPOS</title>
+  <title>MicroPOS - Modern Point of Sale</title>
+
+  <!-- Outfit Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/pos.css">
-  <script defer src="/js/pos.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/css/modern.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@latest/dist/quagga.js"></script>
+
+  <script defer src="/js/barcodeParser.js"></script>
+  <script defer src="/js/sidebar-pos.js"></script>
 </head>
 
-<body>
-
-  <!-- SIDEBAR -->
-  <nav class="sidebar">
-    <div class="nav-icon active" title="Dashboard">
-      <img class="nav-icon-img" src="/images/Icon.png" alt="" aria-hidden="true">
-    </div>
-    <div class="nav-icon" title="Cart">
-      <img class="nav-icon-img" src="/images/Icon2.png" alt="" aria-hidden="true">
-    </div>
-    <a class="nav-icon" title="Products" href="/products" aria-label="Products">
-      <img class="nav-icon-img" src="/images/Icon3.png" alt="" aria-hidden="true">
-    </a>
-    <a class="nav-icon" title="Reports" href="/reports" aria-label="Reports">
-      <img class="nav-icon-img" src="/images/Icon4.png" alt="" aria-hidden="true">
-    </a>
-    <div class="nav-icon" title="Analytics">
-      <img class="nav-icon-img" src="/images/Icon5.png" alt="" aria-hidden="true">
-    </div>
-    <div class="nav-icon" title="Settings">
-      <img class="nav-icon-img" src="/images/Icon6.png" alt="" aria-hidden="true">
+<body class="with-sidebar">
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">M</div>
+    
+    <div class="sidebar-nav">
+      <div class="sidebar-nav-icon active" title="Point of Sale">
+        <i data-lucide="shopping-cart"></i>
+      </div>
+      <a href="/products" class="sidebar-nav-icon" title="Products">
+        <i data-lucide="package"></i>
+      </a>
+      <a href="/debts" class="sidebar-nav-icon" title="Debts">
+        <i data-lucide="alert-circle"></i>
+      </a>
+      <a href="/reports" class="sidebar-nav-icon" title="Reports">
+        <i data-lucide="bar-chart-2"></i>
+      </a>
     </div>
 
     <div class="sidebar-bottom">
-      <div class="nav-icon logout" title="Logout">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-          <polyline points="16 17 21 12 16 7" />
-          <line x1="21" y1="12" x2="9" y2="12" />
-        </svg>
+      <div class="sidebar-nav-icon" title="Settings">
+        <i data-lucide="settings"></i>
+      </div>
+      <div class="sidebar-logout" title="Logout">
+        <i data-lucide="log-out"></i>
       </div>
     </div>
-  </nav>
+  </aside>
 
-  <main class="main">
-    <!-- TOPBAR -->
-    <header class="topbar">
-      <div>
-        <h1>New Sale</h1>
-        <p>Manage your store efficiently</p>
-      </div>
-      <div class="profile">
-        <div class="profile-info">
-          <strong>Juan Dela Cruz</strong>
-          <span>Store Owner</span>
+  <!-- MAIN CONTENT -->
+  <div class="main-wrapper">
+    <!-- HEADER -->
+    <header class="main-header">
+      <div class="main-header-left">
+        <div>
+          <div class="main-header-title">New Sale</div>
+          <div class="main-header-subtitle">Manage your store efficiently</div>
         </div>
-        <div class="profile-avatar" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
+      </div>
+      <div class="main-header-right">
+        <div class="navbar-user">
+          <div class="user-avatar">JD</div>
+          <div>
+            <div style="font-weight: 600;">Juan Dela Cruz</div>
+            <div style="font-size: 0.75rem; color: #718096;">Store Owner</div>
+          </div>
         </div>
       </div>
     </header>
 
-    <!-- MAIN CONTENT -->
-    <section class="pos-container">
-      <!-- LEFT: SCANNER & PRODUCTS -->
-      <div class="scanner-section">
-        
-        <!-- SCANNER MODE TOGGLE -->
-        <div class="scanner-mode">
-          <button class="btn-mode active" id="barcodeMode" type="button">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="3" y1="4" x2="3" y2="20"></line>
-              <line x1="7" y1="4" x2="7" y2="20"></line>
-              <line x1="11" y1="4" x2="11" y2="20"></line>
-              <line x1="15" y1="4" x2="15" y2="20"></line>
-              <line x1="19" y1="4" x2="19" y2="20"></line>
-            </svg>
-            Barcode
-          </button>
-          <button class="btn-mode" id="searchMode" type="button">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            Search
-          </button>
-          <button class="btn-mode" id="cameraMode" type="button">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-              <circle cx="12" cy="13" r="4"></circle>
-            </svg>
-            Camera
-          </button>
-        </div>
-
-        <!-- BARCODE INPUT MODE (Default) -->
-        <div class="input-section active" id="barcodeInputSection">
-          <h3>Scan Product Barcode</h3>
-          <div class="input-group">
-            <input type="text" id="barcodeInput" placeholder="Scan barcode here..." autocomplete="off">
-            <button id="submitBarcode" class="btn btn-primary" type="button">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-              </svg>
-              Scan
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-content">
+      <div class="pos-layout">
+        <!-- LEFT: PRODUCTS & SCANNER -->
+        <div class="pos-main">
+          <!-- MODE TABS -->
+          <div class="mode-tabs">
+            <button class="mode-tab active" data-mode="products">
+              <i data-lucide="grid-3x3-gap" style="width: 16px; height: 16px;"></i>
+              Products
+            </button>
+            <button class="mode-tab" data-mode="barcode">
+              <i data-lucide="scan-line" style="width: 16px; height: 16px;"></i>
+              Barcode
+            </button>
+            <button class="mode-tab" data-mode="camera">
+              <i data-lucide="camera" style="width: 16px; height: 16px;"></i>
+              Camera
             </button>
           </div>
-          <p class="hint">Press Enter to scan or click Scan button</p>
-        </div>
 
-        <!-- SEARCH MODE -->
-        <div class="input-section" id="searchInputSection">
-          <h3>Search Products</h3>
-          <div class="input-group">
-            <input type="text" id="searchInput" placeholder="Search by name or barcode..." autocomplete="off">
-            <button id="submitSearch" class="btn btn-primary" type="button">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              Search
-            </button>
-          </div>
-          <div id="searchResults" class="search-results"></div>
-        </div>
-
-        <!-- CAMERA MODE -->
-        <div class="input-section" id="cameraInputSection">
-          <h3>Camera Barcode Scanner</h3>
-          <div class="camera-container">
-            <video id="cameraFeed" autoplay playsinline></video>
-            <div class="scan-overlay">
-              <div class="scan-line"></div>
-              <p>Position barcode in frame</p>
+          <!-- PRODUCTS MODE -->
+          <div id="productsMode" class="mode-content active">
+            <div class="card" style="margin-bottom: 1rem;">
+              <div class="card-body">
+                <input type="text" id="searchInput" placeholder="Search products..." 
+                       style="padding: 0.75rem 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; width: 100%; font-family: Outfit, sans-serif;">
+              </div>
+            </div>
+            <div id="productsGrid" class="products-grid">
+              <!-- Products loaded here -->
+              <div style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+                <i data-lucide="loader" style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.3;"></i>
+                <p style="color: #718096;">Loading products...</p>
+              </div>
             </div>
           </div>
-          <button id="startCamera" class="btn btn-primary" type="button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-              <circle cx="12" cy="13" r="4"></circle>
-            </svg>
-            Start Camera
-          </button>
-          <button id="stopCamera" class="btn btn-ghost" type="button" style="display: none;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 6L6 18M6 6l12 12"></path>
-            </svg>
-            Stop Camera
-          </button>
+
+          <!-- BARCODE MODE -->
+          <div id="barcodeMode" class="mode-content" style="display: none;">
+            <div class="card">
+              <div class="card-body">
+                <div class="form-group">
+                  <label>Scan Product Barcode</label>
+                  <input type="text" id="barcodeInput" placeholder="Scan or enter barcode..." autocomplete="off" 
+                         style="padding: 1rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; font-size: 1rem; font-family: Outfit, sans-serif;">
+                </div>
+                <p style="text-align: center; color: #718096; font-size: 0.875rem;">Press Enter to scan</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- CAMERA MODE -->
+          <div id="cameraMode" class="mode-content" style="display: none;">
+            <div class="card">
+              <div class="card-body">
+                <div style="position: relative; margin-bottom: 1rem;">
+                  <video id="cameraFeed" style="width: 100%; border-radius: 0.5rem; display: none; background: black; aspect-ratio: 4/3;"></video>
+                  <div id="cameraPlaceholder" style="width: 100%; aspect-ratio: 4/3; background: #f7fafc; border: 2px dashed #e2e8f0; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                    <i data-lucide="camera" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p style="color: #718096;">Click below to start camera</p>
+                  </div>
+                </div>
+                <button id="startCameraBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;">
+                  <i data-lucide="play" style="width: 18px; height: 18px;"></i>
+                  Start Camera
+                </button>
+                <button id="stopCameraBtn" class="btn btn-secondary" style="width: 100%; display: none;">
+                  <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                  Stop Camera
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- PRODUCT SUGGESTIONS / SEARCH RESULTS -->
-        <div class="products-grid" id="productsGrid">
-          <p class="empty-state">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="3" y1="4" x2="3" y2="20"></line>
-              <line x1="7" y1="4" x2="7" y2="20"></line>
-              <line x1="11" y1="4" x2="11" y2="20"></line>
-              <line x1="15" y1="4" x2="15" y2="20"></line>
-            </svg>
-            Scan a barcode or search for a product
-          </p>
-        </div>
+        <!-- RIGHT: CART SIDEBAR -->
+        <div class="pos-sidebar">
+          <div class="cart-panel">
+            <div class="cart-header">
+              <div class="cart-title">
+                <i data-lucide="shopping-cart" style="width: 20px; height: 20px;"></i>
+                Cart <span id="cartCount" style="background: #3b5bdb; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">0</span>
+              </div>
+              <button class="cart-clear-btn" id="clearCartBtn" title="Clear cart">
+                <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+              </button>
+            </div>
 
-        <!-- MESSAGES -->
-        <div id="messageBox" class="message-box"></div>
+            <div id="cartItems" class="cart-items">
+              <div class="cart-empty">
+                <i data-lucide="shopping-cart" style="width: 48px; height: 48px;"></i>
+                <p>Your cart is empty</p>
+              </div>
+            </div>
+
+            <div class="cart-totals">
+              <div class="cart-total-row">
+                <span>Subtotal:</span>
+                <span id="subtotal">₱ 0.00</span>
+              </div>
+              <div class="cart-total-row">
+                <span>Tax (0%):</span>
+                <span id="taxAmount">₱ 0.00</span>
+              </div>
+              <div class="cart-total-row total">
+                <span>Total:</span>
+                <span id="cartTotal">₱ 0.00</span>
+              </div>
+            </div>
+
+            <div class="cart-actions">
+              <button id="checkoutBtn" class="cart-action-btn checkout" disabled>
+                <i data-lucide="credit-card" style="width: 18px; height: 18px;"></i>
+                Checkout
+              </button>
+              <button id="listAsDebtBtn" class="cart-action-btn debt" disabled>
+                <i data-lucide="alert-circle" style="width: 18px; height: 18px;"></i>
+                List as Debt
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
+  </div>
 
-      <!-- RIGHT: CART & CHECKOUT -->
-      <aside class="cart-section">
-        <div class="cart-header">
-          <h2>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="9" cy="21" r="1"></circle>
-              <circle cx="20" cy="21" r="1"></circle>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-            </svg>
-            Cart
-            <span class="cart-count" id="cartCount">0</span>
-          </h2>
-          <button id="clearCart" class="btn-icon clear" type="button" title="Clear cart">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-              <path d="M10 11v6"></path>
-              <path d="M14 11v6"></path>
-              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
-            </svg>
-          </button>
-        </div>
+  <!-- Toast Notification -->
+  <div id="messageToast" style="position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; background: white; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: none; z-index: 2000; max-width: 300px;">
+    <div id="toastMessage"></div>
+  </div>
 
-        <div class="cart-items" id="cartItems">
-          <p class="empty-state">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="9" cy="21" r="1"></circle>
-              <circle cx="20" cy="21" r="1"></circle>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-            </svg>
-            Your cart is empty
-          </p>
-        </div>
-
-        <!-- CART SUMMARY -->
-        <div class="cart-summary">
-          <div class="summary-row">
-            <span>Subtotal</span>
-            <span id="subtotal" class="amount">₱0.00</span>
-          </div>
-          <div class="summary-row">
-            <span>Tax</span>
-            <span id="taxAmount" class="amount">₱0.00</span>
-          </div>
-          <div class="summary-row total">
-            <span>Total</span>
-            <span id="cartTotal" class="amount">₱0.00</span>
-          </div>
-        </div>
-
-        <!-- CHECKOUT BUTTONS -->
-        <div class="cart-actions">
-          <button id="checkoutBtn" class="btn btn-primary full" type="button" disabled>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            Checkout
-          </button>
-          <button id="listAsDebt" class="btn btn-secondary full" type="button" disabled>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M9 11H3v2h6v-2zm0-4H3v2h6V7zm6 0v2h6V7h-6zm0 4v2h6v-2h-6zM9 3H3v2h6V3zm6 0v2h6V3h-6z"></path>
-            </svg>
-            List as Debt
-          </button>
-        </div>
-      </aside>
-    </section>
-
-  </main>
-
+  <script>
+    // Wait for Lucide to be available and initialize icons after sidebar-pos.js runs
+    document.addEventListener('DOMContentLoaded', () => {
+      // Give sidebar-pos.js time to finish initializing
+      setTimeout(() => {
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      }, 200);
+    });
+  </script>
 </body>
 
 </html>

@@ -1,10 +1,5 @@
 const db = require("../config/database");
 
-/**
- * POSController - Handles all POS and barcode scanning operations
- * Integrates with inventory system and transaction processing
- */
-
 // Scan barcode and retrieve product
 exports.scanBarcode = async (req, res) => {
   const { barcode } = req.body;
@@ -24,7 +19,8 @@ exports.scanBarcode = async (req, res) => {
         COALESCE(
           SUM(
             CASE
-              WHEN pb.status = 'On Shelves' AND pb.expiry_date > NOW()
+              WHEN pb.status = 'On Shelves'
+                AND (pb.expiry_date IS NULL OR pb.expiry_date > NOW())
               THEN COALESCE(pb.stock_quantity, 0)
               ELSE 0
             END
@@ -33,9 +29,9 @@ exports.scanBarcode = async (req, res) => {
         ) AS available_stock
       FROM products p
       LEFT JOIN product_batches pb ON p.product_id = pb.product_id
-      WHERE p.barcode = ? OR p.product_id = ?
+      WHERE p.barcode = ?
       GROUP BY p.product_id, p.name, p.barcode, p.product_type, p.selling_price`,
-      [barcode, parseInt(barcode) || 0]
+      [barcode.trim()]
     );
 
     if (rows.length === 0) {
@@ -44,9 +40,7 @@ exports.scanBarcode = async (req, res) => {
 
     const product = rows[0];
 
-    // Check if product is available
     if (product.product_type === "Services") {
-      // Services don't have stock limits
       return res.json({
         success: true,
         product: {
@@ -54,16 +48,14 @@ exports.scanBarcode = async (req, res) => {
           name: product.name,
           barcode: product.barcode,
           price: Number(product.price) || 0,
-          stock: -1, // -1 means unlimited (for services)
+          stock: -1,
           type: product.product_type
         }
       });
     }
 
     if (product.available_stock <= 0) {
-      return res
-        .status(400)
-        .json({ error: "Product out of stock", product: product });
+      return res.status(400).json({ error: "Product out of stock", product });
     }
 
     return res.json({
@@ -83,7 +75,7 @@ exports.scanBarcode = async (req, res) => {
   }
 };
 
-// Get all products for manual search/selection
+// Get all products for manual search/selection in POS
 exports.getProductsForPOS = async (req, res) => {
   const { search = "", category = "all" } = req.query;
 
@@ -113,7 +105,8 @@ exports.getProductsForPOS = async (req, res) => {
         COALESCE(
           SUM(
             CASE
-              WHEN pb.status = 'On Shelves' AND pb.expiry_date > NOW()
+              WHEN pb.status = 'On Shelves'
+                AND (pb.expiry_date IS NULL OR pb.expiry_date > NOW())
               THEN COALESCE(pb.stock_quantity, 0)
               ELSE 0
             END
@@ -129,17 +122,14 @@ exports.getProductsForPOS = async (req, res) => {
       params
     );
 
-    const items = rows.map((row) => {
-      const stock = Number(row.available_stock) || 0;
-      return {
-        id: row.product_id,
-        name: row.name,
-        barcode: row.barcode,
-        price: Number(row.price) || 0,
-        stock: row.product_type === "Services" ? -1 : stock,
-        type: row.product_type
-      };
-    });
+    const items = rows.map((row) => ({
+      id: row.product_id,
+      name: row.name,
+      barcode: row.barcode,
+      price: Number(row.price) || 0,
+      stock: row.product_type === "Services" ? -1 : Number(row.available_stock) || 0,
+      type: row.product_type
+    }));
 
     res.json({ success: true, items });
   } catch (err) {
@@ -150,14 +140,13 @@ exports.getProductsForPOS = async (req, res) => {
 
 // Process a complete transaction
 exports.processTransaction = async (req, res) => {
-  const { items, customer_id = null, staff_id = null, payment_method = "Cash", notes = "" } = req.body;
+  const { items, customer_id = null, staff_id = null, payment_method = "Cash" } = req.body;
 
   if (!items || items.length === 0) {
     return res.status(400).json({ error: "Cart is empty" });
   }
 
   try {
-    // Start a transaction
     const connection = await db.getConnection();
 
     try {
@@ -165,10 +154,10 @@ exports.processTransaction = async (req, res) => {
 
       let total_price = 0;
 
-      // Validate all items first
+      // Validate all items and calculate total
       for (const item of items) {
         const [productRows] = await connection.query(
-          `SELECT selling_price FROM products WHERE product_id = ?`,
+          `SELECT selling_price, product_type FROM products WHERE product_id = ?`,
           [item.product_id]
         );
 
@@ -180,19 +169,20 @@ exports.processTransaction = async (req, res) => {
         total_price += price * item.quantity;
       }
 
-      // Create transaction record
+      // Determine status based on payment - debt goes through /debts flow
+      const status = "Paid";
+
       const [transactionResult] = await connection.query(
         `INSERT INTO transactions (customer_id, staff_id, total_price, status, payment_method, date_ordered)
          VALUES (?, ?, ?, ?, ?, NOW())`,
-        [customer_id, staff_id || 1, total_price, "Completed", payment_method]
+        [customer_id, staff_id || 1, total_price, status, payment_method]
       );
 
       const transaction_id = transactionResult.insertId;
 
-      // Add items to transaction_orders
       for (const item of items) {
         const [productRows] = await connection.query(
-          `SELECT selling_price FROM products WHERE product_id = ?`,
+          `SELECT selling_price, product_type FROM products WHERE product_id = ?`,
           [item.product_id]
         );
 
@@ -204,14 +194,19 @@ exports.processTransaction = async (req, res) => {
           [transaction_id, item.product_id, price_each, item.quantity]
         );
 
-        // Update stock in product_batches
-        await connection.query(
-          `UPDATE product_batches
-           SET stock_quantity = stock_quantity - ?
-           WHERE product_id = ? AND status = 'On Shelves' AND expiry_date > NOW()
-           LIMIT ?`,
-          [item.quantity, item.product_id, 1]
-        );
+        // Only deduct stock for physical products
+        if (productRows[0].product_type !== "Services") {
+          await connection.query(
+            `UPDATE product_batches
+             SET stock_quantity = GREATEST(0, stock_quantity - ?)
+             WHERE product_id = ?
+               AND status = 'On Shelves'
+               AND (expiry_date IS NULL OR expiry_date > NOW())
+             ORDER BY expiry_date ASC
+             LIMIT 1`,
+            [item.quantity, item.product_id]
+          );
+        }
       }
 
       await connection.commit();
@@ -249,14 +244,13 @@ exports.getTransactionHistory = async (req, res) => {
         t.date_ordered,
         t.status,
         t.payment_method,
-        COUNT(DISTINCT to2.product_id) AS items_count,
+        COUNT(DISTINCT o.product_id) AS items_count,
         CONCAT(s.first_name, ' ', s.last_name) AS staff_name,
         CONCAT(c.first_name, ' ', c.last_name) AS customer_name
       FROM transactions t
       LEFT JOIN staff s ON t.staff_id = s.staff_id
       LEFT JOIN customers c ON t.customer_id = c.customer_id
-      LEFT JOIN transaction_orders to2 ON t.transaction_id = to2.transaction_id
-      WHERE t.status != 'Cancelled'
+      LEFT JOIN transaction_orders o ON t.transaction_id = o.transaction_id
       GROUP BY t.transaction_id
       ORDER BY t.date_ordered DESC
       LIMIT ? OFFSET ?`,
@@ -300,21 +294,18 @@ exports.getTransactionDetails = async (req, res) => {
         p.product_id,
         p.name,
         p.barcode,
-        to2.price_each,
-        to2.quantity,
-        (to2.price_each * to2.quantity) AS subtotal
-      FROM transaction_orders to2
-      JOIN products p ON to2.product_id = p.product_id
-      WHERE to2.transaction_id = ?`,
+        o.price_each,
+        o.quantity,
+        (o.price_each * o.quantity) AS subtotal
+      FROM transaction_orders o
+      JOIN products p ON o.product_id = p.product_id
+      WHERE o.transaction_id = ?`,
       [transaction_id]
     );
 
     res.json({
       success: true,
-      transaction: {
-        ...transactionRows[0],
-        items: itemRows
-      }
+      transaction: { ...transactionRows[0], items: itemRows }
     });
   } catch (err) {
     console.error("getTransactionDetails error:", err);

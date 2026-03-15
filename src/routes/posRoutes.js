@@ -9,7 +9,8 @@ const router = express.Router();
 
 const posController = require("../controllers/posController");
 
-// [PAGE_ICON] PAGES
+// View path
+const viewsPath = path.join(__dirname, "../../views");
 
 // Main POS interface
 router.get("/", (req, res) => {
@@ -21,7 +22,7 @@ router.get("/checkout", (req, res) => {
   res.sendFile(path.join(viewsPath, "checkout.html"));
 });
 
-// [API_ICON] API ENDPOINTS
+// API ENDPOINTS
 
 // Scan a barcode and get product info
 router.post("/api/scan", posController.scanBarcode);

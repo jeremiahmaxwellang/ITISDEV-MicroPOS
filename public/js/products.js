@@ -10,8 +10,36 @@ document.addEventListener("DOMContentLoaded", () => {
     search: "",
     category: "all",
     items: [],
-    categoriesLoaded: false
+    categoriesLoaded: false,
+    currentBarcode: null,
+    barcodeInfo: null,
+    editingProductId: null
   };
+
+  // Modal elements
+  const productModal = document.getElementById("productModal");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalCloseBtn = document.getElementById("modalCloseBtn");
+  const cancelBtn = document.getElementById("cancelBtn");
+  const modalOverlay = document.querySelector(".modal-overlay");
+
+  // Barcode scanner elements
+  const barcodeInput = document.getElementById("barcodeInput");
+  const scanBarcodeBtn = document.getElementById("scanBarcodeBtn");
+  const barcodeResult = document.getElementById("barcodeResult");
+  const resultStatus = document.getElementById("resultStatus");
+  const resultType = document.getElementById("resultType");
+  const resultDescription = document.getElementById("resultDescription");
+  const resultCountry = document.getElementById("resultCountry");
+  const clearBarcodeBtn = document.getElementById("clearBarcodeBtn");
+
+  // [FORM_ICON] Form elements
+  const productForm = document.getElementById("productForm");
+  const productName = document.getElementById("productName");
+  const productCategory = document.getElementById("productCategory");
+  const productPrice = document.getElementById("productPrice");
+  const productStock = document.getElementById("productStock");
+  const productManufacturer = document.getElementById("productManufacturer");
 
   function peso(value) {
     return new Intl.NumberFormat("en-PH", {
@@ -144,6 +172,116 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  // [MODAL_ICON] Modal functions
+  function openModal(title = "Add Product", isEdit = false) {
+    modalTitle.textContent = title;
+    state.editingProductId = isEdit ? true : null;
+    resetForm();
+    barcodeInput.focus();
+    productModal.style.display = "flex";
+  }
+
+  function closeModal() {
+    productModal.style.display = "none";
+    resetForm();
+  }
+
+  function resetForm() {
+    productForm.reset();
+    state.currentBarcode = null;
+    state.barcodeInfo = null;
+    barcodeResult.style.display = "none";
+    productManufacturer.value = "";
+  }
+
+  // [SCAN_ICON] Barcode scanning functions
+  function scanBarcode() {
+    const barcode = barcodeInput.value.trim();
+    
+    if (!barcode) {
+      showToast("[ERROR_ICON] Please enter or scan a barcode");
+      return;
+    }
+
+    // Use BarcodeParser to detect type
+    const barcodeInfo = BarcodeParser.detectType(barcode);
+    state.currentBarcode = barcode;
+    state.barcodeInfo = barcodeInfo;
+
+    // Display results
+    displayBarcodeResult(barcodeInfo);
+    showToast(`[SCAN_ICON] Barcode detected: ${barcodeInfo.type}`);
+  }
+
+  function displayBarcodeResult(barcodeInfo) {
+    resultStatus.textContent = barcodeInfo.isValid ? "[SUCCESS_ICON] Valid Barcode" : "[WARNING_ICON] Unverified";
+    resultStatus.className = barcodeInfo.isValid ? "status valid" : "status warning";
+    
+    resultType.textContent = `[TYPE_ICON] Type: ${barcodeInfo.type}`;
+    resultDescription.textContent = `[INFO_ICON] ${barcodeInfo.description}`;
+    resultCountry.textContent = `[LOCATION_ICON] Country/Region: ${barcodeInfo.country || 'Unknown'}`;
+    
+    barcodeResult.style.display = "block";
+  }
+
+  function clearBarcodeInput() {
+    barcodeInput.value = "";
+    barcodeResult.style.display = "none";
+    state.currentBarcode = null;
+    state.barcodeInfo = null;
+    barcodeInput.focus();
+  }
+
+  // [SAVE_ICON] Save product
+  async function saveProduct(e) {
+    e.preventDefault();
+
+    if (!productName.value || !productCategory.value || !productPrice.value) {
+      showToast("[ERROR_ICON] Please fill in all required fields");
+      return;
+    }
+
+    const productData = {
+      name: productName.value,
+      category: productCategory.value,
+      price: parseFloat(productPrice.value),
+      stock: parseInt(productStock.value) || 0,
+      manufacturer: productManufacturer.value || "Generic Supplier",
+      barcode: state.currentBarcode || null,
+      barcodeType: state.barcodeInfo?.type || null
+    };
+
+    try {
+      const response = await fetch("/products/api/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(productData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showToast(`[SUCCESS_ICON] Product "${productData.name}" added successfully!`);
+        closeModal();
+        loadProducts();
+      } else {
+        showToast(`[ERROR_ICON] ${data.error || "Failed to save product"}`);
+      }
+    } catch (err) {
+      console.error("Error saving product:", err);
+      showToast("[ERROR_ICON] Error saving product");
+    }
+  }
+
+  function debounce(fn, delay = 250) {
+    let timeoutId;
+
+    return (...args) => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => fn(...args), delay);
+    };
+  }
+
   searchInput.addEventListener(
     "input",
     debounce((event) => {
@@ -158,7 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   addProductBtn.addEventListener("click", () => {
-    showToast("Add Product form is not wired yet.");
+    openModal("[PRODUCT_ICON] Add New Product", false);
   });
 
   exportBtn.addEventListener("click", () => {
@@ -223,5 +361,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Modal event listeners
+  modalCloseBtn.addEventListener("click", closeModal);
+  cancelBtn.addEventListener("click", closeModal);
+  modalOverlay.addEventListener("click", closeModal);
+
+  // Barcode input listeners
+  barcodeInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      scanBarcode();
+    }
+  });
+
+  scanBarcodeBtn.addEventListener("click", scanBarcode);
+  clearBarcodeBtn.addEventListener("click", clearBarcodeInput);
+
+  // Form submission
+  productForm.addEventListener("submit", saveProduct);
+
   loadProducts();
+  
+  // Initialize Lucide icons
+  lucide.createIcons();
 });

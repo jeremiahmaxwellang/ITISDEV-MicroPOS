@@ -5,227 +5,454 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout - MicroPOS</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/checkout.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/modern.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest"></script>
   <script defer src="/js/checkout.js"></script>
 </head>
 
-<body>
+<body class="with-sidebar">
 
   <!-- SIDEBAR -->
-  <nav class="sidebar">
-    <div class="nav-icon active" title="Dashboard">
-      <img class="nav-icon-img" src="/images/Icon.png" alt="" aria-hidden="true">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <i data-lucide="store" style="width: 24px; height: 24px;"></i>
     </div>
-    <div class="nav-icon" title="Cart">
-      <img class="nav-icon-img" src="/images/Icon2.png" alt="" aria-hidden="true">
+    <div class="sidebar-nav">
+      <a href="/pos" class="sidebar-nav-icon active" title="Point of Sale">
+        <i data-lucide="shopping-cart"></i>
+      </a>
+      <a href="/products" class="sidebar-nav-icon" title="Inventory">
+        <i data-lucide="package"></i>
+      </a>
+      <a href="/debts" class="sidebar-nav-icon" title="Debts">
+        <i data-lucide="receipt"></i>
+      </a>
+      <a href="/reports" class="sidebar-nav-icon" title="Reports">
+        <i data-lucide="bar-chart-2"></i>
+      </a>
     </div>
-    <a class="nav-icon" title="Products" href="/products" aria-label="Products">
-      <img class="nav-icon-img" src="/images/Icon3.png" alt="" aria-hidden="true">
-    </a>
-    <a class="nav-icon" title="Reports" href="/reports" aria-label="Reports">
-      <img class="nav-icon-img" src="/images/Icon4.png" alt="" aria-hidden="true">
-    </a>
-    <div class="nav-icon" title="Analytics">
-      <img class="nav-icon-img" src="/images/Icon5.png" alt="" aria-hidden="true">
-    </div>
-    <div class="nav-icon" title="Settings">
-      <img class="nav-icon-img" src="/images/Icon6.png" alt="" aria-hidden="true">
-    </div>
-
     <div class="sidebar-bottom">
-      <div class="nav-icon logout" title="Logout">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-          <polyline points="16 17 21 12 16 7" />
-          <line x1="21" y1="12" x2="9" y2="12" />
-        </svg>
+      <div class="sidebar-nav-icon" title="Settings">
+        <i data-lucide="settings"></i>
+      </div>
+      <div class="sidebar-logout" title="Logout">
+        <i data-lucide="log-out"></i>
       </div>
     </div>
-  </nav>
+  </aside>
 
-  <main class="main">
-    <!-- TOPBAR -->
-    <header class="topbar">
-      <div>
-        <h1>Checkout</h1>
-        <p>Complete your purchase</p>
-      </div>
-      <div class="profile">
-        <div class="profile-info">
-          <strong>Juan Dela Cruz</strong>
-          <span>Store Owner</span>
+  <!-- MAIN CONTENT -->
+  <div class="main-wrapper">
+    <!-- HEADER -->
+    <header class="main-header">
+      <div class="main-header-left">
+        <a href="/pos" style="display:flex;align-items:center;gap:0.5rem;color:#4f46e5;font-weight:600;text-decoration:none;padding:0.5rem 1rem;border:1px solid #e2e8f0;border-radius:0.5rem;background:white;font-family:Outfit,sans-serif;font-size:0.9rem;margin-right:1rem;transition:all 0.2s;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='white'">
+          <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Back to POS
+        </a>
+        <div>
+          <div class="main-header-title">Checkout</div>
+          <div class="main-header-subtitle">Manage your store efficiently</div>
         </div>
-        <div class="profile-avatar" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
+      </div>
+      <div class="main-header-right">
+        <div class="navbar-user">
+          <div class="user-avatar" id="userAvatar">JD</div>
+          <div>
+            <div style="font-weight: 600;" id="userName">Juan Dela Cruz</div>
+            <div style="font-size: 0.75rem; color: #718096;" id="userRole">Store Owner</div>
+          </div>
         </div>
       </div>
     </header>
 
-    <!-- CHECKOUT CONTAINER -->
-    <div class="checkout-container">
-      <button class="back-button" onclick="window.history.back()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-        Back to POS
-      </button>
+    <!-- CHECKOUT LAYOUT -->
+    <div class="main-content">
+      <div style="max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 420px;gap:1.5rem;align-items:start;">
 
-      <div class="checkout-layout">
         <!-- LEFT: ORDER SUMMARY -->
-        <section class="order-section">
-          <h2>Order Summary</h2>
-          
-          <div class="order-items">
-            <div id="orderItemsList"></div>
+        <div style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;">
+          <div style="padding:1.25rem 1.5rem;border-bottom:1px solid #e2e8f0;">
+            <h2 style="font-size:1.125rem;font-weight:700;color:#1a2035;margin:0;">Order Summary</h2>
           </div>
-
-          <div class="order-totals">
-            <div class="total-row">
-              <span>Subtotal</span>
-              <span class="amount" id="subtotalAmount">₱0.00</span>
+          <div id="orderItemsList" style="padding:1rem;display:flex;flex-direction:column;gap:0.75rem;min-height:100px;"></div>
+          <div style="padding:1rem 1.5rem;border-top:1px solid #e2e8f0;background:#f8fafc;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;font-size:0.9rem;color:#718096;">
+              <span>Subtotal</span><span id="subtotalAmount">₱0.00</span>
             </div>
-            <div class="total-row">
-              <span>Tax</span>
-              <span class="amount" id="taxAmount">₱0.00</span>
+            <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem;font-size:0.9rem;color:#718096;">
+              <span>Tax</span><span id="taxAmount">₱0.00</span>
             </div>
-            <div class="total-row final">
-              <span>Total</span>
-              <span class="amount" id="totalAmount">₱0.00</span>
+            <div style="display:flex;justify-content:space-between;font-size:1.25rem;font-weight:700;color:#4f46e5;padding-top:0.75rem;border-top:1px solid #e2e8f0;">
+              <span>Total</span><span id="totalAmount">₱0.00</span>
             </div>
           </div>
-        </section>
+        </div>
 
-        <!-- RIGHT: PAYMENT METHOD -->
-        <section class="payment-section">
-          <h2>Payment Method</h2>
+        <!-- RIGHT: PAYMENT -->
+        <div style="display:flex;flex-direction:column;gap:1rem;">
 
-          <div class="payment-methods">
-            <!-- CASH -->
-            <div class="payment-card" id="cashCard">
-              <div class="payment-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                  <line x1="1" y1="10" x2="23" y2="10"></line>
-                </svg>
+          <!-- Payment method selector -->
+          <div style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;">
+            <h3 style="font-size:1rem;font-weight:700;color:#1a2035;margin-bottom:1rem;">Payment Method</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+              <!-- Cash Card -->
+              <div id="cashCard" class="payment-card" onclick="selectPaymentMethod('Cash')"
+                style="border:2px solid #4f46e5;background:#f0f4ff;border-radius:0.75rem;padding:1.25rem;cursor:pointer;text-align:center;transition:all 0.2s;">
+                <div style="display:flex;justify-content:center;margin-bottom:0.5rem;">
+                  <i data-lucide="banknote" style="width:32px;height:32px;color:#4f46e5;"></i>
+                </div>
+                <div style="font-weight:600;color:#4f46e5;font-size:0.95rem;">Cash</div>
+                <div id="cashCheck" style="display:flex;justify-content:center;margin-top:0.4rem;">
+                  <i data-lucide="check-circle" style="width:18px;height:18px;color:#4f46e5;"></i>
+                </div>
               </div>
-              <p class="payment-name">Cash</p>
-              <input type="radio" name="payment_method" value="Cash" checked class="payment-radio" id="cashRadio">
-            </div>
-
-            <!-- GCASH -->
-            <div class="payment-card" id="gcashCard">
-              <div class="payment-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                  <line x1="1" y1="10" x2="23" y2="10"></line>
-                  <path d="M5 14v3"></path>
-                  <path d="M19 14v3"></path>
-                </svg>
+              <!-- GCash Card -->
+              <div id="gcashCard" class="payment-card" onclick="selectPaymentMethod('GCash')"
+                style="border:2px solid #e2e8f0;background:white;border-radius:0.75rem;padding:1.25rem;cursor:pointer;text-align:center;transition:all 0.2s;">
+                <div style="display:flex;justify-content:center;margin-bottom:0.5rem;">
+                  <i data-lucide="smartphone" style="width:32px;height:32px;color:#718096;"></i>
+                </div>
+                <div style="font-weight:600;color:#718096;font-size:0.95rem;">GCash</div>
+                <div id="gcashCheck" style="display:none;justify-content:center;margin-top:0.4rem;">
+                  <i data-lucide="check-circle" style="width:18px;height:18px;color:#4f46e5;"></i>
+                </div>
               </div>
-              <p class="payment-name">GCash</p>
-              <input type="radio" name="payment_method" value="GCash" class="payment-radio" id="gcashRadio">
             </div>
           </div>
 
-          <!-- PAYMENT INPUT SECTION -->
-          <div id="paymentInputSection" class="payment-input-section">
-            <!-- CASH INPUT -->
-            <div id="cashInputBox" class="input-box">
-              <label for="amountPaid">Amount Paid</label>
-              <div class="input-with-currency">
-                <span>₱</span>
-                <input type="number" id="amountPaid" placeholder="0.00" step="0.01" min="0">
+          <!-- Cash input -->
+          <div id="cashInputBox" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;">
+            <label style="display:block;font-weight:600;color:#1a2035;margin-bottom:0.5rem;font-size:0.9rem;">Amount Paid (₱)</label>
+            <input type="number" id="amountPaid" placeholder="0.00" step="0.01" min="0"
+              style="width:100%;padding:0.875rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:1rem;box-sizing:border-box;">
+            <div id="changeDisplay" style="margin-top:0.75rem;padding:0.75rem;border-radius:0.5rem;background:#f0fdf4;display:none;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-weight:600;color:#166534;">Change</span>
+                <span id="changeAmount" style="font-weight:700;font-size:1.125rem;color:#166534;">₱0.00</span>
               </div>
-              <p id="changeDisplay" class="change-display"></p>
             </div>
+          </div>
 
-            <!-- GCASH INPUT -->
-            <div id="gcashInputBox" class="input-box" style="display: none;">
-              <label for="gcashQRUpload">GCash Payment QR Code</label>
-              <div class="qr-upload-container">
-                <div id="qrPreview" class="qr-preview" style="display: none;">
-                  <img id="qrImage" alt="GCash QR Code" />
-                  <button type="button" class="btn-remove-qr" id="removeQRBtn" title="Remove QR">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+          <!-- GCash input (hidden by default) -->
+          <div id="gcashInputBox" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;display:none;">
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:0.5rem;padding:0.875rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.75rem;">
+              <i data-lucide="info" style="width:18px;height:18px;color:#3b82f6;flex-shrink:0;"></i>
+              <div style="font-size:0.875rem;color:#1e40af;">
+                Show QR code or process payment through <strong id="gcashNumber">—</strong>
+              </div>
+            </div>
+            <div style="text-align:center;margin-bottom:1rem;">
+              <div style="font-size:0.875rem;color:#718096;margin-bottom:0.5rem;">Amount to pay</div>
+              <div id="gcashAmountDisplay" style="font-size:1.75rem;font-weight:700;color:#4f46e5;">₱0.00</div>
+            </div>
+            <button id="showQRBtn" onclick="showQRModal()"
+              style="width:100%;padding:0.875rem;background:#3b82f6;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.5rem;font-size:0.9rem;">
+              <i data-lucide="qr-code" style="width:18px;height:18px;"></i> Show QR Code
+            </button>
+            <button id="gcashReceivedBtn" onclick="markGcashReceived()"
+              style="width:100%;padding:0.875rem;background:#38a169;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;font-size:0.9rem;">
+              <i data-lucide="check" style="width:18px;height:18px;"></i> Payment Received - Enter Details
+            </button>
+          </div>
+
+          <!-- GCash reference inputs (shown after "Payment Received") -->
+          <div id="gcashDetailsBox" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;display:none;">
+            <h3 style="font-size:0.95rem;font-weight:700;color:#1a2035;margin-bottom:1rem;">GCash Details</h3>
+            <div style="display:flex;flex-direction:column;gap:0.75rem;">
+              <div>
+                <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Reference Number *</label>
+                <input type="text" id="gcashReference" placeholder="e.g. 1234567890"
+                  style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Customer GCash Number</label>
+                <input type="text" id="gcashCustomerNumber" placeholder="09XX XXX XXXX"
+                  style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Customer Name</label>
+                <input type="text" id="gcashCustomerName" placeholder="Name on receipt"
+                  style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;">
+              </div>
+              <!-- QR screenshot upload -->
+              <div>
+                <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Screenshot Proof</label>
+                <label for="gcashQRUpload" id="qrUploadLabel" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border:1.5px dashed #e2e8f0;border-radius:0.375rem;cursor:pointer;color:#718096;font-size:0.875rem;transition:border-color 0.2s;" onmouseover="this.style.borderColor='#4f46e5'" onmouseout="this.style.borderColor='#e2e8f0'">
+                  <i data-lucide="upload" style="width:18px;height:18px;"></i>
+                  <span id="uploadLabel">Click to upload GCash screenshot</span>
+                </label>
+                <input type="file" id="gcashQRUpload" accept="image/*" style="display:none;">
+                <div id="qrPreview" style="display:none;margin-top:0.5rem;position:relative;">
+                  <img id="qrImage" style="width:100%;border-radius:0.375rem;border:1px solid #e2e8f0;" alt="GCash proof">
+                  <button onclick="removeQR()" style="position:absolute;top:0.4rem;right:0.4rem;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:0.25rem;padding:0.3rem 0.5rem;cursor:pointer;font-size:0.75rem;display:flex;align-items:center;gap:0.25rem;">
+                    <i data-lucide="x" style="width:13px;height:13px;"></i>
                   </button>
                 </div>
-                <label for="gcashQRUpload" class="qr-upload-label" id="qrUploadLabel">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="17 8 12 3 7 8"></polyline>
-                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                  </svg>
-                  <span>Click to upload QR or drag & drop</span>
-                </label>
-                <input type="file" id="gcashQRUpload" accept="image/*" style="display: none;">
               </div>
-              
-              <label for="gcashReference">Reference Number</label>
-              <input type="text" id="gcashReference" placeholder="Enter GCash reference..." autocomplete="off">
-              
-              <label for="gcashCustomerNumber">Customer GCash Number</label>
-              <input type="text" id="gcashCustomerNumber" placeholder="09XX XXX XXXX" autocomplete="off">
-              
-              <label for="gcashCustomerName">Customer Name</label>
-              <input type="text" id="gcashCustomerName" placeholder="Name on receipt" autocomplete="off">
             </div>
           </div>
 
-          <!-- CONFIRMATION SECTION -->
-          <div class="confirmation-section">
-            <h3>Confirm Payment</h3>
-            <p id="confirmationMessage" class="confirmation-message"></p>
-            
-            <div class="confirmation-buttons">
-              <button id="confirmPaymentBtn" class="btn btn-primary full" type="button">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Complete Payment
-              </button>
-              <button id="cancelBtn" class="btn btn-ghost full" type="button">Cancel</button>
-            </div>
-          </div>
+          <!-- Confirm Payment button -->
+          <button id="confirmPaymentBtn" onclick="processTransaction()" disabled
+            style="width:100%;padding:1rem;background:#38a169;color:white;border:none;border-radius:0.75rem;font-family:Outfit,sans-serif;font-weight:700;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;opacity:0.5;transition:all 0.2s;">
+            <i data-lucide="check-circle" style="width:20px;height:20px;"></i> Confirm Payment
+          </button>
 
-          <!-- LOADING INDICATOR -->
-          <div id="loadingIndicator" class="loading-indicator" style="display: none;">
-            <div class="spinner"></div>
-            <p>Processing payment...</p>
+          <!-- Loading -->
+          <div id="loadingIndicator" style="display:none;text-align:center;padding:1rem;color:#718096;font-family:Outfit,sans-serif;">
+            <i data-lucide="loader" style="width:24px;height:24px;margin-bottom:0.5rem;display:block;margin-left:auto;margin-right:auto;"></i>
+            Processing payment…
           </div>
-
-          <!-- SUCCESS MESSAGE -->
-          <div id="successMessage" class="success-message" style="display: none;">
-            <div class="success-content">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              <h3>Payment Successful!</h3>
-              <p id="transactionId"></p>
-              <button id="newSaleBtn" class="btn btn-primary full" type="button">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 5v14"></path>
-                  <path d="M5 12h14"></path>
-                </svg>
-                New Sale
-              </button>
-            </div>
-          </div>
-        </section>
+        </div>
       </div>
     </div>
-  </main>
+  </div>
 
+  <!-- SUCCESS OVERLAY -->
+  <div id="successOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:1rem;padding:2.5rem;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+      <div style="width:72px;height:72px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;border:2px solid #86efac;">
+        <i data-lucide="check-circle" style="width:40px;height:40px;color:#38a169;"></i>
+      </div>
+      <h2 style="font-size:1.5rem;font-weight:700;color:#1a2035;margin-bottom:0.5rem;">Payment Successful!</h2>
+      <p id="transactionId" style="color:#718096;font-size:0.9rem;margin-bottom:1.5rem;"></p>
+      <button onclick="newSale()"
+        style="width:100%;padding:0.875rem;background:#4f46e5;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:700;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+        <i data-lucide="plus" style="width:18px;height:18px;"></i> New Sale
+      </button>
+    </div>
+  </div>
+
+  <!-- GCASH QR MODAL -->
+  <div id="qrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:1rem;padding:1.5rem;max-width:380px;width:90%;box-shadow:0 20px 50px rgba(0,0,0,0.3);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h3 style="font-weight:700;color:#1a2035;margin:0;">GCash QR Code</h3>
+        <button onclick="document.getElementById('qrModal').style.display='none'" style="background:none;border:none;cursor:pointer;color:#718096;display:flex;">
+          <i data-lucide="x" style="width:20px;height:20px;"></i>
+        </button>
+      </div>
+      <p style="font-size:0.875rem;color:#718096;margin-bottom:1rem;">Ask customer to scan this QR code with their GCash app</p>
+      <div style="border:3px solid #3b82f6;border-radius:0.75rem;padding:1.5rem;text-align:center;margin-bottom:1rem;">
+        <div style="margin-bottom:0.75rem;display:flex;justify-content:center;">
+          <i data-lucide="qr-code" style="width:80px;height:80px;color:#3b82f6;"></i>
+        </div>
+        <div style="font-size:0.8rem;color:#718096;margin-bottom:0.5rem;">Scan to pay</div>
+        <div id="qrModalAmount" style="font-size:1.75rem;font-weight:700;color:#4f46e5;">₱0.00</div>
+      </div>
+      <div style="text-align:center;font-size:0.875rem;color:#718096;margin-bottom:1rem;">
+        <div style="font-weight:600;color:#1a2035;" id="storeName">Juan's Sari-Sari Store</div>
+        <div>GCash #: <span id="storeGcashNum">—</span></div>
+      </div>
+      <button onclick="markGcashReceived();document.getElementById('qrModal').style.display='none';"
+        style="width:100%;padding:0.875rem;background:#38a169;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+        <i data-lucide="check" style="width:18px;height:18px;"></i> Payment Received - Enter Details
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const TAX_RATE = 0;
+    let state = { cart: null, paymentMethod: 'Cash', gcashQRImage: null, gcashReceived: false };
+
+    function formatPeso(v) {
+      return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(v);
+    }
+
+    function loadCart() {
+      const raw = sessionStorage.getItem('posCart');
+      if (!raw) { alert('No cart data. Redirecting…'); window.location.href = '/pos'; return null; }
+      try {
+        state.cart = JSON.parse(raw);
+        return state.cart;
+      } catch (e) {
+        alert('Invalid cart data. Redirecting…');
+        window.location.href = '/pos';
+        return null;
+      }
+    }
+
+    function renderOrder() {
+      if (!state.cart || !state.cart.items) return;
+      const list = document.getElementById('orderItemsList');
+      list.innerHTML = state.cart.items.map(item => `
+        <div style="display:flex;align-items:center;gap:1rem;padding:0.75rem;background:#f8fafc;border-radius:0.5rem;">
+          <div style="width:56px;height:56px;background:linear-gradient(135deg,#f0f4ff,#edf2f7);border-radius:0.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i data-lucide="package" style="width:24px;height:24px;color:#4f46e5;opacity:0.6;"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:600;color:#1a2035;">${item.name}</div>
+            <div style="font-size:0.8rem;color:#718096;">₱${parseFloat(item.price).toFixed(2)} &times; ${item.quantity}</div>
+          </div>
+          <div style="font-weight:700;color:#1a2035;">₱${(item.price * item.quantity).toFixed(2)}</div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function calculateTotals() {
+      if (!state.cart) return { total: 0 };
+      const subtotal = state.cart.subtotal || 0;
+      const tax = subtotal * TAX_RATE;
+      const total = subtotal + tax;
+      document.getElementById('subtotalAmount').textContent = formatPeso(subtotal);
+      document.getElementById('taxAmount').textContent = formatPeso(tax);
+      document.getElementById('totalAmount').textContent = formatPeso(total);
+      document.getElementById('gcashAmountDisplay').textContent = formatPeso(total);
+      document.getElementById('qrModalAmount').textContent = formatPeso(total);
+      return { subtotal, tax, total };
+    }
+
+    function selectPaymentMethod(method) {
+      state.paymentMethod = method;
+      const isCash = method === 'Cash';
+
+      // Cash card styling
+      document.getElementById('cashCard').style.border = isCash ? '2px solid #4f46e5' : '2px solid #e2e8f0';
+      document.getElementById('cashCard').style.background = isCash ? '#f0f4ff' : 'white';
+      document.getElementById('cashCard').querySelector('i[data-lucide="banknote"]').style.color = isCash ? '#4f46e5' : '#718096';
+      document.getElementById('cashCard').querySelector('div:last-child').style.color = isCash ? '#4f46e5' : '#718096';
+      document.getElementById('cashCheck').style.display = isCash ? 'flex' : 'none';
+
+      // GCash card styling
+      document.getElementById('gcashCard').style.border = !isCash ? '2px solid #4f46e5' : '2px solid #e2e8f0';
+      document.getElementById('gcashCard').style.background = !isCash ? '#f0f4ff' : 'white';
+      document.getElementById('gcashCard').querySelector('i[data-lucide="smartphone"]').style.color = !isCash ? '#4f46e5' : '#718096';
+      document.getElementById('gcashCard').querySelector('div:nth-child(2)').style.color = !isCash ? '#4f46e5' : '#718096';
+      document.getElementById('gcashCheck').style.display = !isCash ? 'flex' : 'none';
+
+      document.getElementById('cashInputBox').style.display = isCash ? 'block' : 'none';
+      document.getElementById('gcashInputBox').style.display = !isCash ? 'block' : 'none';
+      document.getElementById('gcashDetailsBox').style.display = 'none';
+      state.gcashReceived = false;
+
+      updateConfirmBtn();
+    }
+
+    function updateConfirmBtn() {
+      const btn = document.getElementById('confirmPaymentBtn');
+      const { total } = calculateTotals();
+      let canPay = false;
+
+      if (state.paymentMethod === 'Cash') {
+        const paid = parseFloat(document.getElementById('amountPaid').value) || 0;
+        canPay = paid >= total;
+        const changeDiv = document.getElementById('changeDisplay');
+        if (paid > 0) {
+          const change = paid - total;
+          document.getElementById('changeAmount').textContent = formatPeso(change >= 0 ? change : 0);
+          changeDiv.style.display = 'block';
+          changeDiv.style.background = change >= 0 ? '#f0fdf4' : '#fef2f2';
+          changeDiv.querySelector('span').style.color = change >= 0 ? '#166534' : '#991b1b';
+          changeDiv.querySelector('span').textContent = change >= 0 ? 'Change' : 'Shortage';
+          document.getElementById('changeAmount').style.color = change >= 0 ? '#166534' : '#991b1b';
+          document.getElementById('changeAmount').textContent = formatPeso(Math.abs(change));
+        } else {
+          changeDiv.style.display = 'none';
+        }
+      } else {
+        canPay = state.gcashReceived && document.getElementById('gcashReference').value.trim() !== '';
+      }
+
+      btn.disabled = !canPay;
+      btn.style.opacity = canPay ? '1' : '0.5';
+      btn.style.cursor = canPay ? 'pointer' : 'not-allowed';
+    }
+
+    function showQRModal() {
+      document.getElementById('qrModal').style.display = 'flex';
+      lucide.createIcons();
+    }
+
+    function markGcashReceived() {
+      state.gcashReceived = true;
+      document.getElementById('gcashDetailsBox').style.display = 'block';
+      document.getElementById('gcashReference').focus();
+      lucide.createIcons();
+      updateConfirmBtn();
+    }
+
+    function removeQR() {
+      state.gcashQRImage = null;
+      document.getElementById('qrPreview').style.display = 'none';
+      document.getElementById('qrUploadLabel').style.display = 'flex';
+      document.getElementById('gcashQRUpload').value = '';
+      document.getElementById('uploadLabel').textContent = 'Click to upload GCash screenshot';
+    }
+
+    async function processTransaction() {
+      if (document.getElementById('confirmPaymentBtn').disabled) return;
+
+      document.getElementById('loadingIndicator').style.display = 'block';
+      document.getElementById('confirmPaymentBtn').style.display = 'none';
+
+      try {
+        const body = {
+          items: state.cart.items.map(i => ({ product_id: i.id, quantity: i.quantity })),
+          payment_method: state.paymentMethod,
+          customer_id: null,
+          staff_id: null
+        };
+
+        const res = await fetch('/pos/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Transaction failed');
+
+        sessionStorage.removeItem('posCart');
+        document.getElementById('transactionId').textContent = `Transaction #${data.transaction_id} • Total: ${formatPeso(data.total_price)}`;
+        document.getElementById('successOverlay').style.display = 'flex';
+        lucide.createIcons();
+      } catch (err) {
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('confirmPaymentBtn').style.display = 'flex';
+        alert('Error: ' + err.message);
+      }
+    }
+
+    function newSale() {
+      sessionStorage.removeItem('posCart');
+      window.location.href = '/pos';
+    }
+
+    // QR file upload
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      if (!loadCart()) return;
+      renderOrder();
+      calculateTotals();
+      selectPaymentMethod('Cash');
+
+      document.getElementById('amountPaid').addEventListener('input', updateConfirmBtn);
+      document.getElementById('gcashReference').addEventListener('input', updateConfirmBtn);
+
+      document.getElementById('gcashQRUpload').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          state.gcashQRImage = ev.target.result;
+          document.getElementById('qrImage').src = state.gcashQRImage;
+          document.getElementById('qrPreview').style.display = 'block';
+          document.getElementById('qrUploadLabel').style.display = 'none';
+          document.getElementById('uploadLabel').textContent = file.name;
+          lucide.createIcons();
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+  </script>
 </body>
 
 </html>

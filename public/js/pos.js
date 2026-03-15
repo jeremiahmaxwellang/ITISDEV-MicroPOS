@@ -314,6 +314,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function stopCamera() {
+    // Stop QuaggaJS
+    Quagga.stop();
+    
     if (state.cameraStream) {
       state.cameraStream.getTracks().forEach((track) => track.stop());
       state.cameraStream = null;
@@ -325,31 +328,77 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function detectBarcodeFromCamera() {
-    // This is a simplified implementation
-    // For production, use a barcode detection library like ZXing or QuaggaJS
-    // For now, we'll use a simple OCR-like approach with canvas
+    // Initialize QuaggaJS for real-time barcode detection
+    Quagga.init(
+      {
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: document.querySelector("#cameraFeed"),
+          constraints: {
+            facingMode: "environment",
+            width: { min: 320 },
+            height: { min: 240 }
+          }
+        },
+        decoder: {
+          workers: {
+            numWorkers: 2
+          },
+          multiple: false,
+          formats: [
+            "code_128",
+            "code_39",
+            "code_93",
+            "ean_13",
+            "ean_8",
+            "upc_a",
+            "upc_e",
+            "ean",
+            "qr"
+          ]
+        },
+        locator: {
+          halfSample: true,
+          patchSize: "medium"
+        },
+        frequency: 10,
+        debug: {
+          drawBoundingBox: true,
+          showFrequency: false,
+          showPattern: false,
+          showCanvas: false,
+          showImage: false
+        }
+      },
+      function (err) {
+        if (err) {
+          console.error("QuaggaJS initialization error:", err);
+          showMessage("Camera barcode detection unavailable", "error");
+          return;
+        }
 
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+        Quagga.start();
 
-    function captureFrame() {
-      if (!state.cameraActive) return;
+        // Handle barcode detection events
+        Quagga.onDetected(function (result) {
+          if (result.codeResult.code) {
+            const barcode = result.codeResult.code;
 
-      try {
-        ctx.drawImage(cameraFeed, 0, 0, canvas.width, canvas.height);
-        // TODO: Implement actual barcode detection algorithm
-        // This would require a barcode detection library
-      } catch (err) {
-        console.error("Frame capture error:", err);
+            // Auto-add to cart when barcode detected
+            scanProductBarcode(barcode);
+
+            // Show detection feedback
+            showMessage(`Barcode detected: ${barcode}`, "success");
+          }
+        });
+
+        // Handle processing errors
+        Quagga.onProcessingError(function (err) {
+          // Silently ignore processing errors - they're normal during scanning
+        });
       }
-
-      requestAnimationFrame(captureFrame);
-    }
-
-    // Start frame capture
-    if (cameraFeed.readyState === cameraFeed.HAVE_FUTURE_DATA) {
-      captureFrame();
-    }
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -460,4 +509,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCart();
   calculateTotals();
   barcodeInput.focus();
+  
+  // Initialize Lucide icons
+  lucide.createIcons();
 });

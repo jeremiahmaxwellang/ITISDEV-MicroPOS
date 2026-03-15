@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } else if (state.paymentMethod === "GCash") {
       if (!state.gcashQRImage) {
-        message = `[ATTENTION_ICON] Please upload the GCash QR code to proceed.`;
+        message = `⚠️ Please upload the GCash QR code to proceed.`;
       } else {
         message = `Send ₱${formatPeso(totals.total)} to the GCash QR code displayed.`;
         if (gcashReference.value) {
@@ -360,4 +360,7 @@ document.addEventListener("DOMContentLoaded", () => {
     selectPaymentMethod("Cash"); // Default to cash
     amountPaidInput.focus();
   }
+  
+  // Initialize Lucide icons
+  lucide.createIcons();
 });
