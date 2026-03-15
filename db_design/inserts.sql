@@ -24,12 +24,12 @@ INSERT INTO `customers` (`first_name`, `last_name`, `phone_number`, `debt_limit`
 -- PRODUCTS
 -- ─────────────────────────────────────────
 INSERT INTO `products` (`name`, `product_type`, `selling_price`) VALUES
-('Softdrinks (330ml)',    'Product', 25.00),   -- product_id = 1
-('Rice (1kg)',            'Product', 55.00),   -- product_id = 2
-('Cooking Oil (500ml)',   'Product', 78.00),   -- product_id = 3
-('Instant Noodles',      'Product', 15.00),   -- product_id = 4
-('Load / E-Load',        'Service', 10.00),   -- product_id = 5
-('Photocopy (per page)', 'Service',  3.00);   -- product_id = 6
+('Softdrinks (330ml)',    'Beverages',    25.00),   -- product_id = 1
+('Rice (1kg)',            'Canned Goods', 55.00),   -- product_id = 2
+('Cooking Oil (500ml)',   'Canned Goods', 78.00),   -- product_id = 3
+('Instant Noodles',       'Instant Foods',15.00),   -- product_id = 4
+('Load / E-Load',         'Services',       10.00),   -- product_id = 5
+('Photocopy (per page)',  'Services',        3.00);   -- product_id = 6
 
 
 -- ─────────────────────────────────────────
