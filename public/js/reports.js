@@ -10,94 +10,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const state = {
     period: "7",
-    activeTab: "products"
+    activeTab: "products",
+    data: null
   };
 
-  const metricDataByPeriod = {
-    "7": {
-      sales: "17,234.59",
-      debt: "7,302.00",
-      debtors: 14,
-      customers: 89
-    },
-    "30": {
-      sales: "68,990.45",
-      debt: "18,770.25",
-      debtors: 31,
-      customers: 242
-    },
-    "90": {
-      sales: "196,232.10",
-      debt: "42,511.90",
-      debtors: 66,
-      customers: 708
-    }
+  const cache = {};
+
+  const periodLabels = {
+    "7": "Weekly Sales",
+    "30": "Monthly Sales",
+    "90": "Quarterly Sales"
   };
 
-  const productsByPeriod = {
-    "7": {
-      highlight: {
-        title: "Best-Seller Product of the Week",
-        name: "Stik-O",
-        art: "SO",
-        meta: "450 units sold"
-      },
-      list: [
-        { name: "Lucky Me Noodles", units: 245, revenue: 3185, profit: 735 },
-        { name: "Coca-Cola 1.5L", units: 180, revenue: 2189, profit: 640 },
-        { name: "Nescafe 3-in-1", units: 320, revenue: 4987, profit: 1120 },
-        { name: "Century Tuna", units: 89, revenue: 1989, profit: 508 }
-      ]
-    },
-    "30": {
-      highlight: {
-        title: "Best-Seller Product of the Month",
-        name: "Lucky Me Noodles",
-        art: "LM",
-        meta: "1,950 units sold"
-      },
-      list: [
-        { name: "Lucky Me Noodles", units: 1950, revenue: 21560, profit: 5740 },
-        { name: "Nescafe 3-in-1", units: 1320, revenue: 18875, profit: 5410 },
-        { name: "Coca-Cola 1.5L", units: 840, revenue: 11230, profit: 2985 },
-        { name: "Stik-O", units: 760, revenue: 9740, profit: 2440 }
-      ]
-    },
-    "90": {
-      highlight: {
-        title: "Best-Seller Product of the Quarter",
-        name: "Nescafe 3-in-1",
-        art: "N3",
-        meta: "4,820 units sold"
-      },
-      list: [
-        { name: "Nescafe 3-in-1", units: 4820, revenue: 73420, profit: 22115 },
-        { name: "Lucky Me Noodles", units: 4600, revenue: 64980, profit: 16940 },
-        { name: "Coca-Cola 1.5L", units: 2200, revenue: 28990, profit: 7790 },
-        { name: "Stik-O", units: 2120, revenue: 25985, profit: 6390 }
-      ]
-    }
-  };
-
-  const categoriesByPeriod = {
-    "7": [
-      { name: "Instant Food", units: 610, revenue: 9122, profit: 2120 },
-      { name: "Beverages", units: 430, revenue: 7989, profit: 1803 },
-      { name: "Snacks", units: 355, revenue: 5122, profit: 1212 },
-      { name: "Household", units: 188, revenue: 3001, profit: 860 }
-    ],
-    "30": [
-      { name: "Instant Food", units: 2620, revenue: 39122, profit: 9420 },
-      { name: "Beverages", units: 1990, revenue: 28540, profit: 7010 },
-      { name: "Snacks", units: 1330, revenue: 18010, profit: 4240 },
-      { name: "Household", units: 789, revenue: 12001, profit: 2985 }
-    ],
-    "90": [
-      { name: "Instant Food", units: 7550, revenue: 118880, profit: 29810 },
-      { name: "Beverages", units: 5920, revenue: 88320, profit: 20610 },
-      { name: "Snacks", units: 3990, revenue: 54420, profit: 12750 },
-      { name: "Household", units: 2280, revenue: 34612, profit: 8580 }
-    ]
+  const highlightTitles = {
+    "7": "Best-Seller Product of the Week",
+    "30": "Best-Seller Product of the Month",
+    "90": "Best-Seller Product of the Quarter"
   };
 
   function peso(value) {
@@ -108,31 +36,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }).format(value);
   }
 
-  function renderMetrics() {
-    const data = metricDataByPeriod[state.period];
+  function renderMetrics(metrics) {
     const cards = [
       {
         css: "metric-green",
-        label: "Weekly Sales",
-        value: `${peso(Number(data.sales.replace(/,/g, "")))}`,
+        label: periodLabels[state.period],
+        value: peso(metrics.sales),
         icon: "PHP"
       },
       {
         css: "metric-gold",
         label: "Debt Balance",
-        value: `${peso(Number(data.debt.replace(/,/g, "")))}`,
+        value: peso(metrics.debt),
         icon: "DB"
       },
       {
         css: "metric-rose",
         label: "Total Debtors",
-        value: `${data.debtors}`,
+        value: `${metrics.debtors}`,
         icon: "TD"
       },
       {
         css: "metric-violet",
         label: "Total Customers",
-        value: `${data.customers}`,
+        value: `${metrics.customers}`,
         icon: "TC"
       }
     ];
@@ -152,21 +79,28 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
   }
 
-  function renderHighlight() {
-    const current = productsByPeriod[state.period].highlight;
+  function renderHighlight(highlight) {
+    if (!highlight) {
+      highlightCard.innerHTML = `<p class="highlight-meta">No sales data available for this period.</p>`;
+      return;
+    }
 
     highlightCard.innerHTML = `
-      <h3 class="highlight-title">${current.title}</h3>
+      <h3 class="highlight-title">${highlightTitles[state.period]}</h3>
       <div class="highlight-frame">
-        <div class="highlight-art" aria-hidden="true">${current.art}</div>
+        <div class="highlight-art" aria-hidden="true">${highlight.art}</div>
       </div>
-      <div class="highlight-name">${current.name}</div>
-      <p class="highlight-meta">${current.meta}</p>
+      <div class="highlight-name">${highlight.name}</div>
+      <p class="highlight-meta">${highlight.meta}</p>
     `;
   }
 
-  function renderCategoryPieChart() {
-    const categories = categoriesByPeriod[state.period];
+  function renderCategoryPieChart(categories) {
+    if (!categories || categories.length === 0) {
+      highlightCard.innerHTML = `<p class="highlight-meta">No category data available for this period.</p>`;
+      return;
+    }
+
     const totalRevenue = categories.reduce((sum, item) => sum + item.revenue, 0);
     const colors = ["#2f62da", "#7e1ef2", "#f39a00", "#11ba7a", "#6f778d", "#d83c6a"];
 
@@ -213,13 +147,13 @@ document.addEventListener("DOMContentLoaded", () => {
     topListCard.hidden = !isProducts;
   }
 
-  function renderTopList() {
-    const isProducts = state.activeTab === "products";
-    const list = isProducts
-      ? productsByPeriod[state.period].list
-      : categoriesByPeriod[state.period];
+  function renderTopList(list) {
+    listTitle.textContent = "Top Selling Products";
 
-    listTitle.textContent = isProducts ? "Top Selling Products" : "Top Categories";
+    if (!list || list.length === 0) {
+      topList.innerHTML = `<li class="top-item"><span>No data available for this period.</span></li>`;
+      return;
+    }
 
     topList.innerHTML = list
       .map(
@@ -232,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="top-amount">
               <strong>${peso(item.revenue)}</strong>
-              <span>Profit: ${peso(item.profit)}</span>
+              <span>Revenue</span>
             </div>
           </li>
         `
@@ -259,16 +193,40 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderAll() {
-    renderMetrics();
+    if (!state.data) return;
+    const { metrics, topProducts, highlight, categories } = state.data;
+
+    renderMetrics(metrics);
     syncLayoutByTab();
 
     if (state.activeTab === "products") {
-      renderHighlight();
-      renderTopList();
+      renderHighlight(highlight);
+      renderTopList(topProducts);
+    } else {
+      renderCategoryPieChart(categories);
+    }
+  }
+
+  async function fetchAndRender(period) {
+    if (cache[period]) {
+      state.data = cache[period];
+      renderAll();
       return;
     }
 
-    renderCategoryPieChart();
+    metricsGrid.innerHTML = `<p style="padding:1rem;color:var(--text-muted,#888)">Loading metrics...</p>`;
+
+    try {
+      const response = await fetch(`/reports/metrics?period=${encodeURIComponent(period)}`);
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
+      const data = await response.json();
+      cache[period] = data;
+      state.data = data;
+      renderAll();
+    } catch (err) {
+      console.error("Failed to load report metrics:", err);
+      metricsGrid.innerHTML = `<p style="padding:1rem;color:#d83c6a">Failed to load metrics. Please try again.</p>`;
+    }
   }
 
   tabButtons.forEach((tab) => {
@@ -282,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   periodSelect.addEventListener("change", (event) => {
     state.period = event.target.value;
-    renderAll();
+    fetchAndRender(state.period);
   });
 
   document.getElementById("zReadingBtn").addEventListener("click", () => {
@@ -294,5 +252,5 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast(`Downloaded ${mode} report for last ${state.period} days.`);
   });
 
-  renderAll();
+  fetchAndRender(state.period);
 });
