@@ -85,13 +85,19 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const artMarkup = highlight.categoryImage
+      ? `<img class="highlight-image" src="${highlight.categoryImage}" alt="${highlight.category || "Product"} category image">`
+      : `<div class="highlight-art" aria-hidden="true">${highlight.art}</div>`;
+
+    const categoryMeta = highlight.category ? ` | Category: ${highlight.category}` : "";
+
     highlightCard.innerHTML = `
       <h3 class="highlight-title">${highlightTitles[state.period]}</h3>
       <div class="highlight-frame">
-        <div class="highlight-art" aria-hidden="true">${highlight.art}</div>
+        ${artMarkup}
       </div>
       <div class="highlight-name">${highlight.name}</div>
-      <p class="highlight-meta">${highlight.meta}</p>
+      <p class="highlight-meta">${highlight.meta}${categoryMeta}</p>
     `;
   }
 

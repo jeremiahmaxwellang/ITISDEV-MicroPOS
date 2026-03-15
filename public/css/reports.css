@@ -441,6 +441,13 @@ body {
   box-shadow: 0 14px 34px rgba(31, 47, 123, 0.24);
 }
 
+.highlight-image {
+  width: min(82%, 330px);
+  max-height: 240px;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 24px rgba(28, 44, 88, 0.2));
+}
+
 .highlight-name {
   font-family: var(--font-head);
   font-size: 2rem;
@@ -666,5 +673,10 @@ body {
 
   .metric-grid {
     grid-template-columns: 1fr;
+  }
+
+  .highlight-image {
+    width: min(78%, 260px);
+    max-height: 200px;
   }
 }

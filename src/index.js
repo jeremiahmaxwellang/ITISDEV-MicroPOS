@@ -11,6 +11,7 @@ app.use(express.urlencoded({ limit: '50mb' }));
 
 // Serve static files from the "public" directory
 app.use(express.static(path.join(process.cwd(), './public')));
+app.use('/images', express.static(path.join(process.cwd(), './images')));
 global.viewsPath = path.join(process.cwd(), 'views');
 
 // Routes 
