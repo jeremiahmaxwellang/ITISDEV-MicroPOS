@@ -68,6 +68,12 @@
     transition: background .15s, color .15s;
   }
 
+  .nav-icon-img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+  }
+
   .nav-icon:hover { background: var(--navy-light); color: #c4ceea; }
   .nav-icon.active { background: var(--navy-lighter); color: white; }
 

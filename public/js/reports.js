@@ -85,13 +85,19 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const artMarkup = highlight.categoryImage
+      ? `<img class="highlight-image" src="${highlight.categoryImage}" alt="${highlight.category || "Product"} category image">`
+      : `<div class="highlight-art" aria-hidden="true">${highlight.art}</div>`;
+
+    const categoryMeta = highlight.category ? ` | Category: ${highlight.category}` : "";
+
     highlightCard.innerHTML = `
       <h3 class="highlight-title">${highlightTitles[state.period]}</h3>
       <div class="highlight-frame">
-        <div class="highlight-art" aria-hidden="true">${highlight.art}</div>
+        ${artMarkup}
       </div>
       <div class="highlight-name">${highlight.name}</div>
-      <p class="highlight-meta">${highlight.meta}</p>
+      <p class="highlight-meta">${highlight.meta}${categoryMeta}</p>
     `;
   }
 
@@ -248,8 +254,64 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("downloadBtn").addEventListener("click", () => {
-    const mode = state.activeTab === "products" ? "products" : "categories";
-    showToast(`Downloaded ${mode} report for last ${state.period} days.`);
+    console.log("[Report Download] Download button clicked. Period:", state.period, "| Active tab:", state.activeTab);
+
+    if (!state.data) {
+      console.warn("[Report Download] Aborted — no data loaded for period:", state.period);
+      showToast("No data to download.");
+      return;
+    }
+
+    const periodLabel = { "7": "Last 7 Days", "30": "Last 30 Days", "90": "Last 90 Days" }[state.period] || `Last ${state.period} Days`;
+    const { metrics, topProducts, categories } = state.data;
+
+    function escapeCell(val) {
+      const s = String(val ?? "");
+      return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
+    }
+
+    function row(...cells) {
+      return cells.map(escapeCell).join(",");
+    }
+
+    const lines = [
+      row("MicroPOS Sales Report"),
+      row("Period:", periodLabel),
+      row("Generated:", new Date().toLocaleString("en-PH")),
+      "",
+      row("SUMMARY METRICS"),
+      row("Metric", "Value"),
+      row(periodLabels[state.period] || "Sales", metrics.sales.toFixed(2)),
+      row("Debt Balance", metrics.debt.toFixed(2)),
+      row("Total Debtors", metrics.debtors),
+      row("Total Customers", metrics.customers),
+      "",
+      row("TOP SELLING PRODUCTS"),
+      row("Rank", "Product Name", "Category", "Units Sold", "Revenue (PHP)"),
+      ...topProducts.map((p, i) => row(i + 1, p.name, p.category || "", p.units, p.revenue.toFixed(2))),
+      "",
+      row("SALES BY CATEGORY"),
+      row("Category", "Units Sold", "Revenue (PHP)"),
+      ...categories.map(c => row(c.name, c.units, c.revenue.toFixed(2)))
+    ];
+
+    const csv = lines.join("\r\n");
+    const filename = `micropos-report-${state.period}days-${new Date().toISOString().slice(0, 10)}.csv`;
+
+    console.log("[Report Download] CSV built. Rows:", lines.length, "| Top products:", topProducts.length, "| Categories:", categories.length);
+
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    console.log("[Report Download] Success — file triggered for download:", filename);
+    showToast(`Report downloaded for ${periodLabel}.`);
   });
 
   fetchAndRender(state.period);

@@ -11,12 +11,14 @@ app.use(express.urlencoded({ limit: '50mb' }));
 
 // Serve static files from the "public" directory
 app.use(express.static(path.join(process.cwd(), './public')));
+app.use('/images', express.static(path.join(process.cwd(), './images')));
 global.viewsPath = path.join(process.cwd(), 'views');
 
 // Routes 
 app.use("/", require("./routes/authRoutes")); // login routes
 app.use("/debts", require("./routes/debtRoutes")); // Debt Tracker routes
 app.use("/reports", require("./routes/reportsRoutes")); // Reports API routes
+app.use("/products", require("./routes/productRoutes")); // Products page and API routes
 
 
 mySqlPool.query('SELECT 1').then(() => {

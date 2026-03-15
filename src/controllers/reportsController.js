@@ -2,6 +2,20 @@ const db = require("../config/database");
 
 const VALID_PERIODS = [7, 30, 90];
 
+const CATEGORY_IMAGE_MAP = {
+    beverages: "/images/beverages.png",
+    "canned goods": "/images/canned-food.png",
+    "instant foods": "/images/noodles.png",
+    snacks: "/images/snack.png",
+    services: "/images/services.png"
+};
+
+function getCategoryImage(category) {
+    if (!category) return null;
+    const normalized = String(category).trim().toLowerCase();
+    return CATEGORY_IMAGE_MAP[normalized] || null;
+}
+
 exports.getReportMetrics = async (req, res) => {
     const period = parseInt(req.query.period, 10);
 
@@ -34,13 +48,14 @@ exports.getReportMetrics = async (req, res) => {
 
         const [topProducts] = await db.query(
             `SELECT p.name,
+                    p.product_type AS category,
                     SUM(o.quantity) AS units,
                     SUM(o.price_each * o.quantity) AS revenue
              FROM transaction_orders o
              JOIN products p ON p.product_id = o.product_id
              JOIN transactions t ON t.transaction_id = o.transaction_id
              WHERE t.date_ordered >= DATE_SUB(NOW(), INTERVAL ? DAY)
-             GROUP BY p.product_id, p.name
+             GROUP BY p.product_id, p.name, p.product_type
              ORDER BY revenue DESC
              LIMIT 10`,
             [period]
@@ -68,7 +83,9 @@ exports.getReportMetrics = async (req, res) => {
                     .join("")
                     .slice(0, 2)
                     .toUpperCase(),
-                meta: `${Number(topProducts[0].units).toLocaleString()} units sold`
+                meta: `${Number(topProducts[0].units).toLocaleString()} units sold`,
+                category: topProducts[0].category,
+                categoryImage: getCategoryImage(topProducts[0].category)
             }
             : null;
 
@@ -81,6 +98,7 @@ exports.getReportMetrics = async (req, res) => {
             },
             topProducts: topProducts.map(p => ({
                 name: p.name,
+                category: p.category || "",
                 units: p.units,
                 revenue: parseFloat(p.revenue),
                 profit: 0
