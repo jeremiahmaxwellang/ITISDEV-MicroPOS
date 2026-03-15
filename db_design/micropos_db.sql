@@ -47,6 +47,7 @@ ENGINE = InnoDB;
 
 -- -----------------------------------------------------
 -- Table `micropos_db`.`transactions`
+-- Includes POS payment tracking
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `micropos_db`.`transactions` (
   `transaction_id` INT NOT NULL AUTO_INCREMENT,
@@ -54,6 +55,8 @@ CREATE TABLE IF NOT EXISTS `micropos_db`.`transactions` (
   `staff_id` INT NULL,
   `total_price` DECIMAL(10,2) NULL,
   `date_ordered` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` ENUM('Completed', 'Cancelled', 'Pending') DEFAULT 'Completed' COMMENT 'Transaction status for POS',
+  `payment_method` ENUM('Cash', 'GCash', 'Other') DEFAULT 'Cash' COMMENT 'Payment method used',
   PRIMARY KEY (`transaction_id`),
   INDEX `fk_transactions_customers1_idx` (`customer_id` ASC) VISIBLE,
   INDEX `fk_transactions_staff1_idx` (`staff_id` ASC) VISIBLE,
@@ -72,13 +75,16 @@ ENGINE = InnoDB;
 
 -- -----------------------------------------------------
 -- Table `micropos_db`.`products`
+-- Includes barcode support for POS scanning
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `micropos_db`.`products` (
   `product_id` INT NOT NULL AUTO_INCREMENT,
+  `barcode` VARCHAR(255) UNIQUE NULL COMMENT 'Barcode for POS scanning',
   `name` VARCHAR(100) NOT NULL,
   `product_type` ENUM('Beverages', 'Canned Goods', 'Instant Foods', 'Snacks', 'Services') NOT NULL,
   `selling_price` DECIMAL(10,2) NULL,
-  PRIMARY KEY (`product_id`))
+  PRIMARY KEY (`product_id`),
+  INDEX `idx_barcode` (`barcode` ASC))
 ENGINE = InnoDB;
 
 
