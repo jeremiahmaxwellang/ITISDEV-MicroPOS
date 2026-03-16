@@ -233,6 +233,21 @@
             <option value="Other">Other</option>
           </select>
         </div>
+
+        <div>
+          <label style="display:block;font-weight:600;color:#1a2035;margin-bottom:0.4rem;font-size:0.9rem;">Product Photo</label>
+          <div style="display:flex;flex-direction:column;gap:0.5rem;">
+            <div id="photoPreviewWrap" style="display:none;width:80px;height:80px;border-radius:0.5rem;overflow:hidden;border:1px solid #e2e8f0;">
+              <img id="photoPreview" src="" alt="Preview" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <label style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;border:1px dashed #a5b4fc;border-radius:0.375rem;cursor:pointer;background:#f5f3ff;font-size:0.875rem;color:#4f46e5;font-weight:500;width:fit-content;">
+              <i data-lucide="image" style="width:16px;height:16px;"></i>
+              Choose Photo
+              <input type="file" id="productPhoto" accept="image/*" style="display:none;">
+            </label>
+            <input type="hidden" id="productPhotoData" value="">
+          </div>
+        </div>
       </div>
 
       <div style="padding:1rem 1.5rem;border-top:1px solid #e2e8f0;display:flex;gap:1rem;justify-content:flex-end;">
@@ -329,9 +344,9 @@
         html += '<tr style="border-bottom:1px solid #e2e8f0;">'
           + '<td style="padding:0.875rem 1rem;">'
           +   '<div style="display:flex;align-items:center;gap:0.75rem;">'
-          +     '<div style="width:40px;height:40px;background:linear-gradient(135deg,#f0f4ff,#edf2f7);border-radius:0.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
-          +       '<i data-lucide="package" style="width:20px;height:20px;color:#4f46e5;opacity:0.7;"></i>'
-          +     '</div>'
+          +     (p.photo
+                  ? '<div style="width:40px;height:40px;border-radius:0.5rem;overflow:hidden;flex-shrink:0;"><img src="' + p.photo + '" style="width:100%;height:100%;object-fit:cover;" alt=""></div>'
+                  : '<div style="width:40px;height:40px;background:linear-gradient(135deg,#f0f4ff,#edf2f7);border-radius:0.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i data-lucide="package" style="width:20px;height:20px;color:#4f46e5;opacity:0.7;"></i></div>')
           +     '<div>'
           +       '<div style="font-weight:600;color:#1a2035;">' + escHtml(p.name) + '</div>'
           +       '<div style="font-size:0.75rem;color:#718096;">' + (p.barcode ? escHtml(p.barcode) : '<em>No barcode</em>') + '</div>'
@@ -436,6 +451,9 @@
       document.getElementById('productCategory').value = '';
       document.getElementById('barcodeHint').textContent = '';
       document.getElementById('stockField').style.display = '';
+      document.getElementById('productPhotoData').value = '';
+      document.getElementById('photoPreviewWrap').style.display = 'none';
+      document.getElementById('photoPreview').src = '';
       document.getElementById('productModal').style.display = 'flex';
       setTimeout(function() { document.getElementById('productName').focus(); }, 50);
       icons();
@@ -456,6 +474,14 @@
       document.getElementById('productCategory').value = p.category || '';
       document.getElementById('barcodeHint').textContent = '';
       document.getElementById('stockField').style.display = 'none';
+      document.getElementById('productPhotoData').value = p.photo || '';
+      if (p.photo) {
+        document.getElementById('photoPreview').src = p.photo;
+        document.getElementById('photoPreviewWrap').style.display = 'block';
+      } else {
+        document.getElementById('photoPreviewWrap').style.display = 'none';
+        document.getElementById('photoPreview').src = '';
+      }
       document.getElementById('productModal').style.display = 'flex';
       setTimeout(function() { document.getElementById('productName').focus(); }, 50);
       icons();
@@ -568,9 +594,10 @@
       btn.disabled = true;
       btn.innerHTML = '<i data-lucide="loader" style="width:16px;height:16px;"></i> Saving…';
 
+      var photo  = document.getElementById('productPhotoData').value;
       var url    = editId ? ('/products/api/' + editId) : '/products/api/add';
       var method = editId ? 'PUT' : 'POST';
-      var body   = { name: name, category: category, price: price, barcode: barcode };
+      var body   = { name: name, category: category, price: price, barcode: barcode, photo: photo || null };
       if (!editId) body.stock = stock;
 
       fetch(url, {
@@ -680,6 +707,20 @@
         }
       });
       document.getElementById('stopModalScanBtn').addEventListener('click', stopModalCamera);
+
+      // Photo preview
+      document.getElementById('productPhoto').addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+          document.getElementById('productPhotoData').value = ev.target.result;
+          document.getElementById('photoPreview').src = ev.target.result;
+          document.getElementById('photoPreviewWrap').style.display = 'block';
+          icons();
+        };
+        reader.readAsDataURL(file);
+      });
 
       // Edit / Delete via event delegation on the table body
       document.getElementById('productsContainer').addEventListener('click', function(e) {

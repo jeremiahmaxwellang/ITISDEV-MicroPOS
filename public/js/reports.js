@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
     listTitle.textContent = "Top Selling Products";
 
     if (!list || list.length === 0) {
-      topList.innerHTML = `<li class="top-item"><span>No data available for this period.</span></li>`;
+      topList.innerHTML = `<li style="padding:1rem;color:var(--text-sub,#888);list-style:none;">No data available for this period.</li>`;
       return;
     }
 

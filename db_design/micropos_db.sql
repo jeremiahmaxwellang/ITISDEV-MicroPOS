@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `name`         VARCHAR(100)  NOT NULL,
   `product_type` ENUM('Beverages', 'Canned Goods', 'Instant Foods', 'Snacks', 'Dairy', 'Coffee', 'Services', 'Other') NOT NULL DEFAULT 'Other',
   `selling_price` DECIMAL(10,2) NULL,
+  `photo`        MEDIUMTEXT    NULL COMMENT 'Base64 encoded product photo',
   PRIMARY KEY (`product_id`),
   INDEX `idx_barcode` (`barcode` ASC)
 ) ENGINE = InnoDB;

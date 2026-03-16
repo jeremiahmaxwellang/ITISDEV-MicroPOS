@@ -46,7 +46,7 @@ exports.getProductItems = async (req, res) => {
          p.name,
          p.barcode,
          p.product_type AS category,
-         p.selling_price AS price,
+         p.selling_price AS price, p.photo,
          COALESCE(
            SUM(
              CASE
@@ -60,7 +60,7 @@ exports.getProductItems = async (req, res) => {
        FROM products p
        LEFT JOIN product_batches pb ON pb.product_id = p.product_id
        ${whereClause}
-       GROUP BY p.product_id, p.name, p.barcode, p.product_type, p.selling_price
+       GROUP BY p.product_id, p.name, p.barcode, p.product_type, p.selling_price, p.photo
        ORDER BY p.name ASC`,
       params
     );
@@ -74,6 +74,7 @@ exports.getProductItems = async (req, res) => {
         manufacturer: getManufacturer(row.name),
         category: row.category,
         price: Number(row.price) || 0,
+        photo: row.photo || null,
         stock,
         lowStock: stock > 0 && stock <= 5
       };
@@ -88,7 +89,7 @@ exports.getProductItems = async (req, res) => {
 
 // Add a new product
 exports.addProduct = async (req, res) => {
-  const { name, category, price, stock, barcode } = req.body;
+  const { name, category, price, stock, barcode, photo } = req.body;
 
   if (!name || !category) {
     return res.status(400).json({ error: "Name and category are required" });
@@ -107,9 +108,9 @@ exports.addProduct = async (req, res) => {
     }
 
     const [result] = await db.query(
-      `INSERT INTO products (name, product_type, selling_price, barcode)
-       VALUES (?, ?, ?, ?)`,
-      [name.trim(), category, parseFloat(price) || null, barcode?.trim() || null]
+      `INSERT INTO products (name, product_type, selling_price, barcode, photo)
+       VALUES (?, ?, ?, ?, ?)`,
+      [name.trim(), category, parseFloat(price) || null, barcode?.trim() || null, photo || null]
     );
 
     const product_id = result.insertId;
@@ -141,7 +142,7 @@ exports.addProduct = async (req, res) => {
 // Update an existing product
 exports.updateProduct = async (req, res) => {
   const { product_id } = req.params;
-  const { name, category, price, barcode } = req.body;
+  const { name, category, price, barcode, photo } = req.body;
 
   if (!name || !category) {
     return res.status(400).json({ error: "Name and category are required" });
@@ -160,9 +161,9 @@ exports.updateProduct = async (req, res) => {
     }
 
     await db.query(
-      `UPDATE products SET name = ?, product_type = ?, selling_price = ?, barcode = ?
+      `UPDATE products SET name = ?, product_type = ?, selling_price = ?, barcode = ?, photo = ?
        WHERE product_id = ?`,
-      [name.trim(), category, parseFloat(price) || null, barcode?.trim() || null, product_id]
+      [name.trim(), category, parseFloat(price) || null, barcode?.trim() || null, photo || null, product_id]
     );
 
     res.json({ success: true, message: `Product updated successfully` });

@@ -13,7 +13,7 @@ exports.getActiveDebts = async (req, res) => {
             d.debt_due
             FROM debts d
             JOIN customers c ON c.customer_id = d.customer_id
-            WHERE d.status = 'Paid'
+            WHERE d.status != 'Paid'
             ORDER BY d.debt_due
         `;
         const [results] = await db.query(sql);
@@ -36,7 +36,7 @@ exports.getPaidDebts = async (req, res) => {
             d.debt_due
             FROM debts d
             JOIN customers c ON c.customer_id = d.customer_id
-            WHERE d.status != 'Paid'
+            WHERE d.status = 'Paid'
             ORDER BY d.debt_due, status
         `;
         const [results] = await db.query(sql);

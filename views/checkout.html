@@ -15,7 +15,6 @@
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script defer src="/js/sidebar.js"></script>
-  <script defer src="/js/checkout.js"></script>
 </head>
 
 <body class="with-sidebar">
@@ -292,14 +291,12 @@
       // Cash card styling
       document.getElementById('cashCard').style.border = isCash ? '2px solid #4f46e5' : '2px solid #e2e8f0';
       document.getElementById('cashCard').style.background = isCash ? '#f0f4ff' : 'white';
-      document.getElementById('cashCard').querySelector('i[data-lucide="banknote"]').style.color = isCash ? '#4f46e5' : '#718096';
       document.getElementById('cashCard').querySelector('div:last-child').style.color = isCash ? '#4f46e5' : '#718096';
       document.getElementById('cashCheck').style.display = isCash ? 'flex' : 'none';
 
       // GCash card styling
       document.getElementById('gcashCard').style.border = !isCash ? '2px solid #4f46e5' : '2px solid #e2e8f0';
       document.getElementById('gcashCard').style.background = !isCash ? '#f0f4ff' : 'white';
-      document.getElementById('gcashCard').querySelector('i[data-lucide="smartphone"]').style.color = !isCash ? '#4f46e5' : '#718096';
       document.getElementById('gcashCard').querySelector('div:nth-child(2)').style.color = !isCash ? '#4f46e5' : '#718096';
       document.getElementById('gcashCheck').style.display = !isCash ? 'flex' : 'none';
 
