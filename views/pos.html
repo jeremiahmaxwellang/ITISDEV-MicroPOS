@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MicroPOS - Modern Point of Sale</title>
+
+  <!-- Outfit Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/css/modern.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+
+  <!-- Libraries -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@latest/dist/quagga.js"></script>
+
+  <script defer src="/js/sidebar.js"></script>
+  <script defer src="/js/barcodeParser.js"></script>
+  <script defer src="/js/sidebar-pos.js"></script>
+</head>
+
+<body class="with-sidebar">
+  <!-- SIDEBAR — populated by /js/sidebar.js -->
+  <aside class="sidebar"></aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-wrapper">
+    <!-- HEADER -->
+    <header class="main-header">
+      <div class="main-header-left">
+        <div>
+          <div class="main-header-title">New Sale</div>
+          <div class="main-header-subtitle">Manage your store efficiently</div>
+        </div>
+      </div>
+      <div class="main-header-right">
+        <div class="navbar-user">
+          <div class="user-avatar">JD</div>
+          <div>
+            <div style="font-weight: 600;">Juan Dela Cruz</div>
+            <div style="font-size: 0.75rem; color: #718096;">Store Owner</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-content">
+      <div class="pos-layout">
+        <!-- LEFT: PRODUCTS & SCANNER -->
+        <div class="pos-main">
+          <!-- MODE TABS -->
+          <div class="mode-tabs">
+            <button class="mode-tab active" data-mode="products">
+              <i data-lucide="grid-3x3-gap" style="width: 16px; height: 16px;"></i>
+              Products
+            </button>
+            <button class="mode-tab" data-mode="barcode">
+              <i data-lucide="scan-line" style="width: 16px; height: 16px;"></i>
+              Barcode
+            </button>
+            <button class="mode-tab" data-mode="camera">
+              <i data-lucide="camera" style="width: 16px; height: 16px;"></i>
+              Camera
+            </button>
+          </div>
+
+          <!-- PRODUCTS MODE -->
+          <div id="productsMode" class="mode-content active">
+            <div class="card" style="margin-bottom: 1rem;">
+              <div class="card-body">
+                <input type="text" id="searchInput" placeholder="Search products..." 
+                       style="padding: 0.75rem 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; width: 100%; font-family: Outfit, sans-serif;">
+              </div>
+            </div>
+            <div id="productsGrid" class="products-grid">
+              <!-- Products loaded here -->
+              <div style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+                <i data-lucide="loader" style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.3;"></i>
+                <p style="color: #718096;">Loading products...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- BARCODE MODE -->
+          <div id="barcodeMode" class="mode-content" style="display: none;">
+            <div class="card">
+              <div class="card-body">
+                <div class="form-group">
+                  <label>Scan Product Barcode</label>
+                  <input type="text" id="barcodeInput" placeholder="Scan or enter barcode..." autocomplete="off" 
+                         style="padding: 1rem; border: 2px solid #e2e8f0; border-radius: 0.5rem; font-size: 1rem; font-family: Outfit, sans-serif;">
+                </div>
+                <p style="text-align: center; color: #718096; font-size: 0.875rem;">Press Enter to scan</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- CAMERA MODE -->
+          <div id="cameraMode" class="mode-content" style="display: none;">
+            <div class="card">
+              <div class="card-body">
+                <div style="position: relative; margin-bottom: 1rem;">
+                  <!-- Quagga renders its own <video>+<canvas> inside this div -->
+                  <div id="cameraContainer" style="display: none; width: 100%; aspect-ratio: 4/3; border-radius: 0.5rem; overflow: hidden; background: black; position: relative;"></div>
+                  <div id="cameraPlaceholder" style="width: 100%; aspect-ratio: 4/3; background: #f7fafc; border: 2px dashed #e2e8f0; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                    <i data-lucide="camera" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p style="color: #718096;">Click below to start camera</p>
+                  </div>
+                </div>
+                <style>
+                  #cameraContainer video,
+                  #cameraContainer canvas { width: 100% !important; height: 100% !important; position: absolute; top: 0; left: 0; object-fit: cover; }
+                </style>
+                <button id="startCameraBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 0.5rem;">
+                  <i data-lucide="play" style="width: 18px; height: 18px;"></i>
+                  Start Camera
+                </button>
+                <button id="stopCameraBtn" class="btn btn-secondary" style="width: 100%; display: none;">
+                  <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                  Stop Camera
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: CART SIDEBAR -->
+        <div class="pos-sidebar">
+          <div class="cart-panel">
+            <div class="cart-header">
+              <div class="cart-title">
+                <i data-lucide="shopping-cart" style="width: 20px; height: 20px;"></i>
+                Cart <span id="cartCount" style="background: #3b5bdb; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">0</span>
+              </div>
+              <button class="cart-clear-btn" id="clearCartBtn" title="Clear cart">
+                <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+              </button>
+            </div>
+
+            <div id="cartItems" class="cart-items">
+              <div class="cart-empty">
+                <i data-lucide="shopping-cart" style="width: 48px; height: 48px;"></i>
+                <p>Your cart is empty</p>
+              </div>
+            </div>
+
+            <div class="cart-totals">
+              <div class="cart-total-row">
+                <span>Subtotal:</span>
+                <span id="subtotal">₱ 0.00</span>
+              </div>
+              <div class="cart-total-row">
+                <span>Tax (0%):</span>
+                <span id="taxAmount">₱ 0.00</span>
+              </div>
+              <div class="cart-total-row total">
+                <span>Total:</span>
+                <span id="cartTotal">₱ 0.00</span>
+              </div>
+            </div>
+
+            <div class="cart-actions">
+              <button id="checkoutBtn" class="cart-action-btn checkout" disabled>
+                <i data-lucide="credit-card" style="width: 18px; height: 18px;"></i>
+                Checkout
+              </button>
+              <button id="listAsDebtBtn" class="cart-action-btn debt" disabled>
+                <i data-lucide="alert-circle" style="width: 18px; height: 18px;"></i>
+                List as Debt
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="messageToast" style="position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; background: white; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: none; z-index: 2000; max-width: 300px;">
+    <div id="toastMessage"></div>
+  </div>
+
+  <script>
+    // Wait for Lucide to be available and initialize icons after sidebar-pos.js runs
+    document.addEventListener('DOMContentLoaded', () => {
+      // Give sidebar-pos.js time to finish initializing
+      setTimeout(() => {
+        if (typeof lucide !== 'undefined') {
+          lucide.createIcons();
+        }
+      }, 200);
+    });
+  </script>
+</body>
+
+</html>

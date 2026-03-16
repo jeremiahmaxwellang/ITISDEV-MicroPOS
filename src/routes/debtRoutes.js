@@ -9,13 +9,15 @@ const router = express.Router();
 
 const debtsController = require('../controllers/debtsController');
 
+const viewsPath = path.join(__dirname, '../../views');
+
 // Controller
 router.get('/active', debtsController.getActiveDebts);
 router.get('/paid', debtsController.getPaidDebts);
 
 // Route for /debts
 router.get('/', (req, res) => {
-    res.sendFile(path.join(viewsPath, 'debt-tracker.html'));
+    res.sendFile(path.join(viewsPath, 'debts.html'));
 });
 
 module.exports = router;

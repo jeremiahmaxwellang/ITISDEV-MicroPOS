@@ -4,7 +4,7 @@ const db = require("../config/database");
 exports.getActiveDebts = async (req, res) => {
     try {
         const sql = `
-            SELECT 
+            SELECT
             c.first_name,
             c.last_name,
             c.facebook_profile,
@@ -27,7 +27,7 @@ exports.getActiveDebts = async (req, res) => {
 exports.getPaidDebts = async (req, res) => {
     try {
         const sql = `
-            SELECT 
+            SELECT
             c.first_name,
             c.last_name,
             c.facebook_profile,

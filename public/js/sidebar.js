@@ -1,0 +1,91 @@
+/**
+ * Shared Sidebar Component
+ * Dynamically renders the navigation sidebar on every page.
+ * Hover to expand — icons always visible, labels slide in on hover.
+ */
+(function () {
+  'use strict';
+
+  /** Nav items rendered in the main nav section */
+  const NAV_ITEMS = [
+    { href: '/pos',      icon: 'shopping-cart', label: 'Point of Sale' },
+    { href: '/products', icon: 'package',        label: 'Products'      },
+    { href: '/debts',    icon: 'file-text',      label: 'Debt Tracker'  },
+    { href: '/reports',  icon: 'bar-chart-2',    label: 'Reports'       },
+  ];
+
+  /** Items pinned to the bottom of the sidebar */
+  const BOTTOM_ITEMS = [
+    { href: '/settings', icon: 'settings', label: 'Settings', cls: '' },
+    { href: '/',         icon: 'log-out',  label: 'Logout',   cls: 'sidebar-logout-link' },
+  ];
+
+  /** Returns true when the current URL matches this route */
+  function isActive(href) {
+    const path = window.location.pathname;
+    if (href === '/') return false; // never mark logout/home as active
+    return path === href || path.startsWith(href + '/');
+  }
+
+  /** Build a single nav link element */
+  function buildLink(item) {
+    const active = isActive(item.href) ? ' active' : '';
+    const cls = (item.cls || '') + active;
+    return `<a href="${item.href}" class="sidebar-link${cls ? ' ' + cls.trim() : ''}" title="${item.label}">
+      <span class="sidebar-icon"><i data-lucide="${item.icon}"></i></span>
+      <span class="sidebar-label">${item.label}</span>
+    </a>`;
+  }
+
+  /** Build and inject the full sidebar markup */
+  function render() {
+    const aside = document.querySelector('aside.sidebar');
+    if (!aside) return;
+
+    aside.innerHTML = `
+      <!-- Logo / Brand -->
+      <div class="sidebar-logo-area">
+        <span class="sidebar-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+               fill="none" stroke="white" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+        </span>
+        <span class="sidebar-label sidebar-brand">MicroPOS</span>
+      </div>
+
+      <!-- Main navigation -->
+      <nav class="sidebar-nav">
+        ${NAV_ITEMS.map(buildLink).join('\n        ')}
+      </nav>
+
+      <!-- Bottom utilities -->
+      <div class="sidebar-bottom">
+        ${BOTTOM_ITEMS.map(buildLink).join('\n        ')}
+      </div>
+    `;
+
+    // Initialise Lucide icons (guards against Lucide not yet loaded)
+    if (window.lucide) {
+      lucide.createIcons();
+    } else {
+      // Wait briefly for Lucide CDN script to finish
+      const poll = setInterval(function () {
+        if (window.lucide) {
+          lucide.createIcons();
+          clearInterval(poll);
+        }
+      }, 30);
+    }
+  }
+
+  // Run after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
+  }
+})();

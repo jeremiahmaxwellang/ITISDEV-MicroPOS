@@ -1,5 +1,5 @@
 /*
-    AUTHENTICATION ROUTES 
+    AUTHENTICATION ROUTES
     Assigned to: Justin
 
     Purpose:
@@ -11,30 +11,17 @@ const path = require('path');
 const mySqlPool = require('../config/database'); // your MySQL pool
 const router = express.Router();
 
+const viewsPath = path.join(__dirname, '../../views');
+
 // Login page
 router.get('/', (req, res) => {
     res.sendFile(path.join(viewsPath, 'login.html'));
-});
-
-// Signup page
-router.get('/signup', (req, res) => {
-    res.sendFile(path.join(viewsPath, 'signup.html'));
-});
-
-// Registration page
-router.get('/register', (req, res) => {
-    res.sendFile(path.join(viewsPath, 'register.html'));
 });
 
 // Reports page
 router.get('/reports', (req, res) => {
     res.sendFile(path.join(viewsPath, 'reports.html'));
 });
-
-// Dashboard pages
-// router.get('/manager_dashboard.html', (req, res) => {
-//     res.sendFile(path.join(viewsPath, 'manager_dashboard.html'));
-// });
 
 // --- POST /login ---
 router.post('/login', async (req, res) => {
@@ -49,9 +36,6 @@ router.post('/login', async (req, res) => {
 
         if (rows.length > 0) {
             const user = rows[0];
-
-            // You can store user in session if needed
-            // req.session.user = user;
 
             // Redirect based on role
             switch(user.position) {

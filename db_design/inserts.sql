@@ -35,13 +35,13 @@ INSERT INTO `products` (`name`, `product_type`, `selling_price`) VALUES
 -- ─────────────────────────────────────────
 -- PRODUCT BATCHES
 -- ─────────────────────────────────────────
-INSERT INTO `product_batches` (`product_id`, `batch_id`, `stock_quantity`, `purchase_date`, `expiry_date`, `status`) VALUES
-(1, 1, 120, '2025-10-01 08:00:00', '2026-10-01 00:00:00', 'On Shelves'),
-(1, 2,  60, '2025-10-15 08:00:00', '2026-10-15 00:00:00', 'Inventory'),
-(2, 1, 200, '2025-10-05 08:00:00',  NULL,                 'On Shelves'),
-(3, 1,  50, '2025-09-20 08:00:00', '2026-09-20 00:00:00', 'On Shelves'),
-(4, 1, 300, '2025-10-10 08:00:00', '2026-04-10 00:00:00', 'On Shelves'),
-(4, 2, 100, '2025-08-01 08:00:00', '2026-02-01 00:00:00', 'Discontinued');
+INSERT INTO `product_batches` (`product_id`, `stock_quantity`, `purchase_date`, `expiry_date`, `status`) VALUES
+(1, 120, '2025-10-01 08:00:00', '2026-10-01 00:00:00', 'On Shelves'),
+(1,  60, '2025-10-15 08:00:00', '2026-10-15 00:00:00', 'Inventory'),
+(2, 200, '2025-10-05 08:00:00',  NULL,                 'On Shelves'),
+(3,  50, '2025-09-20 08:00:00', '2026-09-20 00:00:00', 'On Shelves'),
+(4, 300, '2025-10-10 08:00:00', '2026-04-10 00:00:00', 'On Shelves'),
+(4, 100, '2025-08-01 08:00:00', '2026-02-01 00:00:00', 'Discontinued');
 
 
 -- ─────────────────────────────────────────
@@ -140,7 +140,7 @@ INSERT INTO `debt_transactions` (`debt_id`, `transaction_id`) VALUES
 -- Rosie is overdue — no payments made.
 -- Kaloy and Ate Baby are unpaid — no payments yet.
 -- ─────────────────────────────────────────
-INSERT INTO `payments` (`debt_id`, `transaction_id`, `staff_id`, `amount_paid`, `payment_method`, `proof`, `notes`, `paid_at`) VALUES
+INSERT INTO `payments` (`debt_id`, `transaction_id`, `staff_id`, `amount_paid`, `payment_method`, `proof_of_payment`, `notes`, `created_at`) VALUES
 -- Kuya Choy: paid in full, lump sum (no specific transaction linked)
 (4, NULL, 2, 580.00, 'GCash', 'receipts/choy_gcash.jpg',  'Paid in full via GCash', '2026-01-20 10:00:00'),
 

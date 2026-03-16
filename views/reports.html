@@ -4,124 +4,176 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reports | MicroPOS</title>
+  <title>Reports - MicroPOS</title>
+
+  <!-- Outfit Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/reports.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/css/modern.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+
+  <!-- Libraries -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <script defer src="/js/sidebar.js"></script>
   <script defer src="/js/reports.js"></script>
 </head>
 
-<body>
+<body class="with-sidebar">
+  <!-- SIDEBAR — populated by /js/sidebar.js -->
+  <aside class="sidebar"></aside>
 
-  <!-- SIDEBAR -->
-   
-  <nav class="sidebar">
-
-    <div class="nav-icon active" title="Dashboard">
-      <img class="nav-icon-img" src="/images/Icon.png" alt="" aria-hidden="true">
-    </div>
-    <div class="nav-icon" title="Cart">
-      <img class="nav-icon-img" src="/images/Icon2.png" alt="" aria-hidden="true">
-    </div>
-    <a class="nav-icon" title="Products" href="/products" aria-label="Products">
-      <img class="nav-icon-img" src="/images/Icon3.png" alt="" aria-hidden="true">
-    </a>
-    <a class="nav-icon" title="Reports" href="/reports" aria-label="Reports">
-      <img class="nav-icon-img" src="/images/Icon4.png" alt="" aria-hidden="true">
-    </a>
-    <div class="nav-icon" title="Analytics">
-      <img class="nav-icon-img" src="/images/Icon5.png" alt="" aria-hidden="true">
-    </div>
-    <div class="nav-icon" title="Settings">
-      <img class="nav-icon-img" src="/images/Icon6.png" alt="" aria-hidden="true">
-    </div>
-
-    <div class="sidebar-bottom">
-      <div class="nav-icon logout" title="Logout">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-          <polyline points="16 17 21 12 16 7" />
-          <line x1="21" y1="12" x2="9" y2="12" />
-        </svg>
-      </div>
-    </div>
-  </nav>
-
-  <main class="main">
-    <header class="topbar">
-      <div>
-        <h1>Reports</h1>
-        <p>Manage your store efficiently</p>
-      </div>
-
-      <div class="user-pill">
-        <div class="user-info">
-          <strong>Juan Dela Cruz</strong>
-          <span>Store Owner</span>
+  <!-- MAIN CONTENT -->
+  <div class="main-wrapper">
+    <!-- HEADER -->
+    <header class="main-header">
+      <div class="main-header-left">
+        <div>
+          <div class="main-header-title">Reports</div>
+          <div class="main-header-subtitle">Track sales and business metrics</div>
         </div>
-        <div class="user-avatar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
+      </div>
+      <div class="main-header-right">
+        <div class="navbar-user">
+          <div class="user-avatar">JD</div>
+          <div>
+            <div style="font-weight: 600;">Juan Dela Cruz</div>
+            <div style="font-size: 0.75rem; color: #718096;">Store Owner</div>
+          </div>
         </div>
       </div>
     </header>
 
-    <section class="content">
-      <div class="section-head">
-        <h2>Summary of Reports</h2>
-        <div class="head-actions">
-          <label class="report-filter" for="periodSelect">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-            </svg>
-            <select id="periodSelect">
-              <option value="7">Last 7 Days</option>
-              <option value="30">Last 30 Days</option>
-              <option value="90">Last 90 Days</option>
-            </select>
-          </label>
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-content">
+    <div style="margin-bottom: 2rem;">
+      <h1 style="font-size: 2.5rem; font-weight: 700; color: #1a2035; margin-bottom: 0.5rem;">Reports & Analytics</h1>
+      <p style="font-size: 1rem; color: #718096;">Track sales and business metrics</p>
+    </div>
 
-          <button class="btn btn-z" id="zReadingBtn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="4" width="18" height="18" rx="2"></rect>
-              <line x1="8" y1="8" x2="16" y2="8"></line>
-              <line x1="8" y1="12" x2="16" y2="12"></line>
-              <line x1="8" y1="16" x2="12" y2="16"></line>
-            </svg>
-            Z-Reading (End of Day)
-          </button>
+    <!-- FILTERS -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+      <button class="btn btn-secondary active" data-period="7">
+        <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+        Last 7 Days
+      </button>
+      <button class="btn btn-secondary" data-period="30">
+        <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+        Last 30 Days
+      </button>
+      <button class="btn btn-secondary" data-period="90">
+        <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+        Last 90 Days
+      </button>
+    </div>
 
-          <button class="btn btn-download" id="downloadBtn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Download Report
-          </button>
+    <!-- METRICS GRID -->
+    <div id="metricsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+      <!-- Metrics will be loaded here -->
+      <div class="card">
+        <div class="card-body" style="text-align: center; padding: 2rem;">
+          <i data-lucide="loader" style="width: 48px; height: 48px; margin: 0 auto 1rem; opacity: 0.5; color: #718096;"></i>
+          <p style="color: #718096;">Loading metrics...</p>
         </div>
       </div>
+    </div>
 
-      <div class="metric-grid" id="metricsGrid"></div>
-
-      <div class="segment-tabs">
-        <button class="segment active" data-tab="products">Top Products</button>
-        <button class="segment" data-tab="categories">Categories</button>
+    <!-- DETAILED REPORTS -->
+    <div style="margin-top: 3rem;">
+      <h2 style="font-size: 1.5rem; font-weight: 600; color: #1a2035; margin-bottom: 1rem;">Export Reports</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <button id="exportCSVBtn" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+          Export CSV
+        </button>
+        <button id="exportPDFBtn" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          <i data-lucide="file-pdf" style="width: 18px; height: 18px;"></i>
+          Export PDF
+        </button>
+        <button id="printBtn" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          <i data-lucide="printer" style="width: 18px; height: 18px;"></i>
+          Print
+        </button>
       </div>
+    </div>
+  </div>
 
-      <div class="reports-grid">
-        <article class="card product-highlight" id="highlightCard"></article>
+  <!-- Toast Notification -->
+  <div id="messageToast" style="position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; background: white; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: none; z-index: 2000; max-width: 300px;">
+    <div id="toastMessage"></div>
+  </div>
 
-        <article class="card top-list-card">
-          <h3 id="listTitle">Top Selling Products</h3>
-          <ul class="top-list" id="topList"></ul>
-        </article>
-      </div>
-    </section>
-  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let currentPeriod = 7;
+
+      // Period button handling
+      const periodButtons = document.querySelectorAll('[data-period]');
+      periodButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          periodButtons.forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+          currentPeriod = parseInt(button.dataset.period);
+          loadMetrics();
+        });
+      });
+
+      // Export buttons
+      document.getElementById('exportCSVBtn').addEventListener('click', () => {
+        alert('CSV export will be implemented. Using backend functionality at /reports/metrics');
+      });
+
+      document.getElementById('exportPDFBtn').addEventListener('click', () => {
+        alert('PDF export will be implemented. Using backend functionality at /reports/metrics');
+      });
+
+      document.getElementById('printBtn').addEventListener('click', () => {
+        window.print();
+      });
+
+      function loadMetrics() {
+        // For now, show placeholder metrics
+        const container = document.getElementById('metricsContainer');
+        container.innerHTML = `
+          <div class="card">
+            <div class="card-body">
+              <div style="color: #718096; font-size: 0.875rem; font-weight: 500;">Total Sales</div>
+              <div style="font-size: 2rem; font-weight: 700; color: #3b5bdb;">₱ 15,450</div>
+              <div style="color: #48bb78; font-size: 0.875rem; margin-top: 0.5rem;">↑ 12% from last period</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div style="color: #718096; font-size: 0.875rem; font-weight: 500;">Transactions</div>
+              <div style="font-size: 2rem; font-weight: 700; color: #3b5bdb;">245</div>
+              <div style="color: #48bb78; font-size: 0.875rem; margin-top: 0.5rem;">↑ 8% from last period</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div style="color: #718096; font-size: 0.875rem; font-weight: 500;">Avg Transaction</div>
+              <div style="font-size: 2rem; font-weight: 700; color: #3b5bdb;">₱ 63.06</div>
+              <div style="color: #ed8936; font-size: 0.875rem; margin-top: 0.5rem;">→ No change</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div style="color: #718096; font-size: 0.875rem; font-weight: 500;">Outstanding Debts</div>
+              <div style="font-size: 2rem; font-weight: 700; color: #e53e3e;">₱ 4,230</div>
+              <div style="color: #e53e3e; font-size: 0.875rem; margin-top: 0.5rem;">⬆ Alert</div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Initialize
+      loadMetrics();
+      lucide.createIcons();
+    });
+  </script>
 </body>
 
 </html>
