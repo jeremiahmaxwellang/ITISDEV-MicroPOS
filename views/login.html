@@ -2,38 +2,47 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>TeamForge Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroPOS Login</title>
     <link rel="stylesheet" href="/css/login.css">
 </head>
 <body>
 
-<div class="login-box">
-    <h2>Welcome to MicroPOS</h2>
+<div class="login-card">
+    <img class="login-logo" src="/images/Icon.png" alt="MicroPOS Logo">
+    <h1 class="login-title">MicroPOS</h1>
 
-    <form id="loginForm">
-    <label>Email</label>
-    <input type="email" id="email" placeholder="Enter your email" required>
+    <form id="loginForm" class="login-form">
+        <div class="field-group">
+            <label class="field-label" for="email">Email</label>
+            <input type="email" id="email" class="input-field" placeholder="your@email.com" required>
+        </div>
 
-    <label>Password</label>
-    <input type="password" id="password" placeholder="Enter your password" required>
+        <div class="field-group">
+            <label class="field-label" for="password">Password</label>
+            <input type="password" id="password" class="input-field" placeholder="••••••••" required>
+        </div>
 
-    <button type="submit">Continue</button>
-</form>
+        <a href="#" class="forgot-link">Forgot your password?</a>
 
+        <button type="submit" class="btn-signin">Sign In</button>
 
-    <p class="signup-text">
-        <span>Applying to the team? </span> <a href="/signup">Click here!</a>
-    </p>
+        <div class="or-divider">
+            <div class="or-line"></div>
+            <span class="or-text">or</span>
+            <div class="or-line"></div>
+        </div>
 
-    <p class="signup-text">
-        <span><a href="/debts">Debt Tracker</a></span>
-    </p>
+        <a href="/signup" class="btn-create-account">Create account</a>
+    </form>
+
+    <p class="debt-link"><a href="/debts">Debt Tracker</a></p>
 </div>
 
 <script>
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     try {
         const response = await fetch('/login', {
             method: 'POST',
@@ -43,10 +52,9 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 password: document.getElementById('password').value
             })
         });
-        
+
         if (response.ok) {
             const data = await response.json();
-            // Store user info in localStorage
             localStorage.setItem('user', JSON.stringify(data.user));
             window.location.href = data.redirect;
         } else {
