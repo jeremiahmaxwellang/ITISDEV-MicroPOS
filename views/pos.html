@@ -40,10 +40,10 @@
       </div>
       <div class="main-header-right">
         <div class="navbar-user">
-          <div class="user-avatar">JD</div>
+          <div class="user-avatar" id="headerUserAvatar">--</div>
           <div>
-            <div style="font-weight: 600;">Juan Dela Cruz</div>
-            <div style="font-size: 0.75rem; color: #718096;">Store Owner</div>
+            <div id="headerUserName" style="font-weight: 600;">Staff User</div>
+            <div id="headerUserRole" style="font-size: 0.75rem; color: #718096;">Employee</div>
           </div>
         </div>
       </div>
@@ -189,6 +189,29 @@
   <script>
     // Wait for Lucide to be available and initialize icons after sidebar-pos.js runs
     document.addEventListener('DOMContentLoaded', () => {
+      const nameEl = document.getElementById('headerUserName');
+      const roleEl = document.getElementById('headerUserRole');
+      const avatarEl = document.getElementById('headerUserAvatar');
+
+      try {
+        const rawUser = localStorage.getItem('user');
+        const user = rawUser ? JSON.parse(rawUser) : null;
+
+        if (user) {
+          const firstName = (user.first_name || '').trim();
+          const lastName = (user.last_name || '').trim();
+          const fullName = `${firstName} ${lastName}`.trim() || user.email || 'Staff User';
+
+          nameEl.textContent = fullName;
+          roleEl.textContent = user.role || 'Employee';
+
+          const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.trim();
+          avatarEl.textContent = initials || fullName.slice(0, 2).toUpperCase();
+        }
+      } catch (error) {
+        console.error('Failed to load user details:', error);
+      }
+
       // Give sidebar-pos.js time to finish initializing
       setTimeout(() => {
         if (typeof lucide !== 'undefined') {
