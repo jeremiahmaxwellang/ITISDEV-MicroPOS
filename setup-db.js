@@ -48,4 +48,4 @@ async function setupDatabase() {
   }
 }
 
-setupDatabase();
+module.exports = setupDatabase;

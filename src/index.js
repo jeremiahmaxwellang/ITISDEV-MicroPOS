@@ -1,7 +1,9 @@
+
 const express = require('express');
 const path = require('path');
 const dotenv = require('dotenv').config();
 const mySqlPool = require('./config/database');
+const setupDatabase = require('../setup-db');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -22,11 +24,19 @@ app.use("/products", require("./routes/productRoutes")); // Products page and AP
 app.use("/pos", require("./routes/posRoutes")); // POS and barcode scanning routes
 
 
-mySqlPool.query('SELECT 1').then(() => {
-    console.log(`MySQL ${process.env.DB_NAME} Connected`);
-})
-
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+// Ensure DB schema is set up before starting the server
+setupDatabase().then(() => {
+    mySqlPool.query('SELECT 1').then(() => {
+        console.log(`MySQL ${process.env.DB_NAME} Connected`);
+        app.listen(port, () => {
+            console.log(`Server is running on port ${port}`);
+        });
+    }).catch((err) => {
+        console.error('MySQL connection failed:', err);
+        process.exit(1);
+    });
+}).catch((err) => {
+    console.error('Database setup failed:', err);
+    process.exit(1);
 });
 
