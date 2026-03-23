@@ -36,12 +36,12 @@ INSERT INTO `products` (`name`, `product_type`, `selling_price`) VALUES
 -- PRODUCT BATCHES
 -- ─────────────────────────────────────────
 INSERT INTO `product_batches` (`product_id`, `stock_quantity`, `purchase_date`, `expiry_date`, `status`) VALUES
-(1, 120, '2025-10-01 08:00:00', '2026-10-01 00:00:00', 'On Shelves'),
-(1,  60, '2025-10-15 08:00:00', '2026-10-15 00:00:00', 'Inventory'),
-(2, 200, '2025-10-05 08:00:00',  NULL,                 'On Shelves'),
-(3,  50, '2025-09-20 08:00:00', '2026-09-20 00:00:00', 'On Shelves'),
-(4, 300, '2025-10-10 08:00:00', '2026-04-10 00:00:00', 'On Shelves'),
-(4, 100, '2025-08-01 08:00:00', '2026-02-01 00:00:00', 'Discontinued');
+(1, 120, '2026-02-01 08:00:00', '2027-02-01 00:00:00', 'On Shelves'),
+(1,  60, '2026-02-15 08:00:00', '2027-02-15 00:00:00', 'Inventory'),
+(2, 200, '2026-02-05 08:00:00',  NULL,                 'On Shelves'),
+(3,  50, '2026-01-20 08:00:00', '2027-01-20 00:00:00', 'On Shelves'),
+(4, 300, '2026-02-10 08:00:00', '2026-08-10 00:00:00', 'On Shelves'),
+(4, 100, '2026-01-01 08:00:00', '2026-03-01 00:00:00', 'Discontinued');
 
 
 -- ─────────────────────────────────────────
@@ -50,22 +50,22 @@ INSERT INTO `product_batches` (`product_id`, `stock_quantity`, `purchase_date`, 
 -- ─────────────────────────────────────────
 INSERT INTO `transactions` (`customer_id`, `staff_id`, `total_price`, `date_ordered`) VALUES
 -- Kaloy (Unpaid debt) — 2 transactions bundled into 1 debt  [within last 7 days]
-(1, 2, 300.00, '2026-03-10 10:00:00'),   -- transaction_id = 1
-(1, 2, 150.00, '2026-03-12 11:00:00'),   -- transaction_id = 2
+(1, 2, 300.00, '2026-03-10 10:00:00'),   -- transaction_id = 1 (13 days ago)
+(1, 2, 150.00, '2026-03-12 11:00:00'),   -- transaction_id = 2 (11 days ago)
 
 -- Ate Baby (Unpaid debt) — 1 transaction  [within last 30 days]
-(2, 2, 700.00, '2026-02-28 09:30:00'),   -- transaction_id = 3
+(2, 2, 700.00, '2026-02-28 09:30:00'),   -- transaction_id = 3 (24 days ago)
 
--- Rosie (Overdue debt) — 2 transactions bundled into 1 debt  [within last 90 days]
-(3, 1, 500.00, '2026-01-10 14:00:00'),   -- transaction_id = 4
-(3, 1, 450.00, '2026-01-18 15:00:00'),   -- transaction_id = 5
+-- Rosie (Overdue debt) — 2 transactions bundled into 1 debt  [within last 60 days]
+(3, 1, 500.00, '2026-01-23 14:00:00'),   -- transaction_id = 4 (60 days ago)
+(3, 1, 450.00, '2026-01-31 15:00:00'),   -- transaction_id = 5 (52 days ago)
 
--- Kuya Choy (Paid debt) — 1 transaction  [within last 90 days]
-(4, 2, 580.00, '2025-12-20 10:00:00'),   -- transaction_id = 6
+-- Kuya Choy (Paid debt) — 1 transaction  [within last 2 months]
+(4, 2, 580.00, '2026-01-25 10:00:00'),   -- transaction_id = 6 (58 days ago)
 
 -- Nena (Paid debt) — 2 transactions bundled into 1 debt  [within last 30 days]
-(5, 3,  93.00, '2026-03-01 13:00:00'),   -- transaction_id = 7
-(5, 3,  55.00, '2026-03-05 14:00:00');   -- transaction_id = 8
+(5, 3,  93.00, '2026-03-01 13:00:00'),   -- transaction_id = 7 (22 days ago)
+(5, 3,  55.00, '2026-03-05 14:00:00');   -- transaction_id = 8 (18 days ago)
 
 
 -- ─────────────────────────────────────────
@@ -114,8 +114,8 @@ INSERT INTO `transaction_orders` (`transaction_id`, `product_id`, `price_each`, 
 INSERT INTO `debts` (`customer_id`, `debt_amount`, `status`, `debt_started`, `debt_due`) VALUES
 (1, 450.00, 'Unpaid',  '2026-03-10', '2026-05-10'),   -- debt_id = 1  Kaloy   txn 1+2  ₱300+₱150
 (2, 700.00, 'Unpaid',  '2026-02-28', '2026-04-28'),   -- debt_id = 2  Ate Baby txn 3   ₱700
-(3, 950.00, 'Overdue', '2026-01-10', '2026-02-10'),   -- debt_id = 3  Rosie   txn 4+5  ₱500+₱450
-(4, 580.00, 'Paid',    '2025-12-20', '2026-01-20'),   -- debt_id = 4  Choy    txn 6    ₱580
+(3, 950.00, 'Overdue', '2026-01-23', '2026-02-23'),   -- debt_id = 3  Rosie   txn 4+5  ₱500+₱450
+(4, 580.00, 'Paid',    '2026-01-25', '2026-02-25'),   -- debt_id = 4  Choy    txn 6    ₱580
 (5, 148.00, 'Paid',    '2026-03-01', '2026-04-01');   -- debt_id = 5  Nena    txn 7+8  ₱93+₱55
 
 
@@ -142,8 +142,8 @@ INSERT INTO `debt_transactions` (`debt_id`, `transaction_id`) VALUES
 -- ─────────────────────────────────────────
 INSERT INTO `payments` (`debt_id`, `transaction_id`, `staff_id`, `amount_paid`, `payment_method`, `proof_of_payment`, `notes`, `created_at`) VALUES
 -- Kuya Choy: paid in full, lump sum (no specific transaction linked)
-(4, NULL, 2, 580.00, 'GCash', 'receipts/choy_gcash.jpg',  'Paid in full via GCash', '2026-01-20 10:00:00'),
+(4, NULL, 2, 580.00, 'GCash', 'receipts/choy_gcash.jpg',  'Paid in full via GCash', '2026-02-25 10:00:00'),
 
 -- Nena: paid in two partial payments
-(5, NULL, 3,  93.00, 'Cash',  NULL,                        'First payment, cash',    '2026-03-08 11:00:00'),
-(5, NULL, 3,  55.00, 'GCash', 'receipts/nena_gcash.jpg',  'Second payment, GCash',  '2026-03-10 14:00:00');
+(5, NULL, 3,  93.00, 'Cash',  NULL,                        'First payment, cash',    '2026-03-15 11:00:00'),
+(5, NULL, 3,  55.00, 'GCash', 'receipts/nena_gcash.jpg',  'Second payment, GCash',  '2026-03-20 14:00:00');
