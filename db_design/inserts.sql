@@ -13,7 +13,7 @@ INSERT INTO `staff` (`email`, `password`, `first_name`, `last_name`, `role`, `ph
 -- CUSTOMERS
 -- ─────────────────────────────────────────
 INSERT INTO `customers` (`first_name`, `last_name`, `phone_number`, `debt_limit`, `is_blacklisted`, `facebook_profile`) VALUES
-('Kaloy', 'Mendoza',    '09151234567', 1000.00, 'F', 'https://facebook.com/kaloy.mendoza'),   -- customer_id = 1 (Unpaid)
+('Charles', 'Duelas',    '09208070262', 1000.00, 'F', 'https://facebook.com/kaloy.mendoza'),   -- customer_id = 1 (Unpaid)
 ('Baby',  'Aquino',     '09601385340', 1000.00, 'F', 'https://facebook.com/ate.baby'),         -- customer_id = 2 (Unpaid)
 ('Rosie', 'Villanueva', '09213845024', 1000.00, 'T', 'https://facebook.com/rosie.villanueva'),-- customer_id = 3 (Overdue)
 ('Choy',  'Garcia',     '09171941380', 1000.00, 'F', 'https://facebook.com/kuya.choy'),        -- customer_id = 4 (Paid)
