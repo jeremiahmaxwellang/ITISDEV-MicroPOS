@@ -164,3 +164,37 @@ exports.getDebtDetails = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+exports.blacklistCustomer = async (req, res) => {
+    const { customer_id } = req.params;
+
+    try {
+        const [customer] = await db.query(
+            `SELECT * FROM customers WHERE customer_id = ?`, 
+            [customer_id]
+        );
+
+        if (customer.length === 0) {
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+
+        // Toggle blacklist on/off
+        const current = customer[0].is_blacklisted;
+        const newValue = current === 'T' ? 'F' : 'T';
+
+        await db.query(
+            `UPDATE customers SET is_blacklisted = ? WHERE customer_id = ?`,
+            [newValue, customer_id]
+        );
+
+        res.json({
+            success: true,
+            is_blacklisted: newValue,
+            message: newValue === 'T' ? 'Customer blacklisted' : 'Customer removed from blacklist'
+        });
+
+    } catch (err) {
+        console.error('blacklistCustomer error:', err);
+        res.status(500).json({ error: err.message });
+    }
+};

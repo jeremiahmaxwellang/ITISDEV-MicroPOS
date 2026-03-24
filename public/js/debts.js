@@ -38,7 +38,7 @@ async function loadDebts() {
 }
 
 function renderAlertCards(debts) {
-    const blacklisted = debts.filter(d => d.status === 'Blacklisted');
+    const blacklisted = debts.filter(d => d.is_blacklisted === 'T');
     const attention = debts.filter(d => d.status === 'Overdue' || d.status === 'Pending');
 
     const blacklistedEl = document.getElementById('blacklistedContainer');
@@ -114,7 +114,7 @@ function renderTable(debts) {
         const fullName = `${debt.first_name || ''} ${debt.last_name || ''}`.trim() || 'Unknown';
         const isPaid = debt.status === 'Paid';
         const isOverdue = debt.status === 'Overdue';
-        const isBlacklisted = debt.status === 'Blacklisted';
+        const isBlacklisted = debt.is_blacklisted === 'T';
 
         const iconBg = isPaid ? '#E5FFE8' : isOverdue || isBlacklisted ? '#FEE2E2' : '#FEF3C7';
         const iconColor = isPaid ? '#00B928' : isOverdue || isBlacklisted ? '#E7000B' : '#92400E';
@@ -129,19 +129,27 @@ function renderTable(debts) {
 
         const actionBtns = isPaidTab
             ? `<button class="debt-details-btn" onclick="viewDebtDetails(${idx})">
-                     <i data-lucide="package" style="width:14px;height:14px;"></i>
-                     Details
-                 </button>`
-            : `<div style="display:flex;gap:6px;justify-content:center;">
-                     <button class="debt-details-btn" onclick="viewDebtDetails(${idx})">
-                         <i data-lucide="package" style="width:14px;height:14px;"></i>
-                         Details
-                     </button>
-                     <button class="debt-pay-btn" onclick="markPaid(${idx})">
-                         <i data-lucide="check" style="width:14px;height:14px;"></i>
-                         Mark Paid
-                     </button>
-                 </div>`;
+            <i data-lucide="package" style="width:14px;height:14px;"></i>
+            Details
+        </button>`
+            : `<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+            <button class="debt-details-btn" onclick="viewDebtDetails(${idx})">
+                <i data-lucide="package" style="width:14px;height:14px;"></i>
+                Details
+            </button>
+            <button class="debt-pay-btn" onclick="markPaid(${idx})">
+                <i data-lucide="check" style="width:14px;height:14px;"></i>
+                Pay
+            </button>
+            <button 
+                class="debt-blacklist-btn ${isBlacklisted ? 'unblacklist' : ''}" 
+                onclick="toggleBlacklist(${idx})"
+                title="${isBlacklisted ? 'Remove from blacklist' : 'Blacklist customer'}"
+            >
+                <i data-lucide="ban" style="width:14px;height:14px;"></i>
+                ${isBlacklisted ? 'Unblacklist' : 'Blacklist'}
+            </button>
+        </div>`;
 
         return `
             <div class="debt-row" data-idx="${idx}">
@@ -181,6 +189,39 @@ function switchTab(tab) {
         renderTable(allDebts.paid);
     }
 }
+
+/**
+ * Blacklist
+ * @param {*} idx 
+ * @returns 
+ */
+async function toggleBlacklist(idx) {
+    const debt = allDebts.active[idx];
+    if (!debt) return;
+
+    const name = `${debt.first_name || ''} ${debt.last_name || ''}`.trim();
+    const isBlacklisted = debt.is_blacklisted === 'T';
+    const action = isBlacklisted ? 'remove from blacklist' : 'blacklist';
+
+    if (!confirm(`Are you sure you want to ${action} ${name}?`)) return;
+
+    try {
+        const response = await fetch(`/debts/${debt.customer_id}/blacklist`, {
+            method: 'PATCH'
+        });
+
+        const data = await response.json();
+        if (!response.ok) { alert('Error: ' + data.error); return; }
+
+        showToast(data.message);
+        loadDebts();
+
+    } catch (err) {
+        console.error('toggleBlacklist error:', err);
+        alert('Something went wrong. Please try again.');
+    }
+}
+
 async function viewDebtDetails(idx) {
     const data = currentTab === 'paid' ? allDebts.paid : allDebts.active;
     const debt = data[idx];
@@ -211,12 +252,12 @@ async function viewDebtDetails(idx) {
         const statusEl = document.getElementById('debtDetailsStatus');
         statusEl.textContent = data.status || 'Active';
         statusEl.className = 'debt-details-status ' + (
-            data.status === 'Paid'        ? 'paid'        :
-            data.status === 'Overdue'     ? 'overdue'     :
-            data.status === 'Blacklisted' ? 'blacklisted' : 'active'
+            data.status === 'Paid' ? 'paid' :
+                data.status === 'Overdue' ? 'overdue' :
+                    data.status === 'Blacklisted' ? 'blacklisted' : 'active'
         );
 
-         // -- Transaction items --
+        // -- Transaction items --
         const txList = document.getElementById('debtDetailsTxList');
         if (data.items && data.items.length > 0) {
             txList.innerHTML = data.items.map(item => `
@@ -293,10 +334,10 @@ async function markPaid(idx) {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                amount_paid:      debt.debt_amount,
-                payment_method:   'Cash',       // or get from a modal/form
+                amount_paid: debt.debt_amount,
+                payment_method: 'Cash',       // or get from a modal/form
                 proof_of_payment: null,
-                notes:            'Paid in full'
+                notes: 'Paid in full'
             })
         });
 

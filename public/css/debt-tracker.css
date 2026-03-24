@@ -32,7 +32,7 @@ body {
 }
 .debt-row {
   display: grid;
-  grid-template-columns: 2fr 1.3fr 1.3fr 1.3fr 0.8fr 0.8fr;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 1.8fr;
   padding: 14px 15px;
   border-bottom: 1px solid rgba(0,0,0,0.10);
   align-items: center;
@@ -586,3 +586,35 @@ body {
   .name-container {
     display: flex; gap: 4px;
   }
+
+  /* Blacklist */
+  .debt-blacklist-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    background: #FEF2F2;
+    color: #E7000B;
+    border: 1px solid #FCA5A5;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.debt-blacklist-btn:hover {
+    background: #FEE2E2;
+}
+
+/* When already blacklisted — show as muted to unblacklist */
+.debt-blacklist-btn.unblacklist {
+    background: #F1F5F9;
+    color: #64748B;
+    border-color: #CBD5E1;
+}
+
+.debt-blacklist-btn.unblacklist:hover {
+    background: #E2E8F0;
+}
