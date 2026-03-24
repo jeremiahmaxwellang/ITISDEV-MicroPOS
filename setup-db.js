@@ -14,6 +14,26 @@ async function ensureSessionTable(connection, databaseName) {
   `);
 }
 
+async function ensureProductsPhotoColumn(connection, databaseName) {
+  const [rows] = await connection.query(
+    `SELECT COLUMN_NAME
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = ?
+       AND TABLE_NAME = 'products'
+       AND COLUMN_NAME = 'photo'
+     LIMIT 1`,
+    [databaseName]
+  );
+
+  if (!rows.length) {
+    await connection.query(
+      `ALTER TABLE \`${databaseName}\`.\`products\`
+       ADD COLUMN \`photo\` MEDIUMTEXT NULL COMMENT 'Local uploaded product photo URL' AFTER \`selling_price\``
+    );
+    console.log('✓ Added products.photo column');
+  }
+}
+
 async function setupDatabase() {
   let connection;
 
@@ -66,6 +86,9 @@ async function setupDatabase() {
 
     await ensureSessionTable(connection, databaseName);
     console.log('✓ Session table verified');
+
+    await ensureProductsPhotoColumn(connection, databaseName);
+    console.log('✓ Products photo column verified');
 
   } catch (error) {
     console.error('Error setting up database:');

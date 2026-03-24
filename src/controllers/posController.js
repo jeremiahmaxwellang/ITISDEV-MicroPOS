@@ -1,22 +1,65 @@
 const db = require("../config/database");
 
+let productPhotoColumnPromise;
+
+async function resolveProductPhotoColumn() {
+  if (!productPhotoColumnPromise) {
+    productPhotoColumnPromise = (async () => {
+      const [rows] = await db.query(
+        `SELECT COLUMN_NAME
+         FROM INFORMATION_SCHEMA.COLUMNS
+         WHERE TABLE_SCHEMA = DATABASE()
+           AND TABLE_NAME = 'products'
+           AND COLUMN_NAME = 'photo'`
+      );
+
+      return rows.length ? "photo" : null;
+    })().catch((err) => {
+      productPhotoColumnPromise = null;
+      throw err;
+    });
+  }
+
+  return productPhotoColumnPromise;
+}
+
 /**
- * Return all barcode variants to try so the scan works regardless of
- * whether the product was stored as EAN-13 or UPC-A (they overlap by
- * a leading '0').  Any other format is stored & matched exactly.
+ * Canonical barcode strategy:
+ * - Store/compare primarily as EAN-13 when numeric UPC-A/EAN overlap applies.
+ * - UPC-A (12 digits) is normalized to EAN-13 by prefixing `0`.
+ * - EAN-13 that starts with `0` also keeps a UPC-A fallback variant.
+ * - Non-overlap formats are matched as cleaned exact values.
  */
-function barcodeVariants(raw) {
-  const b = raw.trim().replace(/\s+/g, "");
-  const variants = [b];
-  // EAN-13 (13 digits starting with 0)  →  UPC-A (drop the leading 0)
-  if (/^\d{13}$/.test(b) && b.startsWith("0")) {
-    variants.push(b.slice(1));
+function computeEan13CheckDigit(first12) {
+  if (!/^\d{12}$/.test(first12)) return null;
+  let sum = 0;
+  for (let i = 0; i < 12; i += 1) {
+    const digit = Number(first12[i]);
+    sum += i % 2 === 0 ? digit : digit * 3;
   }
-  // UPC-A (12 digits)  →  EAN-13 (prepend 0)
+  return String((10 - (sum % 10)) % 10);
+}
+
+function normalizeBarcode(raw) {
+  const b = String(raw || "")
+    .trim()
+    .replace(/[^0-9a-zA-Z]/g, "")
+    .toUpperCase();
+
+  if (!b) return { canonical: "", variants: [] };
+
   if (/^\d{12}$/.test(b)) {
-    variants.push("0" + b);
+    const ean13FromCheckDigit = `${b}${computeEan13CheckDigit(b) || ""}`;
+    const ean13FromUpc = `0${b}`;
+    const variants = [...new Set([ean13FromCheckDigit, ean13FromUpc, b].filter(Boolean))];
+    return { canonical: ean13FromCheckDigit || ean13FromUpc, variants };
   }
-  return [...new Set(variants)];
+
+  if (/^\d{13}$/.test(b) && b.startsWith("0")) {
+    return { canonical: b, variants: [b, b.slice(1)] };
+  }
+
+  return { canonical: b, variants: [b] };
 }
 
 // Scan barcode and retrieve product
@@ -27,7 +70,11 @@ exports.scanBarcode = async (req, res) => {
     return res.status(400).json({ error: "Barcode is required" });
   }
 
-  const variants = barcodeVariants(barcode);
+  const { canonical, variants } = normalizeBarcode(barcode);
+  if (!variants.length) {
+    return res.status(400).json({ error: "Invalid barcode value" });
+  }
+
   const placeholders = variants.map(() => "?").join(", ");
 
   try {
@@ -51,14 +98,14 @@ exports.scanBarcode = async (req, res) => {
         ) AS available_stock
       FROM products p
       LEFT JOIN product_batches pb ON p.product_id = pb.product_id
-      WHERE p.barcode IN (${placeholders})
+      WHERE UPPER(REPLACE(REPLACE(REPLACE(COALESCE(p.barcode, ''), ' ', ''), '-', ''), '.', '')) IN (${placeholders})
       GROUP BY p.product_id, p.name, p.barcode, p.product_type, p.selling_price
       LIMIT 1`,
       variants
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ error: "Product not found", barcode });
+      return res.status(404).json({ error: "Product not found", barcode: canonical });
     }
 
     const product = rows[0];
@@ -103,6 +150,10 @@ exports.getProductsForPOS = async (req, res) => {
   const { search = "", category = "all" } = req.query;
 
   try {
+    const photoColumn = await resolveProductPhotoColumn();
+    const photoSelect = photoColumn ? `p.${photoColumn} AS photo,` : "NULL AS photo,";
+    const photoGroupBy = photoColumn ? `, p.${photoColumn}` : "";
+
     const params = [];
     const filters = [];
 
@@ -125,6 +176,7 @@ exports.getProductsForPOS = async (req, res) => {
         p.barcode,
         p.product_type,
         p.selling_price AS price,
+        ${photoSelect}
         COALESCE(
           SUM(
             CASE
@@ -139,7 +191,7 @@ exports.getProductsForPOS = async (req, res) => {
       FROM products p
       LEFT JOIN product_batches pb ON p.product_id = pb.product_id
       ${whereClause}
-      GROUP BY p.product_id, p.name, p.barcode, p.product_type, p.selling_price
+      GROUP BY p.product_id, p.name, p.barcode, p.product_type, p.selling_price${photoGroupBy}
       ORDER BY p.name ASC
       LIMIT 100`,
       params
@@ -150,6 +202,7 @@ exports.getProductsForPOS = async (req, res) => {
       name: row.name,
       barcode: row.barcode,
       price: Number(row.price) || 0,
+      photo: row.photo || null,
       stock: row.product_type === "Services" ? -1 : Number(row.available_stock) || 0,
       type: row.product_type
     }));

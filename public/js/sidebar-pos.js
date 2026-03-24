@@ -12,8 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
     cart: [],
     mode: "products",
     cameraActive: false,
+    cameraStarting: false,
+    cameraRequested: false,
     quaggaRunning: false,
+    quaggaDetectedHandler: null,
     lastScanMs: 0,
+    audioCtx: null,
     tax_rate: 0.0,
     debounceTimers: {},
     allProducts: []
@@ -81,6 +85,79 @@ document.addEventListener("DOMContentLoaded", () => {
     }).format(value);
   }
 
+  function ensureAudioContext() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+
+    if (!state.audioCtx) {
+      state.audioCtx = new AudioCtx();
+    }
+
+    if (state.audioCtx.state === "suspended") {
+      state.audioCtx.resume().catch(() => {});
+    }
+
+    return state.audioCtx;
+  }
+
+  function playScanSound() {
+    const ctx = ensureAudioContext();
+    if (!ctx) return;
+
+    const startAt = ctx.currentTime;
+
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(880, startAt);
+    oscillator.frequency.exponentialRampToValueAtTime(1046, startAt + 0.08);
+
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(0.08, startAt + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.12);
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+
+    oscillator.start(startAt);
+    oscillator.stop(startAt + 0.12);
+  }
+
+  function canonicalizeBarcode(raw, formatHint = "") {
+    const cleaned = String(raw || "")
+      .trim()
+      .replace(/[^0-9a-zA-Z]/g, "")
+      .toUpperCase();
+
+    if (!cleaned) return "";
+
+    const normalizedFormat = String(formatHint || "").toLowerCase();
+
+    const computeEan13CheckDigit = (first12) => {
+      if (!/^\d{12}$/.test(first12)) return "";
+      let sum = 0;
+      for (let i = 0; i < 12; i += 1) {
+        const digit = Number(first12[i]);
+        sum += i % 2 === 0 ? digit : digit * 3;
+      }
+      return String((10 - (sum % 10)) % 10);
+    };
+
+    // Canonical type: EAN-13 for UPC/EAN retail overlap.
+    if (normalizedFormat === "upc_a" && /^\d{12}$/.test(cleaned)) {
+      return `0${cleaned}`;
+    }
+
+    if (/^\d{12}$/.test(cleaned)) {
+      const checkDigit = computeEan13CheckDigit(cleaned);
+      if (checkDigit) return `${cleaned}${checkDigit}`;
+      return `0${cleaned}`;
+    }
+
+    return cleaned;
+  }
+
   function calculateTotals() {
     let subtotalAmount = 0;
     state.cart.forEach((item) => {
@@ -108,11 +185,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function loadProducts() {
     try {
-      const response = await fetch("/pos/api/products");
+      const response = await fetch("/products/items");
       const data = await response.json();
 
-      if (data.success && data.items) {
-        state.allProducts = data.items;
+      const items = Array.isArray(data.items) ? data.items : [];
+      if (items.length >= 0) {
+        state.allProducts = items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          barcode: item.barcode,
+          price: Number(item.price) || 0,
+          stock: Number(item.stock) || 0,
+          type: item.category,
+          photo: item.photo || null
+        }));
         renderProducts(state.allProducts);
       }
     } catch (err) {
@@ -138,7 +224,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return `
         <div class="product-card" onclick="window.addToCartDirect(${product.id}, '${product.name.replace(/"/g, '\\"')}', ${product.price}, ${product.stock})">
           <div class="product-image">
-            <i data-lucide="package" style="width: 48px; height: 48px; color: #3b5bdb; opacity: 0.6;"></i>
+            ${product.photo
+              ? `<img src="${product.photo}" alt="${product.name.replace(/"/g, '&quot;')}" loading="lazy">`
+              : `<i data-lucide="package" style="width: 48px; height: 48px; color: #3b5bdb; opacity: 0.6;"></i>`}
           </div>
           <div class="product-info">
             <div class="product-name">${product.name}</div>
@@ -260,8 +348,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // BARCODE SCANNING
   // ═══════════════════════════════════════════════════════════════════════
 
-  async function scanBarcode(barcode) {
-    if (!barcode || !barcode.trim()) {
+  async function scanBarcode(barcode, formatHint = "") {
+    const canonicalBarcode = canonicalizeBarcode(barcode, formatHint);
+
+    if (!canonicalBarcode) {
       showMessage("Please enter or scan a barcode", "error");
       return;
     }
@@ -274,7 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("/pos/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ barcode: barcode.trim() })
+        body: JSON.stringify({ barcode: canonicalBarcode })
       });
 
       const data = await response.json();
@@ -287,6 +377,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (data.success && data.product) {
         addToCart(data.product);
+        playScanSound();
         barcodeInput.focus();
         return;
       }
@@ -324,13 +415,21 @@ document.addEventListener("DOMContentLoaded", () => {
   // ═══════════════════════════════════════════════════════════════════════
 
   function startCamera() {
-    if (state.cameraActive) return;
+    if (state.cameraActive || state.cameraStarting) return;
 
     // Stop any previous Quagga instance
     if (typeof Quagga !== "undefined" && state.quaggaRunning) {
-      try { Quagga.stop(); } catch (e) {}
+      try {
+        if (state.quaggaDetectedHandler && typeof Quagga.offDetected === "function") {
+          Quagga.offDetected(state.quaggaDetectedHandler);
+        }
+        Quagga.stop();
+      } catch (e) {}
       state.quaggaRunning = false;
     }
+
+    state.cameraStarting = true;
+    state.cameraRequested = true;
 
     // Clear any leftover Quagga elements and show container
     cameraContainer.innerHTML = "";
@@ -338,17 +437,25 @@ document.addEventListener("DOMContentLoaded", () => {
     cameraPlaceholder.style.display = "none";
     startCameraBtn.style.display = "none";
     stopCameraBtn.style.display = "flex";
-    state.cameraActive = true;
 
     startBarcodeDetection();
   }
 
   function stopCamera() {
+    state.cameraRequested = false;
+    state.cameraStarting = false;
+
     if (typeof Quagga !== "undefined" && state.quaggaRunning) {
-      try { Quagga.stop(); } catch (e) {}
+      try {
+        if (state.quaggaDetectedHandler && typeof Quagga.offDetected === "function") {
+          Quagga.offDetected(state.quaggaDetectedHandler);
+        }
+        Quagga.stop();
+      } catch (e) {}
       state.quaggaRunning = false;
     }
 
+    state.quaggaDetectedHandler = null;
     state.cameraActive = false;
     cameraContainer.style.display = "none";
     cameraContainer.innerHTML = ""; // remove Quagga's video/canvas elements
@@ -384,10 +491,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "ean_reader",
             "ean_8_reader",
             "upc_reader",
-            "upc_e_reader",
-            "code_128_reader",
-            "code_39_reader",
-            "i2of5_reader"
+            "upc_e_reader"
           ],
           multiple: false
         },
@@ -395,6 +499,8 @@ document.addEventListener("DOMContentLoaded", () => {
         frequency: 10
       },
       function (err) {
+        state.cameraStarting = false;
+
         if (err) {
           console.error("Quagga init error:", err);
           const msg = err.name === "NotAllowedError"
@@ -407,24 +513,28 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
+        if (!state.cameraRequested) {
+          try { Quagga.stop(); } catch (e) {}
+          return;
+        }
+
         Quagga.start();
         state.quaggaRunning = true;
+        state.cameraActive = true;
         showMessage("Camera started", "success");
 
-        Quagga.onDetected(function (result) {
+        state.quaggaDetectedHandler = function (result) {
           if (!result || !result.codeResult || !result.codeResult.code) return;
           const now = Date.now();
           if (now - state.lastScanMs < 1500) return;
           state.lastScanMs = now;
 
           const barcode = result.codeResult.code;
+          const format = result.codeResult.format || "";
           if (navigator.vibrate) navigator.vibrate(150);
-          scanBarcode(barcode);
-        });
-
-        Quagga.onProcessingError(function (err) {
-          console.warn("Quagga processing error:", err);
-        });
+          scanBarcode(barcode, format);
+        };
+        Quagga.onDetected(state.quaggaDetectedHandler);
       }
     );
   }
@@ -455,10 +565,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Handle camera
-    if (mode === "camera" && !state.cameraActive) {
-      startCamera();
-    } else if (mode !== "camera" && state.cameraActive) {
+    if (mode !== "camera" && (state.cameraActive || state.cameraStarting)) {
       stopCamera();
+    } else if (mode === "camera") {
+      cameraPlaceholder.style.display = "flex";
+      cameraContainer.style.display = "none";
+      startCameraBtn.style.display = "flex";
+      stopCameraBtn.style.display = "none";
     }
 
     // Focus input for barcode mode
@@ -540,6 +653,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Camera
   startCameraBtn.addEventListener("click", startCamera);
+  startCameraBtn.addEventListener("click", ensureAudioContext);
   stopCameraBtn.addEventListener("click", stopCamera);
 
   // Cart

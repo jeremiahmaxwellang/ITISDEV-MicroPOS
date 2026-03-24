@@ -14,6 +14,9 @@ router.get("/", (req, res) => {
 // Get all products (with optional search/filter)
 router.get("/items", productsController.getProductItems);
 
+// Upload product photo file and return local URL
+router.post("/api/upload-photo", productsController.uploadProductPhoto);
+
 // Add new product
 router.post("/api/add", productsController.addProduct);
 
