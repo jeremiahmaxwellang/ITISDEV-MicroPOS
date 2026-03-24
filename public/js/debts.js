@@ -155,7 +155,7 @@ function renderTable(debts) {
                 <div style="text-align:center;color:#00B928;font-size:13px;font-family:'Arimo',sans-serif;">${formatCurrency(debt.debt_amount)}</div>
                 <div style="display:flex;align-items:center;gap:6px;color:#4A5565;font-size:14px;font-family:'Arimo',sans-serif;">
                     <i data-lucide="calendar" style="width:16px;height:16px;color:#99A1AF;flex-shrink:0;"></i>
-                    ${formatDate(debt.debt_due)}
+                    ${debt.status === 'Paid' ? formatDate(debt.date_paid) : formatDate(debt.debt_due)}
                 </div>
                 <div style="display:flex;justify-content:center;">${statusBadge}</div>
                 <div style="display:flex;justify-content:center;">${actionBtns}</div>

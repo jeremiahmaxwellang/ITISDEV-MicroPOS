@@ -21,11 +21,10 @@ exports.getActiveDebts = async (req, res) => {
 exports.getPaidDebts = async (req, res) => {
     try {
         const sql = `
-            SELECT *
+	        SELECT d.*, c.*, p.created_at AS date_paid
             FROM debts d
             JOIN customers c ON c.customer_id = d.customer_id
-            WHERE d.status = 'Paid'
-            ORDER BY d.debt_due, status
+            JOIN payments p ON d.debt_id = p.debt_id
         `;
         const [results] = await db.query(sql);
         res.json(results);
