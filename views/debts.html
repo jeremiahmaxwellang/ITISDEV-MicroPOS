@@ -18,129 +18,7 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script defer src="/js/sidebar.js"></script>
 
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #F7F7F7;
-    }
-
-    .debt-tab-toggle {
-      width: 404px;
-      height: 36px;
-      background: white;
-      box-shadow: 0px 2px 4px -2px rgba(0,0,0,0.10), 0px 4px 6px -1px rgba(0,0,0,0.10);
-      border-radius: 14px;
-      display: flex;
-      overflow: hidden;
-      margin-bottom: 1rem;
-    }
-
-    .debt-tab-btn {
-      flex: 1;
-      background: transparent;
-      border: none;
-      font-family: 'Poppins', sans-serif;
-      font-size: 14px;
-      color: #0A0A0A;
-      cursor: pointer;
-      border-radius: 10px;
-      padding: 8px;
-      transition: background 0.15s, color 0.15s;
-    }
-
-    .debt-tab-btn.active {
-      background: #1126AE;
-      color: white;
-    }
-
-    .debt-row {
-      display: grid;
-      grid-template-columns: 2fr 1.3fr 1.3fr 1.3fr 0.8fr 0.8fr;
-      padding: 14px 15px;
-      border-bottom: 1px solid rgba(0,0,0,0.10);
-      align-items: center;
-    }
-
-    .debt-row:last-child { border-bottom: none; }
-    .debt-row:hover { background: #fafafa; }
-
-    .debt-thead {
-      background: #F9FAFB;
-      border-bottom: 1px solid rgba(0,0,0,0.10);
-    }
-
-    .debt-thead > div {
-      color: #1E2939;
-      font-size: 14px;
-      font-family: 'Poppins', sans-serif;
-      font-weight: 400;
-      line-height: 24px;
-    }
-
-    .alert-customer-card {
-      background: white;
-      border-radius: 14px;
-      padding: 14px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .alert-customer-card.danger { border: 2px solid #FFA2A2; }
-    .alert-customer-card.warning { border: 2px solid #AE5A11; }
-
-    .cust-icon-wrap {
-      width: 48px; height: 48px;
-      border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .badge-blacklisted {
-      background: #D4183D;
-      color: white;
-      font-size: 12px;
-      font-family: 'Poppins', sans-serif;
-      padding: 3px 10px 3px 8px;
-      border-radius: 999px;
-      display: flex; align-items: center; gap: 4px;
-      white-space: nowrap;
-    }
-
-    .debt-details-btn {
-      background: white;
-      border: 1px solid rgba(0,0,0,0.10);
-      border-radius: 10px;
-      padding: 5px 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      font-family: 'Arimo', sans-serif;
-      color: #0A0A0A;
-      transition: background 0.15s;
-    }
-
-    .debt-details-btn:hover { background: #f3f4f6; }
-
-    .debt-pay-btn {
-      background: #16a34a;
-      border: none;
-      border-radius: 10px;
-      padding: 5px 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      font-family: 'Arimo', sans-serif;
-      color: white;
-      transition: background 0.15s;
-    }
-
-    .debt-pay-btn:hover { background: #15803d; }
-  </style>
+  <link rel="stylesheet" href="/css/debt-tracker.css">
 </head>
 
 <body class="with-sidebar">
@@ -306,270 +184,36 @@
   <div id="toast" style="display: none; position: fixed; bottom: 2rem; right: 2rem; background: #1a2035; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; z-index: 2000; font-family: 'Poppins', sans-serif;"></div>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <script>
-    let allDebts = { active: [], paid: [] };
-    let currentTab = 'paid';
-
-    function formatDate(dateStr) {
-      if (!dateStr) return '—';
-      const d = new Date(dateStr);
-      if (isNaN(d)) return '—';
-      return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-    }
-
-    function formatCurrency(amount) {
-      return '₱' + parseFloat(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    async function loadDebts() {
-      try {
-        const [activeRes, paidRes] = await Promise.all([
-          fetch('/debts/active'),
-          fetch('/debts/paid')
-        ]);
-        const activeData = await activeRes.json();
-        const paidData = await paidRes.json();
-        allDebts = {
-          active: Array.isArray(activeData) ? activeData : [],
-          paid: Array.isArray(paidData) ? paidData : []
-        };
-        renderAlertCards([...allDebts.active, ...allDebts.paid]);
-        renderTable(currentTab === 'paid' ? allDebts.paid : allDebts.active);
-      } catch (error) {
-        console.error('Error loading debts:', error);
-        document.getElementById('debtsTableBody').innerHTML =
-          '<div style="padding: 2rem; text-align: center; color: #718096; font-family: Poppins, sans-serif;">Error loading debts</div>';
-        renderAlertCards([]);
-      }
-    }
-
-    function renderAlertCards(debts) {
-      const blacklisted = debts.filter(d => d.status === 'Blacklisted');
-      const attention = debts.filter(d => d.status === 'Overdue' || d.status === 'Pending');
-
-      const blacklistedEl = document.getElementById('blacklistedContainer');
-      if (blacklisted.length === 0) {
-        blacklistedEl.innerHTML = '<div style="text-align: center; color: #E7000B; font-size: 13px; font-family: Poppins, sans-serif; padding: 8px;">No blacklisted customers</div>';
-      } else {
-        blacklistedEl.innerHTML = blacklisted.map(d => `
-          <div class="alert-customer-card danger">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div class="cust-icon-wrap" style="background: #FEF2F2;">
-                <i data-lucide="user" style="width: 24px; height: 24px; color: #E7000B;"></i>
-              </div>
-              <div>
-                <div style="color: rgba(0,0,0,0.80); font-size: 15px; font-family: Poppins, sans-serif;">${d.first_name || ''} ${d.last_name || ''}</div>
-                <div style="color: #D4183D; font-size: 14px; font-family: Poppins, sans-serif;">Unpaid: ${formatCurrency(d.debt_amount)} (Due: ${formatDate(d.debt_due)})</div>
-              </div>
-            </div>
-            <div class="badge-blacklisted">
-              <i data-lucide="ban" style="width: 12px; height: 12px;"></i>
-              BLACKLISTED
-            </div>
+  <script src="/js/debts.js"></script>
+  <!-- CUSTOMER DEBT DETAILS MODAL OVERLAY -->
+  <div id="debtDetailsModal" class="debt-details-modal-overlay" style="display:none;">
+    <div class="debt-details-modal">
+      <div class="debt-details-modal-header">
+        <div>
+          <div class="debt-details-modal-title">Customer Debt History</div>
+          <div class="debt-details-modal-desc">Detailed transaction history for <span id="debtDetailsHeaderName">—</span></div>
+        </div>
+        <button id="debtDetailsCloseBtn" class="debt-details-modal-close" type="button" aria-label="Close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="debt-details-modal-body">
+        <div class="debt-details-info">
+          <div class="debt-details-info-label">Customer Name</div>
+          <div class="debt-details-info-value debt-details-info-box" id="debtDetailsCustomerName">—</div>
+          <div class="debt-details-info-label">Phone Number</div>
+          <div class="debt-details-info-value debt-details-info-box" id="debtDetailsPhone">—</div>
+          <div class="debt-details-info-label">Amount Owed</div>
+          <div class="debt-details-info-value">
+            <span id="debtDetailsAmount">₱0.00</span> <span id="debtDetailsStatus" class="debt-details-status active">Active</span>
           </div>
-        `).join('');
-      }
+          <button id="sendDebtReminderBtn" class="debt-details-reminder-btn">Send Debt Reminder</button>
+        </div>
+        <div class="debt-details-history-title">Transaction History</div>
+        <div id="debtDetailsTxList" class="debt-details-tx-list"></div>
+      </div>
+    </div>
+  </div>
 
-      const attentionEl = document.getElementById('attentionContainer');
-      const attentionList = attention.slice(0, 2);
-      if (attentionList.length === 0) {
-        attentionEl.innerHTML = '<div style="text-align: center; color: #AE5A11; font-size: 13px; font-family: Poppins, sans-serif; padding: 8px;">No customers needing attention</div>';
-      } else {
-        attentionEl.innerHTML = attentionList.map(d => `
-          <div class="alert-customer-card warning">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <div class="cust-icon-wrap" style="background: #FFFDE5;">
-                <i data-lucide="user" style="width: 24px; height: 24px; color: #AE5A11;"></i>
-              </div>
-              <div>
-                <div style="color: rgba(0,0,0,0.80); font-size: 15px; font-family: Poppins, sans-serif;">${d.first_name || ''} ${d.last_name || ''}</div>
-                <div style="color: #AE5A11; font-size: 14px; font-family: Poppins, sans-serif;">To Pay: ${formatCurrency(d.debt_amount)} (Due: ${formatDate(d.debt_due)})</div>
-              </div>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      lucide.createIcons();
-    }
-
-    function renderTable(debts) {
-      const container = document.getElementById('debtsTableBody');
-
-      if (currentTab === 'paid') {
-        document.getElementById('thAmountLabel').textContent = 'Perang Binayaran';
-        document.getElementById('thDateLabel').textContent = 'Petsa ng Bayad';
-      } else {
-        document.getElementById('thAmountLabel').textContent = 'Halaga ng Utang';
-        document.getElementById('thDateLabel').textContent = 'Petsa ng Takdang Bayad';
-      }
-
-      if (!debts || debts.length === 0) {
-        container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #718096; font-family: Poppins, sans-serif;">Walang nakitang rekord</div>';
-        return;
-      }
-
-      const isPaidTab = currentTab === 'paid';
-
-      container.innerHTML = debts.map((debt, idx) => {
-        const fullName = `${debt.first_name || ''} ${debt.last_name || ''}`.trim() || 'Unknown';
-        const isPaid = debt.status === 'Paid';
-        const isOverdue = debt.status === 'Overdue';
-        const isBlacklisted = debt.status === 'Blacklisted';
-
-        const iconBg = isPaid ? '#E5FFE8' : isOverdue || isBlacklisted ? '#FEE2E2' : '#FEF3C7';
-        const iconColor = isPaid ? '#00B928' : isOverdue || isBlacklisted ? '#E7000B' : '#92400E';
-
-        const statusBadge = isPaid
-          ? `<span style="background:#E5FFE8;color:#00A63E;font-size:12px;font-family:'Arimo',sans-serif;padding:3px 14px;border-radius:999px;">Paid</span>`
-          : isBlacklisted
-            ? `<span style="background:#FEE2E2;color:#D4183D;font-size:12px;font-family:'Arimo',sans-serif;padding:3px 10px;border-radius:999px;">Blacklisted</span>`
-            : isOverdue
-              ? `<span style="background:#FEE2E2;color:#E7000B;font-size:12px;font-family:'Arimo',sans-serif;padding:3px 14px;border-radius:999px;">Overdue</span>`
-              : `<span style="background:#FEF3C7;color:#92400E;font-size:12px;font-family:'Arimo',sans-serif;padding:3px 14px;border-radius:999px;">Pending</span>`;
-
-        const actionBtns = isPaidTab
-          ? `<button class="debt-details-btn" onclick="viewDebtDetails(${idx})">
-               <i data-lucide="package" style="width:14px;height:14px;"></i>
-               Details
-             </button>`
-          : `<div style="display:flex;gap:6px;justify-content:center;">
-               <button class="debt-details-btn" onclick="viewDebtDetails(${idx})">
-                 <i data-lucide="package" style="width:14px;height:14px;"></i>
-                 Details
-               </button>
-               <button class="debt-pay-btn" onclick="markPaid(${idx})">
-                 <i data-lucide="check" style="width:14px;height:14px;"></i>
-                 Pay
-               </button>
-             </div>`;
-
-        return `
-          <div class="debt-row" data-idx="${idx}">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <div style="width:46px;height:40px;background:${iconBg};border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <span style="color:${iconColor};font-size:20px;font-family:'Poppins',sans-serif;">₱</span>
-              </div>
-              <span style="color:rgba(0,0,0,0.80);font-size:15px;font-family:'Poppins',sans-serif;">${fullName}</span>
-            </div>
-            <div style="text-align:center;color:rgba(0,0,0,0.80);font-size:13px;font-family:'Poppins',sans-serif;">${debt.facebook_profile || '—'}</div>
-            <div style="text-align:center;color:#00B928;font-size:13px;font-family:'Arimo',sans-serif;">${formatCurrency(debt.debt_amount)}</div>
-            <div style="display:flex;align-items:center;gap:6px;color:#4A5565;font-size:14px;font-family:'Arimo',sans-serif;">
-              <i data-lucide="calendar" style="width:16px;height:16px;color:#99A1AF;flex-shrink:0;"></i>
-              ${formatDate(debt.debt_due)}
-            </div>
-            <div style="display:flex;justify-content:center;">${statusBadge}</div>
-            <div style="display:flex;justify-content:center;">${actionBtns}</div>
-          </div>
-        `;
-      }).join('');
-
-      lucide.createIcons();
-    }
-
-    function switchTab(tab) {
-      currentTab = tab;
-      const tabActive = document.getElementById('tabActive');
-      const tabPaid = document.getElementById('tabPaid');
-
-      if (tab === 'active') {
-        tabActive.classList.add('active');
-        tabPaid.classList.remove('active');
-        renderTable(allDebts.active);
-      } else {
-        tabPaid.classList.add('active');
-        tabActive.classList.remove('active');
-        renderTable(allDebts.paid);
-      }
-    }
-
-    function viewDebtDetails(idx) {
-      const data = currentTab === 'paid' ? allDebts.paid : allDebts.active;
-      const debt = data[idx];
-      if (!debt) return;
-      const name = `${debt.first_name || ''} ${debt.last_name || ''}`.trim();
-      alert(`Customer: ${name}\nDebt Amount: ${formatCurrency(debt.debt_amount)}\nStatus: ${debt.status}\nDue Date: ${formatDate(debt.debt_due)}\nContact: ${debt.facebook_profile || '—'}`);
-    }
-
-    function markPaid(idx) {
-      const debt = allDebts.active[idx];
-      if (!debt) return;
-      const name = `${debt.first_name || ''} ${debt.last_name || ''}`.trim();
-      if (confirm(`Mark ${name}'s debt as paid?\nAmount: ${formatCurrency(debt.debt_amount)}`)) {
-        console.log('Marking debt as paid:', debt);
-        showToast('Payment recorded successfully!');
-        loadDebts();
-      }
-    }
-
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.textContent = msg;
-      toast.style.display = 'block';
-      setTimeout(() => { toast.style.display = 'none'; }, 3000);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      // Search
-      document.getElementById('searchDebt').addEventListener('input', (e) => {
-        const q = e.target.value.toLowerCase();
-        const data = currentTab === 'paid' ? allDebts.paid : allDebts.active;
-        const filtered = data.filter(d => {
-          const name = `${d.first_name || ''} ${d.last_name || ''}`.toLowerCase();
-          return name.includes(q);
-        });
-        renderTable(filtered);
-      });
-
-      // Modal: open
-      document.getElementById('addDebtBtn').addEventListener('click', () => {
-        document.getElementById('debtModalTitle').textContent = 'List New Debt';
-        document.getElementById('debtForm').reset();
-        document.getElementById('debtModal').style.display = 'flex';
-        document.getElementById('debtCustomerName').focus();
-      });
-
-      // Modal: close
-      ['closeDebtModal', 'cancelDebtModal'].forEach(id => {
-        document.getElementById(id).addEventListener('click', () => {
-          document.getElementById('debtModal').style.display = 'none';
-        });
-      });
-
-      document.getElementById('debtModal').addEventListener('click', (e) => {
-        if (e.target.id === 'debtModal') document.getElementById('debtModal').style.display = 'none';
-      });
-
-      // Save
-      document.getElementById('saveDebtBtn').addEventListener('click', async () => {
-        const customerName = document.getElementById('debtCustomerName').value.trim();
-        const totalDebt = parseFloat(document.getElementById('debtTotalAmount').value);
-        const amountPaid = parseFloat(document.getElementById('debtAmountPaid').value) || 0;
-        const contact = document.getElementById('debtContact').value;
-        const notes = document.getElementById('debtNotes').value;
-
-        if (!customerName || isNaN(totalDebt)) {
-          alert('Please fill in required fields');
-          return;
-        }
-
-        try {
-          console.log('Saving debt:', { customerName, totalDebt, amountPaid, contact, notes });
-          showToast('Debt record saved!');
-          document.getElementById('debtModal').style.display = 'none';
-          document.getElementById('debtForm').reset();
-          loadDebts();
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Error saving debt record');
-        }
-      });
-
-      loadDebts();
-      lucide.createIcons();
-      setTimeout(() => lucide.createIcons(), 300);
-    });
-  </script>
 </body>
+
 
 </html>
