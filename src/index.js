@@ -4,6 +4,7 @@ const path = require('path');
 const dotenv = require('dotenv').config();
 const fileUpload = require('express-fileupload');
 const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 const mySqlPool = require('./config/database');
 const setupDatabase = require('../setup-db');
 
@@ -12,9 +13,19 @@ const port = process.env.PORT || 3000;
 app.set("view engine", 'hbs');
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
+
+const sessionStore = new MySQLStore({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    createDatabaseTable: true
+});
+
 app.use(session({
     name: 'micropos.sid',
     secret: process.env.SESSION_SECRET || 'micropos-dev-session-secret',
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {

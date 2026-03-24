@@ -18,13 +18,13 @@
   /** Items pinned to the bottom of the sidebar */
   const BOTTOM_ITEMS = [
     { href: '/settings', icon: 'settings', label: 'Settings', cls: '' },
-    { href: '/',         icon: 'log-out',  label: 'Logout',   cls: 'sidebar-logout-link' },
+    { href: '/logout',   icon: 'log-out',  label: 'Logout',   cls: 'sidebar-logout-link', action: 'logout' },
   ];
 
   /** Returns true when the current URL matches this route */
   function isActive(href) {
     const path = window.location.pathname;
-    if (href === '/') return false; // never mark logout/home as active
+    if (href === '/' || href === '/logout') return false; // never mark logout/home as active
     return path === href || path.startsWith(href + '/');
   }
 
@@ -32,10 +32,25 @@
   function buildLink(item) {
     const active = isActive(item.href) ? ' active' : '';
     const cls = (item.cls || '') + active;
-    return `<a href="${item.href}" class="sidebar-link${cls ? ' ' + cls.trim() : ''}" title="${item.label}">
+    const action = item.action ? ` data-action="${item.action}"` : '';
+    return `<a href="${item.href}" class="sidebar-link${cls ? ' ' + cls.trim() : ''}" title="${item.label}"${action}>
       <span class="sidebar-icon"><i data-lucide="${item.icon}"></i></span>
       <span class="sidebar-label">${item.label}</span>
     </a>`;
+  }
+
+  async function handleLogout(event) {
+    event.preventDefault();
+
+    try {
+      await fetch('/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Logout request failed:', err);
+    } finally {
+      localStorage.removeItem('user');
+      sessionStorage.removeItem('user');
+      window.location.href = '/';
+    }
   }
 
   /** Build and inject the full sidebar markup */
@@ -68,6 +83,11 @@
         ${BOTTOM_ITEMS.map(buildLink).join('\n        ')}
       </div>
     `;
+
+    const logoutLink = aside.querySelector('[data-action="logout"]');
+    if (logoutLink) {
+      logoutLink.addEventListener('click', handleLogout);
+    }
 
     // Initialise Lucide icons (guards against Lucide not yet loaded)
     if (window.lucide) {

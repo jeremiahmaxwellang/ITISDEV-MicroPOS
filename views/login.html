@@ -40,6 +40,11 @@
 </div>
 
 <script>
+function clearStoredUser() {
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
+}
+
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -58,9 +63,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             localStorage.setItem('user', JSON.stringify(data.user));
             window.location.href = data.redirect;
         } else {
+            clearStoredUser();
             alert('Invalid email or password');
         }
     } catch (error) {
+        clearStoredUser();
         console.error('Login error:', error);
         alert('An error occurred. Please try again.');
     }

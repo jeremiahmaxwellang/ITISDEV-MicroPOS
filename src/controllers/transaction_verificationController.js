@@ -58,15 +58,12 @@ exports.uploadPaymentProof = async (req, res) => {
 };
 
 exports.getPaymentProofs = async (req, res) => {
-	const staffId = req.session.user.staff_id;
-
 	try {
 		const [rows] = await mySqlPool.query(
 			`SELECT proof_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url, created_at
 			 FROM payment_proofs
-			 WHERE staff_id = ?
 			 ORDER BY created_at DESC`,
-			[staffId]
+			[]
 		);
 
 		return res.status(200).json(rows || []);
@@ -107,7 +104,6 @@ exports.createPaymentProof = async (req, res) => {
 };
 
 exports.deletePaymentProof = async (req, res) => {
-	const staffId = req.session.user.staff_id;
 	const proofId = Number(req.params.proofId);
 
 	if (!Number.isInteger(proofId) || proofId <= 0) {
@@ -116,8 +112,8 @@ exports.deletePaymentProof = async (req, res) => {
 
 	try {
 		const [rows] = await mySqlPool.query(
-			"SELECT proof_image_url FROM payment_proofs WHERE proof_id = ? AND staff_id = ?",
-			[proofId, staffId]
+			"SELECT proof_image_url FROM payment_proofs WHERE proof_id = ?",
+			[proofId]
 		);
 
 		if (!rows.length) {
@@ -126,8 +122,8 @@ exports.deletePaymentProof = async (req, res) => {
 
 		const imageUrl = rows[0].proof_image_url;
 		await mySqlPool.query(
-			"DELETE FROM payment_proofs WHERE proof_id = ? AND staff_id = ?",
-			[proofId, staffId]
+			"DELETE FROM payment_proofs WHERE proof_id = ?",
+			[proofId]
 		);
 
 		if (imageUrl) {

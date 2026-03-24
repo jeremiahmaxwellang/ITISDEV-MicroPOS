@@ -36,6 +36,7 @@
     "etag": "^1.8.1",
     "express": "^5.2.1",
     "express-fileupload": "^1.5.2",
+    "express-mysql-session": "^3.0.3",
     "express-session": "^1.19.0",
     "fetch": "^1.1.0",
     "fetch-blob": "^3.2.0",

@@ -92,6 +92,18 @@ function persistSession(req, user) {
     });
 }
 
+function destroySession(req) {
+    return new Promise((resolve, reject) => {
+        req.session.destroy((destroyErr) => {
+            if (destroyErr) {
+                return reject(destroyErr);
+            }
+
+            return resolve();
+        });
+    });
+}
+
 router.get('/session', (req, res) => {
     const user = getSessionUser(req);
 
@@ -100,6 +112,30 @@ router.get('/session', (req, res) => {
     }
 
     return res.json({ authenticated: true, user });
+});
+
+router.post('/logout', async (req, res) => {
+    try {
+        await destroySession(req);
+        res.clearCookie('micropos.sid');
+        return res.json({ message: 'Logged out successfully.' });
+    } catch (err) {
+        console.error('Logout error:', err);
+        return res.status(500).json({ message: 'Logout failed.' });
+    }
+});
+
+router.get('/logout', async (req, res) => {
+    try {
+        if (req.session) {
+            await destroySession(req);
+        }
+        res.clearCookie('micropos.sid');
+        return res.redirect('/');
+    } catch (err) {
+        console.error('Logout redirect error:', err);
+        return res.redirect('/');
+    }
 });
 
 // --- POST /signup ---
