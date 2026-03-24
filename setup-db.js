@@ -2,6 +2,18 @@ const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
 
+async function ensureSessionTable(connection, databaseName) {
+  await connection.query(`
+    CREATE TABLE IF NOT EXISTS \`${databaseName}\`.\`sessions\` (
+      \`session_id\` varchar(128) COLLATE utf8mb4_bin NOT NULL,
+      \`expires\` int(11) unsigned NOT NULL,
+      \`data\` mediumtext COLLATE utf8mb4_bin,
+      PRIMARY KEY (\`session_id\`),
+      KEY \`expires\` (\`expires\`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+  `);
+}
+
 async function setupDatabase() {
   let connection;
 
@@ -23,6 +35,8 @@ async function setupDatabase() {
       [databaseName]
     );
 
+    let hasExistingTables = false;
+
     if (schemaRows.length > 0) {
       const [tableRows] = await connection.query(
         'SELECT COUNT(*) AS tableCount FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?',
@@ -30,22 +44,28 @@ async function setupDatabase() {
       );
 
       if (Number(tableRows[0].tableCount) > 0) {
-        console.log(`Database ${databaseName} already exists with tables. Skipping schema setup to preserve data.`);
-        return;
+        hasExistingTables = true;
       }
     }
 
-    // Read the SQL file
-    const sqlFilePath = path.join(__dirname, 'db_design', 'micropos_db.sql');
-    const sqlContent = fs.readFileSync(sqlFilePath, 'utf8');
+    if (hasExistingTables) {
+      console.log(`Database ${databaseName} already exists with tables. Skipping full schema setup to preserve data.`);
+    } else {
+      // Read the SQL file
+      const sqlFilePath = path.join(__dirname, 'db_design', 'micropos_db.sql');
+      const sqlContent = fs.readFileSync(sqlFilePath, 'utf8');
 
-    console.log('Running database schema...');
-    
-    // Execute all SQL statements
-    await connection.query(sqlContent);
+      console.log('Running database schema...');
 
-    console.log('✓ Database setup complete!');
-    console.log('✓ All tables created/updated with barcode support');
+      // Execute all SQL statements
+      await connection.query(sqlContent);
+
+      console.log('✓ Database setup complete!');
+      console.log('✓ All tables created/updated with barcode support');
+    }
+
+    await ensureSessionTable(connection, databaseName);
+    console.log('✓ Session table verified');
 
   } catch (error) {
     console.error('Error setting up database:');

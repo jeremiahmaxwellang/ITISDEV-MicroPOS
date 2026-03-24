@@ -238,6 +238,19 @@ CREATE TABLE IF NOT EXISTS `payment_proofs` (
 ) ENGINE = InnoDB;
 
 
+-- -----------------------------------------------------
+-- Table `sessions`
+-- Express session store table used by express-mysql-session
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `sessions` (
+  `session_id` VARCHAR(128) COLLATE utf8mb4_bin NOT NULL,
+  `expires`    INT UNSIGNED NOT NULL,
+  `data`       MEDIUMTEXT COLLATE utf8mb4_bin,
+  PRIMARY KEY (`session_id`),
+  INDEX `idx_sessions_expires` (`expires` ASC)
+) ENGINE = InnoDB;
+
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
