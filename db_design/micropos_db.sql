@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS `transaction_orders` (
   `product_id`     INT           NOT NULL,
   `price_each`     DECIMAL(10,2) NULL,
   `quantity`       INT           NULL,
+  `load_amount`    DECIMAL(10,2) NULL DEFAULT 0 COMMENT 'For Services: actual peso value loaded for the customer',
   PRIMARY KEY (`transaction_id`, `product_id`),
   INDEX `fk_transaction_orders_products_idx` (`product_id` ASC),
   CONSTRAINT `fk_transaction_orders_transactions`
