@@ -181,41 +181,66 @@ function switchTab(tab) {
         renderTable(allDebts.paid);
     }
 }
-
-function viewDebtDetails(idx) {
+async function viewDebtDetails(idx) {
     const data = currentTab === 'paid' ? allDebts.paid : allDebts.active;
     const debt = data[idx];
     if (!debt) return;
-    // Populate modal fields
-    const fullName = `${debt.first_name || ''} ${debt.last_name || ''}`.trim() || '—';
-    document.getElementById('debtDetailsHeaderName').textContent = fullName;
-    document.getElementById('debtDetailsCustomerName').textContent = fullName;
 
-    document.getElementById('debtDetailsPhone').textContent = debt.phone_number || '—';
-    document.getElementById('debtDetailsAmount').textContent = formatCurrency(debt.debt_amount);
-    document.getElementById('debtDetailsStatus').textContent = debt.status || 'Active';
-    document.getElementById('debtDetailsStatus').className = 'debt-details-status ' + (debt.status === 'Paid' ? 'paid' : debt.status === 'Overdue' ? 'overdue' : debt.status === 'Blacklisted' ? 'blacklisted' : 'active');
-    // Transaction history (mocked for now)
-    const txList = document.getElementById('debtDetailsTxList');
-    if (Array.isArray(debt.transactions) && debt.transactions.length > 0) {
-        txList.innerHTML = debt.transactions.map(tx => `
-            <div class="debt-details-tx-item">
-                <img src="${tx.img || '/images/sample-product.png'}" alt="${tx.name}" class="debt-details-tx-img">
-                <div class="debt-details-tx-info">
-                    <div class="debt-details-tx-name">${tx.name}</div>
-                    <div class="debt-details-tx-meta">₱${parseFloat(tx.price).toFixed(2)}<span class="debt-details-tx-qty">Qty: ${tx.quantity}</span></div>
-                </div>
-                <div class="debt-details-tx-amount">₱${(parseFloat(tx.price) * parseInt(tx.quantity)).toFixed(2)}</div>
-            </div>
-        `).join('');
-    } else {
-        txList.innerHTML = '<div style="color:#888;padding:1rem;text-align:center;">No transaction history.</div>';
-    }
-    // Show modal
+    // Show modal immediately with loading state
     document.getElementById('debtDetailsModal').style.display = 'flex';
-    setTimeout(() => {
-        document.getElementById('debtDetailsModal').classList.add('show');
-    }, 10);
+    setTimeout(() => document.getElementById('debtDetailsModal').classList.add('show'), 10);
+    document.getElementById('debtDetailsTxList').innerHTML = '<div style="text-align:center;padding:1rem;color:#888;">Loading...</div>';
+    document.getElementById('debtDetailsPaymentList').innerHTML = '';
+
+    try {
+        const response = await fetch(`/debts/${debt.debt_id}/details`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert('Error: ' + data.error);
+            return;
+        }
+
+        // -- Customer info --
+        const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || '—';
+        document.getElementById('debtDetailsHeaderName').textContent = fullName;
+        document.getElementById('debtDetailsCustomerName').textContent = fullName;
+        document.getElementById('debtDetailsPhone').textContent = data.phone_number || '—';
+        document.getElementById('debtDetailsAmount').textContent = formatCurrency(data.debt_amount);
+
+        const statusEl = document.getElementById('debtDetailsStatus');
+        statusEl.textContent = data.status || 'Active';
+        statusEl.className = 'debt-details-status ' + (
+            data.status === 'Paid'        ? 'paid'        :
+            data.status === 'Overdue'     ? 'overdue'     :
+            data.status === 'Blacklisted' ? 'blacklisted' : 'active'
+        );
+
+        // -- Payment history --
+        const payList = document.getElementById('debtDetailsPaymentList');
+        if (data.payments && data.payments.length > 0) {
+            payList.innerHTML = data.payments.map(pay => `
+                <div class="debt-details-tx-item">
+                    <div class="debt-details-tx-info">
+                        <div class="debt-details-tx-name">${pay.payment_method}</div>
+                        <div class="debt-details-tx-meta">
+                            By: ${pay.staff_first_name || 'N/A'} ${pay.staff_last_name || ''}
+                            &nbsp;·&nbsp;
+                            ${new Date(pay.created_at).toLocaleDateString('en-PH')}
+                        </div>
+                        ${pay.notes ? `<div style="font-size:12px;color:#888;">${pay.notes}</div>` : ''}
+                    </div>
+                    <div class="debt-details-tx-amount">${formatCurrency(pay.amount_paid)}</div>
+                </div>
+            `).join('');
+        } else {
+            payList.innerHTML = '<div style="color:#888;padding:1rem;text-align:center;">No payments recorded yet.</div>';
+        }
+
+    } catch (err) {
+        console.error('viewDebtDetails error:', err);
+        document.getElementById('debtDetailsTxList').innerHTML = '<div style="color:red;padding:1rem;text-align:center;">Failed to load details.</div>';
+    }
 }
 
 // Hide modal on close button or outside click
@@ -246,18 +271,21 @@ async function markPaid(idx) {
 
     try {
         const response = await fetch(`/debts/${debt.debt_id}/pay`, {
-            method: 'PATCH'
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount_paid:      debt.debt_amount,
+                payment_method:   'Cash',       // or get from a modal/form
+                proof_of_payment: null,
+                notes:            'Paid in full'
+            })
         });
 
         const data = await response.json();
-
-        if (!response.ok) {
-            alert('Error: ' + data.error);
-            return;
-        }
+        if (!response.ok) { alert('Error: ' + data.error); return; }
 
         showToast('Payment recorded successfully!');
-        loadDebts(); // refresh the table
+        loadDebts();
 
     } catch (err) {
         console.error('Error:', err);

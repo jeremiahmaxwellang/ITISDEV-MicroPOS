@@ -16,6 +16,7 @@ router.get('/active', debtsController.getActiveDebts);
 router.get('/paid', debtsController.getPaidDebts);
 router.post('/create-debt', debtsController.createDebt);
 router.patch('/:debt_id/pay', debtsController.markPaid);
+router.get('/:debt_id/details', debtsController.getDebtDetails);
 
 // Route for /debts
 router.get('/', (req, res) => {
