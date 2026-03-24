@@ -11,6 +11,7 @@
     { href: '/pos',      icon: 'shopping-cart', label: 'Point of Sale' },
     { href: '/products', icon: 'package',        label: 'Products'      },
     { href: '/debts',    icon: 'file-text',      label: 'Debt Tracker'  },
+    { href: '/transaction-verification', icon: 'badge-check', label: 'Transaction Verification' },
     { href: '/reports',  icon: 'bar-chart-2',    label: 'Reports'       },
   ];
 

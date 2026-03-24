@@ -1,10 +1,10 @@
 Store Owner:
 juan.delacruz@store.com
-$2b$10$hashedpassword1
+owner123
 
 Employee:
 maria.santos@store.com
-$2b$10$hashedpassword2
+employee123
 
 pedro.reyes@store.com
-$2b$10$hashedpassword3
+employee456

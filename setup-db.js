@@ -6,6 +6,8 @@ async function setupDatabase() {
   let connection;
 
   try {
+    const databaseName = process.env.DB_NAME || 'micropos_db';
+
     // Connect to MySQL (without specifying database first)
     connection = await mysql.createConnection({
       host: process.env.DB_HOST || 'localhost',
@@ -15,6 +17,23 @@ async function setupDatabase() {
     });
 
     console.log('Connected to MySQL');
+
+    const [schemaRows] = await connection.query(
+      'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ? LIMIT 1',
+      [databaseName]
+    );
+
+    if (schemaRows.length > 0) {
+      const [tableRows] = await connection.query(
+        'SELECT COUNT(*) AS tableCount FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?',
+        [databaseName]
+      );
+
+      if (Number(tableRows[0].tableCount) > 0) {
+        console.log(`Database ${databaseName} already exists with tables. Skipping schema setup to preserve data.`);
+        return;
+      }
+    }
 
     // Read the SQL file
     const sqlFilePath = path.join(__dirname, 'db_design', 'micropos_db.sql');

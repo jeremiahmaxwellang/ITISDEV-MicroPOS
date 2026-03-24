@@ -10,6 +10,7 @@ const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 const mySqlPool = require('../config/database'); // your MySQL pool
+const { getSessionUser, requireStaffSession } = require('../middleware/auth');
 const router = express.Router();
 
 const viewsPath = path.join(__dirname, '../../views');
@@ -25,7 +26,7 @@ router.get('/signup', (req, res) => {
 });
 
 // Reports page
-router.get('/reports', (req, res) => {
+router.get('/reports', requireStaffSession, (req, res) => {
     res.sendFile(path.join(viewsPath, 'reports.html'));
 });
 
@@ -60,6 +61,46 @@ function verifyPassword(inputPassword, storedPassword) {
     // Backward compatibility with plain-text rows
     return inputPassword === storedPassword;
 }
+
+function createUserPayload(user) {
+    return {
+        staff_id: user.staff_id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        role: user.role,
+        phone_number: user.phone_number
+    };
+}
+
+function persistSession(req, user) {
+    return new Promise((resolve, reject) => {
+        req.session.regenerate((regenerateErr) => {
+            if (regenerateErr) {
+                return reject(regenerateErr);
+            }
+
+            req.session.user = user;
+            req.session.save((saveErr) => {
+                if (saveErr) {
+                    return reject(saveErr);
+                }
+
+                return resolve();
+            });
+        });
+    });
+}
+
+router.get('/session', (req, res) => {
+    const user = getSessionUser(req);
+
+    if (!user) {
+        return res.status(401).json({ message: 'Authentication required.' });
+    }
+
+    return res.json({ authenticated: true, user });
+});
 
 // --- POST /signup ---
 router.post('/signup', async (req, res) => {
@@ -101,17 +142,21 @@ router.post('/signup', async (req, res) => {
             ]
         );
 
+        const user = createUserPayload({
+            staff_id: result.insertId,
+            email: normalizedEmail,
+            first_name: first_name ? String(first_name).trim() : null,
+            last_name: last_name ? String(last_name).trim() : null,
+            role: safeRole,
+            phone_number: phone_number ? String(phone_number).trim() : null
+        });
+
+        await persistSession(req, user);
+
         return res.status(201).json({
             message: 'Account created successfully.',
             redirect: '/pos',
-            user: {
-                staff_id: result.insertId,
-                email: normalizedEmail,
-                first_name: first_name ? String(first_name).trim() : null,
-                last_name: last_name ? String(last_name).trim() : null,
-                role: safeRole,
-                phone_number: phone_number ? String(phone_number).trim() : null
-            }
+            user
         });
     } catch (err) {
         console.error('Signup error:', err);
@@ -150,16 +195,12 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid email or password.' });
         }
 
+        const sessionUser = createUserPayload(user);
+        await persistSession(req, sessionUser);
+
         return res.json({
             redirect: '/pos',
-            user: {
-                staff_id: user.staff_id,
-                email: user.email,
-                first_name: user.first_name,
-                last_name: user.last_name,
-                role: user.role,
-                phone_number: user.phone_number
-            }
+            user: sessionUser
         });
     } catch (err) {
         console.error('Login error:', err);

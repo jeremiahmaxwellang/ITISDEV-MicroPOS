@@ -2,6 +2,8 @@
 const express = require('express');
 const path = require('path');
 const dotenv = require('dotenv').config();
+const fileUpload = require('express-fileupload');
+const session = require('express-session');
 const mySqlPool = require('./config/database');
 const setupDatabase = require('../setup-db');
 
@@ -10,6 +12,26 @@ const port = process.env.PORT || 3000;
 app.set("view engine", 'hbs');
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb' }));
+app.use(session({
+    name: 'micropos.sid',
+    secret: process.env.SESSION_SECRET || 'micropos-dev-session-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    }
+}));
+app.use(fileUpload({
+    createParentPath: true,
+    limits: {
+        fileSize: 8 * 1024 * 1024
+    },
+    abortOnLimit: true,
+    useTempFiles: false
+}));
 
 // Serve static files from the "public" directory
 app.use(express.static(path.join(process.cwd(), './public')));
@@ -22,6 +44,7 @@ app.use("/debts", require("./routes/debtRoutes")); // Debt Tracker routes
 app.use("/reports", require("./routes/reportsRoutes")); // Reports API routes
 app.use("/products", require("./routes/productRoutes")); // Products page and API routes
 app.use("/pos", require("./routes/posRoutes")); // POS and barcode scanning routes
+app.use("/transaction-verification", require("./routes/transaction_verificationRoutes")); // Transaction verification module
 
 
 // Ensure DB schema is set up before starting the server

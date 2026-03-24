@@ -213,6 +213,30 @@ CREATE TABLE IF NOT EXISTS `payments` (
 ) ENGINE = InnoDB;
 
 
+-- -----------------------------------------------------
+-- Table `payment_proofs`
+-- Transaction verification payment proofs with GCash screenshots
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `payment_proofs` (
+  `proof_id`        INT           NOT NULL AUTO_INCREMENT,
+  `staff_id`        INT           NOT NULL,
+  `customer_name`   VARCHAR(100)  NOT NULL,
+  `gcash_number`    VARCHAR(50)   NOT NULL,
+  `amount_paid`     DECIMAL(10,2) NOT NULL,
+  `date_paid`       DATE          NOT NULL,
+  `proof_image_url` VARCHAR(255)  NULL COMMENT 'Path to uploaded proof image',
+  `created_at`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`proof_id`),
+  INDEX `fk_payment_proofs_staff_idx` (`staff_id` ASC),
+  CONSTRAINT `fk_payment_proofs_staff`
+    FOREIGN KEY (`staff_id`)
+    REFERENCES `staff` (`staff_id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE = InnoDB;
+
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

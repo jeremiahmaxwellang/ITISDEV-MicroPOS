@@ -1,12 +1,25 @@
 USE micropos_db;
 
+-- Reset seeded tables so this script can be re-run safely
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE `debt_transactions`;
+TRUNCATE TABLE `payments`;
+TRUNCATE TABLE `transaction_orders`;
+TRUNCATE TABLE `debts`;
+TRUNCATE TABLE `transactions`;
+TRUNCATE TABLE `product_batches`;
+TRUNCATE TABLE `products`;
+TRUNCATE TABLE `customers`;
+TRUNCATE TABLE `staff`;
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- ─────────────────────────────────────────
 -- STAFF
 -- ─────────────────────────────────────────
 INSERT INTO `staff` (`email`, `password`, `first_name`, `last_name`, `role`, `phone_number`) VALUES
-('juan.delacruz@store.com', '$2b$10$hashedpassword1', 'Juan',  'Dela Cruz', 'Store Owner', '09171234567'),
-('maria.santos@store.com',  '$2b$10$hashedpassword2', 'Maria', 'Santos',    'Employee',    '09281234567'),
-('pedro.reyes@store.com',   '$2b$10$hashedpassword3', 'Pedro', 'Reyes',     'Employee',    '09351234567');
+('juan.delacruz@store.com', 'owner123',    'Juan',  'Dela Cruz', 'Store Owner', '09171234567'),
+('maria.santos@store.com',  'employee123', 'Maria', 'Santos',    'Employee',    '09281234567'),
+('pedro.reyes@store.com',   'employee456', 'Pedro', 'Reyes',     'Employee',    '09351234567');
 
 
 -- ─────────────────────────────────────────
