@@ -224,7 +224,7 @@ async function viewDebtDetails(idx) {
                     <div class="debt-details-tx-info">
                         <div class="debt-details-tx-name">${pay.payment_method}</div>
                         <div class="debt-details-tx-meta">
-                            By: ${pay.staff_first_name || 'N/A'} ${pay.staff_last_name || ''}
+                            Recorded by: ${pay.staff_first_name || 'N/A'} ${pay.staff_last_name || ''}
                             &nbsp;·&nbsp;
                             ${new Date(pay.created_at).toLocaleDateString('en-PH')}
                         </div>
