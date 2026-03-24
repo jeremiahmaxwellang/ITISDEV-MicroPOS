@@ -216,6 +216,25 @@ async function viewDebtDetails(idx) {
             data.status === 'Blacklisted' ? 'blacklisted' : 'active'
         );
 
+         // -- Transaction items --
+        const txList = document.getElementById('debtDetailsTxList');
+        if (data.items && data.items.length > 0) {
+            txList.innerHTML = data.items.map(item => `
+                <div class="debt-details-tx-item">
+                    <div class="debt-details-tx-info">
+                        <div class="debt-details-tx-name">${item.name}</div>
+                        <div class="debt-details-tx-meta">
+                            ${formatCurrency(item.price_each)}
+                            <span class="debt-details-tx-qty">Qty: ${item.quantity}</span>
+                        </div>
+                    </div>
+                    <div class="debt-details-tx-amount">${formatCurrency(item.subtotal)}</div>
+                </div>
+            `).join('');
+        } else {
+            txList.innerHTML = '<div style="color:#888;padding:1rem;text-align:center;">No transaction items found.</div>';
+        }
+
         // -- Payment history --
         const payList = document.getElementById('debtDetailsPaymentList');
         if (data.payments && data.payments.length > 0) {

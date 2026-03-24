@@ -122,20 +122,20 @@ exports.getDebtDetails = async (req, res) => {
 
         const debt = debts[0];
 
-        // 2. Get transaction items linked to this debt
-        // const [items] = await db.query(`
-        //     SELECT 
-        //         p.name,
-        //         p.product_type,
-        //         to_.price_each,
-        //         to_.quantity,
-        //         (to_.price_each * to_.quantity) AS subtotal
-        //     FROM debts d
-        //     JOIN transactions t   ON t.transaction_id = d.transaction_id
-        //     JOIN transaction_orders to_ ON to_.transaction_id = t.transaction_id
-        //     JOIN products p       ON p.product_id = to_.product_id
-        //     WHERE d.debt_id = ?
-        // `, [debt_id]);
+        // 2. Get transaction items — through debt_transactions junction table
+        const [items] = await db.query(`
+            SELECT
+                p.name,
+                p.product_type,
+                to_.price_each,
+                to_.quantity,
+                (to_.price_each * to_.quantity) AS subtotal
+            FROM debt_transactions dt
+            JOIN transactions t        ON t.transaction_id  = dt.transaction_id
+            JOIN transaction_orders to_ ON to_.transaction_id = t.transaction_id
+            JOIN products p            ON p.product_id      = to_.product_id
+            WHERE dt.debt_id = ?
+        `, [debt_id]);
 
         // 3. Get payment history for this debt
         const [payments] = await db.query(`
@@ -156,6 +156,7 @@ exports.getDebtDetails = async (req, res) => {
 
         res.json({
             ...debt,
+            items,
             payments
         });
 
