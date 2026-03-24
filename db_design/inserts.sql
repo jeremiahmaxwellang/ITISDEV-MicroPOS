@@ -160,3 +160,15 @@ INSERT INTO `payments` (`debt_id`, `transaction_id`, `staff_id`, `amount_paid`, 
 -- Nena: paid in two partial payments
 (5, NULL, 3,  93.00, 'Cash',  NULL,                        'First payment, cash',    '2026-03-15 11:00:00'),
 (5, NULL, 3,  55.00, 'GCash', 'receipts/nena_gcash.jpg',  'Second payment, GCash',  '2026-03-20 14:00:00');
+
+
+-- ─────────────────────────────────────────
+-- PAYMENT PROOFS
+-- Seed records for Transaction Verification module
+-- ─────────────────────────────────────────
+INSERT INTO `payment_proofs` (`staff_id`, `customer_name`, `gcash_number`, `amount_paid`, `date_paid`, `proof_image_url`) VALUES
+(1, 'Justin Lee',   '09208070262', 670.00, '2026-03-10', '/uploads/payment-proof/payment-proof-demo.jpg'),
+(2, 'Alyssa Mansueto',      '09601385340', 500.00, '2026-02-28', '/uploads/payment-proof/payment-proof-demo.jpg'),
+(1, 'Bruce Wayne', '09213845024', 1000000.00, '2026-03-01', '/uploads/payment-proof/payment-proof-demo.jpg'),
+(2, 'Lianne Balbastro',      '09171941380', 50.00, '2026-02-25', '/uploads/payment-proof/payment-proof-demo.jpg'),
+(3, 'Charles Duelas',      '09991112233', 123.00, '2026-03-20', '/uploads/payment-proof/payment-proof-demo.jpg');

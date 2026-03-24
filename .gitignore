@@ -4,3 +4,4 @@
 # Ignore runtime payment proof uploads
 /public/uploads/payment-proof/*
 !/public/uploads/payment-proof/.gitkeep
+!/public/uploads/payment-proof/payment-proof-demo.jpg
