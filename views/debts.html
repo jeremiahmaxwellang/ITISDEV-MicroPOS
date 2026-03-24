@@ -9,7 +9,9 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Arimo:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Arimo:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="/css/sidebar.css">
@@ -31,17 +33,23 @@
     <header class="main-header">
       <div class="main-header-left">
         <div>
-          <div class="main-header-title" style="font-size: 1rem; font-weight: 400; color: #1E2939; font-family: 'Poppins', sans-serif;">Debt Tracker</div>
-          <div class="main-header-subtitle" style="color: #818181; font-family: 'Poppins', sans-serif;">Manage your store efficiently</div>
+          <div class="main-header-title"
+            style="font-size: 1rem; font-weight: 400; color: #1E2939; font-family: 'Poppins', sans-serif;">Debt Tracker
+          </div>
+          <div class="main-header-subtitle" style="color: #818181; font-family: 'Poppins', sans-serif;">Manage your
+            store efficiently</div>
         </div>
       </div>
       <div class="main-header-right">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
           <div style="text-align: right;">
-            <div style="font-size: 1rem; font-weight: 400; color: #1E2939; font-family: 'Arimo', sans-serif;" id="headerUserName">Juan Dela Cruz</div>
-            <div style="font-size: 0.875rem; color: #6A7282; font-family: 'Arimo', sans-serif;" id="headerUserRole">Store Owner</div>
+            <div style="font-size: 1rem; font-weight: 400; color: #1E2939; font-family: 'Arimo', sans-serif;"
+              id="headerUserName">Juan Dela Cruz</div>
+            <div style="font-size: 0.875rem; color: #6A7282; font-family: 'Arimo', sans-serif;" id="headerUserRole">
+              Store Owner</div>
           </div>
-          <div style="width: 48px; height: 48px; background: #DBEAFE; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <div
+            style="width: 48px; height: 48px; background: #DBEAFE; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
             <i data-lucide="store" style="color: #155DFC; width: 24px; height: 24px;"></i>
           </div>
         </div>
@@ -55,15 +63,13 @@
         <!-- SEARCH + ADD BUTTON ROW -->
         <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
           <div style="flex: 1; position: relative;">
-            <i data-lucide="search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #1126AE;"></i>
-            <input
-              type="text"
-              id="searchDebt"
-              placeholder="Search Customer Name"
-              style="width: 100%; padding: 10px 18px 10px 42px; background: #F3F3F5; border: none; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 14px; color: rgba(0,0,0,0.51); outline: none; box-sizing: border-box;"
-            >
+            <i data-lucide="search"
+              style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #1126AE;"></i>
+            <input type="text" id="searchDebt" placeholder="Search Customer Name"
+              style="width: 100%; padding: 10px 18px 10px 42px; background: #F3F3F5; border: none; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 14px; color: rgba(0,0,0,0.51); outline: none; box-sizing: border-box;">
           </div>
-          <button id="addDebtBtn" style="display: flex; align-items: center; gap: 0.5rem; padding: 11px 20px; background: #155DFC; color: white; border: none; border-radius: 14px; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 400; cursor: pointer; white-space: nowrap;">
+          <button id="addDebtBtn"
+            style="display: flex; align-items: center; gap: 0.5rem; padding: 11px 20px; background: #155DFC; color: white; border: none; border-radius: 14px; font-family: 'Poppins', sans-serif; font-size: 14px; font-weight: 400; cursor: pointer; white-space: nowrap;">
             <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
             List New Debt
           </button>
@@ -75,32 +81,42 @@
           <!-- BLACKLISTED ACCOUNTS CARD -->
           <div style="background: #FEF2F2; border-radius: 14px; border: 2px solid #FFA2A2; padding: 18px 14px;">
             <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px;">
-              <div style="width: 48px; height: 48px; background: #E7000B; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <div
+                style="width: 48px; height: 48px; background: #E7000B; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <i data-lucide="ban" style="width: 24px; height: 24px; color: white;"></i>
               </div>
               <div>
-                <div style="color: #AE5A11; font-size: 15px; font-family: 'Poppins', sans-serif; line-height: 1.6;">⚠️ Customer Warning: Blacklisted Accounts</div>
-                <div style="color: #E7000B; font-size: 14px; font-family: 'Poppins', sans-serif; line-height: 1.4;">These customers have serious payment issues. Do not extend credit!</div>
+                <div style="color: #AE5A11; font-size: 15px; font-family: 'Poppins', sans-serif; line-height: 1.6;">⚠️
+                  Customer Warning: Blacklisted Accounts</div>
+                <div style="color: #E7000B; font-size: 14px; font-family: 'Poppins', sans-serif; line-height: 1.4;">
+                  These customers have serious payment issues. Do not extend credit!</div>
               </div>
             </div>
             <div id="blacklistedContainer" style="display: flex; flex-direction: column; gap: 8px;">
-              <div style="text-align: center; color: #E7000B; font-size: 13px; font-family: 'Poppins', sans-serif; padding: 8px;">Loading...</div>
+              <div
+                style="text-align: center; color: #E7000B; font-size: 13px; font-family: 'Poppins', sans-serif; padding: 8px;">
+                Loading...</div>
             </div>
           </div>
 
           <!-- CUSTOMERS NEEDING ATTENTION CARD -->
           <div style="background: #FEFDF2; border-radius: 14px; border: 2px solid #AE5A11; padding: 18px 14px;">
             <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px;">
-              <div style="width: 48px; height: 48px; background: #AE5A11; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <div
+                style="width: 48px; height: 48px; background: #AE5A11; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <i data-lucide="alert-triangle" style="width: 24px; height: 24px; color: white;"></i>
               </div>
               <div>
-                <div style="color: #AE5A11; font-size: 15px; font-family: 'Poppins', sans-serif; line-height: 1.6;">Customers Needing Attention</div>
-                <div style="color: #D5BE0A; font-size: 14px; font-family: 'Poppins', sans-serif; line-height: 1.4;">Monitor these customers closely for payment delays.</div>
+                <div style="color: #AE5A11; font-size: 15px; font-family: 'Poppins', sans-serif; line-height: 1.6;">
+                  Customers Needing Attention</div>
+                <div style="color: #D5BE0A; font-size: 14px; font-family: 'Poppins', sans-serif; line-height: 1.4;">
+                  Monitor these customers closely for payment delays.</div>
               </div>
             </div>
             <div id="attentionContainer" style="display: flex; flex-direction: column; gap: 8px;">
-              <div style="text-align: center; color: #AE5A11; font-size: 13px; font-family: 'Poppins', sans-serif; padding: 8px;">Loading...</div>
+              <div
+                style="text-align: center; color: #AE5A11; font-size: 13px; font-family: 'Poppins', sans-serif; padding: 8px;">
+                Loading...</div>
             </div>
           </div>
         </div>
@@ -112,7 +128,8 @@
         </div>
 
         <!-- TABLE -->
-        <div style="background: white; box-shadow: 0px 4px 6px -4px rgba(0,0,0,0.10), 0px 10px 15px -3px rgba(0,0,0,0.10); border-radius: 16px; overflow: hidden;">
+        <div
+          style="background: white; box-shadow: 0px 4px 6px -4px rgba(0,0,0,0.10), 0px 10px 15px -3px rgba(0,0,0,0.10); border-radius: 16px; overflow: hidden;">
           <!-- TABLE HEADER -->
           <div class="debt-row debt-thead">
             <div>Pangalan ng Customer</div>
@@ -125,7 +142,8 @@
 
           <!-- TABLE BODY -->
           <div id="debtsTableBody">
-            <div style="padding: 2rem; text-align: center; color: #718096; font-family: 'Poppins', sans-serif;">Loading debts...</div>
+            <div style="padding: 2rem; text-align: center; color: #718096; font-family: 'Poppins', sans-serif;">Loading
+              debts...</div>
           </div>
         </div>
 
@@ -134,45 +152,81 @@
   </div>
 
   <!-- ADD DEBT MODAL -->
-  <div id="debtModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
-    <div style="background: white; border-radius: 0.75rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
-      <div style="padding: 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-        <h3 id="debtModalTitle" style="font-size: 1.25rem; font-weight: 700; color: #1a2035; margin: 0; font-family: 'Poppins', sans-serif;">List New Debt</h3>
-        <button id="closeDebtModal" type="button" style="width: 32px; height: 32px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #718096; padding: 0;">
+  <div id="debtModal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+    <div
+      style="background: white; border-radius: 0.75rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+      <div
+        style="padding: 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+        <h3 id="debtModalTitle"
+          style="font-size: 1.25rem; font-weight: 700; color: #1a2035; margin: 0; font-family: 'Poppins', sans-serif;">
+          List New Debt</h3>
+        <button id="closeDebtModal" type="button"
+          style="width: 32px; height: 32px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #718096; padding: 0;">
           <i data-lucide="x" style="width: 20px; height: 20px;"></i>
         </button>
       </div>
       <div style="padding: 1.5rem;">
         <form id="debtForm" style="display: grid; gap: 1rem;">
+
+          <!-- Customer first and last name -->
           <div>
-            <label style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Customer Name *</label>
-            <input type="text" id="debtCustomerName" placeholder="Enter customer name" required style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; box-sizing: border-box;">
+
+            <label
+              style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Customer
+              Name *</label>
+
+            <div class="name-container">
+              <input name="first_name" type="text" id="first_name" placeholder="Enter first name" required
+                style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif;">
+
+              <input name="last_name" type="text" id="last_name" placeholder="Enter last name" required
+                style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif;">
+            </div>
+
+
           </div>
           <div>
-            <label style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Total Debt Amount (₱) *</label>
-            <input type="number" id="debtTotalAmount" placeholder="0.00" step="0.01" required style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; box-sizing: border-box;">
+            <label
+              style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Total
+              Debt Amount (₱) *</label>
+            <input name="debt_amount" type="number" id="debtTotalAmount" placeholder="0.00" step="0.01" required
+              style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; box-sizing: border-box;">
           </div>
           <div>
-            <label style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Amount Paid (₱)</label>
-            <input type="number" id="debtAmountPaid" placeholder="0.00" step="0.01" value="0" style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; box-sizing: border-box;">
+            <label
+              style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Amount
+              Paid (₱)</label>
+            <input name="amount_paid" type="number" id="debtAmountPaid" placeholder="0.00" step="0.01" value="0"
+              style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; box-sizing: border-box;">
           </div>
           <div>
-            <label style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Contact</label>
-            <input type="text" id="debtContact" placeholder="Phone number or email" style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; box-sizing: border-box;">
+            <label
+              style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Contact</label>
+            <input name="phone_number" type="text" id="debtContact" placeholder="Phone number or email"
+              style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; box-sizing: border-box;">
           </div>
           <div>
-            <label style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Due Date</label>
-            <input type="date" id="debtDueDate" style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; box-sizing: border-box;">
+            <label
+              style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Due
+              Date</label>
+            <input name="debt_due" type="date" id="debtDueDate"
+              style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; box-sizing: border-box;">
           </div>
           <div>
-            <label style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Notes</label>
-            <textarea id="debtNotes" placeholder="Any notes about the debt" rows="3" style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; box-sizing: border-box; resize: vertical;"></textarea>
+            <label
+              style="display: block; font-weight: 600; color: #1a2035; margin-bottom: 0.5rem; font-family: 'Poppins', sans-serif;">Notes</label>
+            <textarea id="debtNotes" placeholder="Any notes about the debt" rows="3"
+              style="width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; box-sizing: border-box; resize: vertical;"></textarea>
           </div>
         </form>
       </div>
-      <div style="padding: 1.5rem; border-top: 1px solid #e2e8f0; display: flex; gap: 1rem; justify-content: flex-end; background: #f8fafc;">
-        <button id="cancelDebtModal" type="button" style="padding: 0.75rem 1.5rem; background: white; border: 1px solid #e2e8f0; color: #1a2035; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; font-weight: 600; cursor: pointer;">Cancel</button>
-        <button id="saveDebtBtn" type="button" style="padding: 0.75rem 1.5rem; background: #155DFC; color: white; border: none; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+      <div
+        style="padding: 1.5rem; border-top: 1px solid #e2e8f0; display: flex; gap: 1rem; justify-content: flex-end; background: #f8fafc;">
+        <button id="cancelDebtModal" type="button"
+          style="padding: 0.75rem 1.5rem; background: white; border: 1px solid #e2e8f0; color: #1a2035; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; font-weight: 600; cursor: pointer;">Cancel</button>
+        <button id="saveDebtBtn" type="button"
+          style="padding: 0.75rem 1.5rem; background: #155DFC; color: white; border: none; border-radius: 0.375rem; font-family: 'Poppins', sans-serif; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
           <i data-lucide="save" style="width: 18px; height: 18px;"></i>
           Save Debt
         </button>
@@ -181,7 +235,9 @@
   </div>
 
   <!-- Toast Notification -->
-  <div id="toast" style="display: none; position: fixed; bottom: 2rem; right: 2rem; background: #1a2035; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; z-index: 2000; font-family: 'Poppins', sans-serif;"></div>
+  <div id="toast"
+    style="display: none; position: fixed; bottom: 2rem; right: 2rem; background: #1a2035; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; z-index: 2000; font-family: 'Poppins', sans-serif;">
+  </div>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script src="/js/debts.js"></script>
@@ -191,9 +247,11 @@
       <div class="debt-details-modal-header">
         <div>
           <div class="debt-details-modal-title">Customer Debt History</div>
-          <div class="debt-details-modal-desc">Detailed transaction history for <span id="debtDetailsHeaderName">—</span></div>
+          <div class="debt-details-modal-desc">Detailed transaction history for <span
+              id="debtDetailsHeaderName">—</span></div>
         </div>
-        <button id="debtDetailsCloseBtn" class="debt-details-modal-close" type="button" aria-label="Close"><i data-lucide="x"></i></button>
+        <button id="debtDetailsCloseBtn" class="debt-details-modal-close" type="button" aria-label="Close"><i
+            data-lucide="x"></i></button>
       </div>
       <div class="debt-details-modal-body">
         <div class="debt-details-info">
@@ -203,7 +261,8 @@
           <div class="debt-details-info-value debt-details-info-box" id="debtDetailsPhone">—</div>
           <div class="debt-details-info-label">Amount Owed</div>
           <div class="debt-details-info-value">
-            <span id="debtDetailsAmount">₱0.00</span> <span id="debtDetailsStatus" class="debt-details-status active">Active</span>
+            <span id="debtDetailsAmount">₱0.00</span> <span id="debtDetailsStatus"
+              class="debt-details-status active">Active</span>
           </div>
           <button id="sendDebtReminderBtn" class="debt-details-reminder-btn">Send Debt Reminder</button>
         </div>

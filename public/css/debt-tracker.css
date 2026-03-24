@@ -582,3 +582,7 @@ body {
     .alerts-row { grid-template-columns: 1fr; }
     .content { padding: 16px; }
   }
+
+  .name-container {
+    display: flex; gap: 4px;
+  }
