@@ -30,6 +30,9 @@ router.post("/api/scan", posController.scanBarcode);
 // Get products for manual search/selection
 router.get("/api/products", posController.getProductsForPOS);
 
+// Search customers (used at checkout for Utang)
+router.get("/api/customers", posController.searchCustomers);
+
 // Process a complete transaction
 router.post("/api/checkout", posController.processTransaction);
 

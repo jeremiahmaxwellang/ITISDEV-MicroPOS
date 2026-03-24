@@ -58,7 +58,10 @@
           <div id="orderItemsList" style="padding:1rem;display:flex;flex-direction:column;gap:0.75rem;min-height:100px;"></div>
           <div style="padding:1rem 1.5rem;border-top:1px solid #e2e8f0;background:#f8fafc;">
             <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;font-size:0.9rem;color:#718096;">
-              <span>Subtotal</span><span id="subtotalAmount">₱0.00</span>
+              <span>Subtotal (fees)</span><span id="subtotalAmount">₱0.00</span>
+            </div>
+            <div id="loadTotalRow" style="display:none;justify-content:space-between;margin-bottom:0.5rem;font-size:0.9rem;color:#92400e;">
+              <span>Load Amount</span><span id="loadTotalAmount">₱0.00</span>
             </div>
             <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem;font-size:0.9rem;color:#718096;">
               <span>Tax</span><span id="taxAmount">₱0.00</span>
@@ -75,28 +78,40 @@
           <!-- Payment method selector -->
           <div style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;">
             <h3 style="font-size:1rem;font-weight:700;color:#1a2035;margin-bottom:1rem;">Payment Method</h3>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
               <!-- Cash Card -->
-              <div id="cashCard" class="payment-card" onclick="selectPaymentMethod('Cash')"
+              <div id="cashCard" onclick="selectPaymentMethod('Cash')"
                 style="border:2px solid #4f46e5;background:#f0f4ff;border-radius:0.75rem;padding:1.25rem;cursor:pointer;text-align:center;transition:all 0.2s;">
                 <div style="display:flex;justify-content:center;margin-bottom:0.5rem;">
-                  <i data-lucide="banknote" style="width:32px;height:32px;color:#4f46e5;"></i>
+                  <i data-lucide="banknote" class="pay-icon" style="width:32px;height:32px;color:#4f46e5;"></i>
                 </div>
-                <div style="font-weight:600;color:#4f46e5;font-size:0.95rem;">Cash</div>
-                <div id="cashCheck" style="display:flex;justify-content:center;margin-top:0.4rem;">
+                <div class="pay-label" style="font-weight:600;color:#4f46e5;font-size:0.95rem;">Cash</div>
+                <div class="pay-check" style="display:flex;justify-content:center;margin-top:0.4rem;">
                   <i data-lucide="check-circle" style="width:18px;height:18px;color:#4f46e5;"></i>
                 </div>
               </div>
               <!-- GCash Card -->
-              <div id="gcashCard" class="payment-card" onclick="selectPaymentMethod('GCash')"
+              <div id="gcashCard" onclick="selectPaymentMethod('GCash')"
                 style="border:2px solid #e2e8f0;background:white;border-radius:0.75rem;padding:1.25rem;cursor:pointer;text-align:center;transition:all 0.2s;">
                 <div style="display:flex;justify-content:center;margin-bottom:0.5rem;">
-                  <i data-lucide="smartphone" style="width:32px;height:32px;color:#718096;"></i>
+                  <i data-lucide="smartphone" class="pay-icon" style="width:32px;height:32px;color:#718096;"></i>
                 </div>
-                <div style="font-weight:600;color:#718096;font-size:0.95rem;">GCash</div>
-                <div id="gcashCheck" style="display:none;justify-content:center;margin-top:0.4rem;">
+                <div class="pay-label" style="font-weight:600;color:#718096;font-size:0.95rem;">GCash</div>
+                <div class="pay-check" style="display:none;justify-content:center;margin-top:0.4rem;">
                   <i data-lucide="check-circle" style="width:18px;height:18px;color:#4f46e5;"></i>
                 </div>
+              </div>
+            </div>
+            <!-- Utang Card — full width -->
+            <div id="utangCard" onclick="selectPaymentMethod('Utang')"
+              style="border:2px solid #e2e8f0;background:white;border-radius:0.75rem;padding:1rem;cursor:pointer;display:flex;align-items:center;gap:1rem;transition:all 0.2s;">
+              <i data-lucide="clock" class="pay-icon" style="width:28px;height:28px;color:#718096;flex-shrink:0;"></i>
+              <div style="flex:1;">
+                <div class="pay-label" style="font-weight:600;color:#718096;font-size:0.95rem;">Utang (I Owe You)</div>
+                <div style="font-size:0.75rem;color:#a0aec0;margin-top:0.1rem;">Record as customer debt</div>
+              </div>
+              <div class="pay-check" style="display:none;">
+                <i data-lucide="check-circle" style="width:20px;height:20px;color:#4f46e5;"></i>
               </div>
             </div>
           </div>
@@ -173,6 +188,16 @@
             </div>
           </div>
 
+          <!-- Utang: customer lookup (hidden by default) -->
+          <div id="utangBox" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;display:none;">
+            <h3 style="font-size:0.95rem;font-weight:700;color:#1a2035;margin-bottom:0.75rem;">Customer (Utang)</h3>
+            <input type="text" id="customerSearch" placeholder="Search by name or phone…"
+              oninput="searchCustomers(this.value)"
+              style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:0.9rem;box-sizing:border-box;">
+            <div id="customerResults"></div>
+            <div id="selectedCustomerDisplay" style="display:none;"></div>
+          </div>
+
           <!-- Confirm Payment button -->
           <button id="confirmPaymentBtn" onclick="processTransaction()" disabled
             style="width:100%;padding:1rem;background:#38a169;color:white;border:none;border-radius:0.75rem;font-family:Outfit,sans-serif;font-weight:700;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;opacity:0.5;transition:all 0.2s;">
@@ -195,7 +220,7 @@
       <div style="width:72px;height:72px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;border:2px solid #86efac;">
         <i data-lucide="check-circle" style="width:40px;height:40px;color:#38a169;"></i>
       </div>
-      <h2 style="font-size:1.5rem;font-weight:700;color:#1a2035;margin-bottom:0.5rem;">Payment Successful!</h2>
+      <h2 id="successTitle" style="font-size:1.5rem;font-weight:700;color:#1a2035;margin-bottom:0.5rem;">Payment Successful!</h2>
       <p id="transactionId" style="color:#718096;font-size:0.9rem;margin-bottom:1.5rem;"></p>
       <button onclick="newSale()"
         style="width:100%;padding:0.875rem;background:#4f46e5;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:700;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
@@ -234,7 +259,14 @@
 
   <script>
     const TAX_RATE = 0;
-    let state = { cart: null, paymentMethod: 'Cash', gcashQRImage: null, gcashReceived: false };
+    let state = {
+      cart: null,
+      paymentMethod: 'Cash',
+      gcashQRImage: null,
+      gcashReceived: false,
+      loadAmounts: {},       // { product_id: amount }
+      selectedCustomer: null // { customer_id, name, phone }
+    };
 
     function formatPeso(v) {
       return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(v);
@@ -259,51 +291,71 @@
       list.innerHTML = state.cart.items.map(item => `
         <div style="display:flex;align-items:center;gap:1rem;padding:0.75rem;background:#f8fafc;border-radius:0.5rem;">
           <div style="width:56px;height:56px;background:linear-gradient(135deg,#f0f4ff,#edf2f7);border-radius:0.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i data-lucide="package" style="width:24px;height:24px;color:#4f46e5;opacity:0.6;"></i>
+            <i data-lucide="${item.type === 'Services' ? 'smartphone' : 'package'}" style="width:24px;height:24px;color:#4f46e5;opacity:0.6;"></i>
           </div>
           <div style="flex:1;">
-            <div style="font-weight:600;color:#1a2035;">${item.name}</div>
-            <div style="font-size:0.8rem;color:#718096;">₱${parseFloat(item.price).toFixed(2)} &times; ${item.quantity}</div>
+            <div style="font-weight:600;color:#1a2035;">${item.name}${item.type === 'Services' ? ' <span style="background:#fef3c7;color:#92400e;padding:0.1rem 0.4rem;border-radius:0.25rem;font-size:0.7rem;font-weight:600;">LOAD</span>' : ''}</div>
+            <div style="font-size:0.8rem;color:#718096;">Service fee: ₱${parseFloat(item.price).toFixed(2)} &times; ${item.quantity}</div>
           </div>
           <div style="font-weight:700;color:#1a2035;">₱${(item.price * item.quantity).toFixed(2)}</div>
         </div>
+        ${(item.type === 'Services' || item.stock === -1) ? `
+        <div style="margin-top:0.4rem;padding:0.75rem;background:#fffbeb;border:1px solid #fde68a;border-radius:0.5rem;">
+          <label style="display:block;font-size:0.8rem;font-weight:600;color:#92400e;margin-bottom:0.4rem;">
+            Load Amount (₱) — actual amount the customer is loading
+          </label>
+          <input type="number" id="load_${item.id}" placeholder="e.g. 50.00" min="0" step="0.01"
+            oninput="updateLoadAmount(${item.id}, this.value)"
+            style="width:100%;padding:0.5rem 0.75rem;border:1px solid #fcd34d;border-radius:0.375rem;font-family:Outfit,sans-serif;font-size:0.9rem;box-sizing:border-box;outline:none;">
+        </div>` : ''}
       `).join('');
       lucide.createIcons();
+    }
+
+    function updateLoadAmount(productId, value) {
+      state.loadAmounts[productId] = parseFloat(value) || 0;
+      calculateTotals();
+      updateConfirmBtn();
     }
 
     function calculateTotals() {
       if (!state.cart) return { total: 0 };
       const subtotal = state.cart.subtotal || 0;
+      const loadTotal = Object.values(state.loadAmounts).reduce((s, v) => s + (parseFloat(v) || 0), 0);
       const tax = subtotal * TAX_RATE;
-      const total = subtotal + tax;
+      const total = subtotal + tax + loadTotal;
       document.getElementById('subtotalAmount').textContent = formatPeso(subtotal);
       document.getElementById('taxAmount').textContent = formatPeso(tax);
       document.getElementById('totalAmount').textContent = formatPeso(total);
+      const loadRow = document.getElementById('loadTotalRow');
+      if (loadRow) {
+        loadRow.style.display = loadTotal > 0 ? 'flex' : 'none';
+        document.getElementById('loadTotalAmount').textContent = formatPeso(loadTotal);
+      }
       document.getElementById('gcashAmountDisplay').textContent = formatPeso(total);
       document.getElementById('qrModalAmount').textContent = formatPeso(total);
-      return { subtotal, tax, total };
+      return { subtotal, tax, loadTotal, total };
     }
 
     function selectPaymentMethod(method) {
       state.paymentMethod = method;
-      const isCash = method === 'Cash';
 
-      // Cash card styling
-      document.getElementById('cashCard').style.border = isCash ? '2px solid #4f46e5' : '2px solid #e2e8f0';
-      document.getElementById('cashCard').style.background = isCash ? '#f0f4ff' : 'white';
-      document.getElementById('cashCard').querySelector('div:last-child').style.color = isCash ? '#4f46e5' : '#718096';
-      document.getElementById('cashCheck').style.display = isCash ? 'flex' : 'none';
+      ['Cash', 'GCash', 'Utang'].forEach(m => {
+        const card = document.getElementById(m.toLowerCase() + 'Card');
+        const active = m === method;
+        card.style.border = active ? '2px solid #4f46e5' : '2px solid #e2e8f0';
+        card.style.background = active ? '#f0f4ff' : 'white';
+        card.querySelector('.pay-icon').style.color = active ? '#4f46e5' : '#718096';
+        card.querySelector('.pay-label').style.color = active ? '#4f46e5' : '#718096';
+        card.querySelector('.pay-check').style.display = active ? 'flex' : 'none';
+      });
 
-      // GCash card styling
-      document.getElementById('gcashCard').style.border = !isCash ? '2px solid #4f46e5' : '2px solid #e2e8f0';
-      document.getElementById('gcashCard').style.background = !isCash ? '#f0f4ff' : 'white';
-      document.getElementById('gcashCard').querySelector('div:nth-child(2)').style.color = !isCash ? '#4f46e5' : '#718096';
-      document.getElementById('gcashCheck').style.display = !isCash ? 'flex' : 'none';
-
-      document.getElementById('cashInputBox').style.display = isCash ? 'block' : 'none';
-      document.getElementById('gcashInputBox').style.display = !isCash ? 'block' : 'none';
+      document.getElementById('cashInputBox').style.display = method === 'Cash' ? 'block' : 'none';
+      document.getElementById('gcashInputBox').style.display = method === 'GCash' ? 'block' : 'none';
       document.getElementById('gcashDetailsBox').style.display = 'none';
+      document.getElementById('utangBox').style.display = method === 'Utang' ? 'block' : 'none';
       state.gcashReceived = false;
+      if (method !== 'Utang') state.selectedCustomer = null;
 
       updateConfirmBtn();
     }
@@ -313,13 +365,16 @@
       const { total } = calculateTotals();
       let canPay = false;
 
+      // All service items must have a load amount entered
+      const serviceItems = state.cart ? state.cart.items.filter(i => i.type === 'Services' || i.stock === -1) : [];
+      const loadAmountsValid = serviceItems.every(i => (parseFloat(state.loadAmounts[i.id]) || 0) > 0);
+
       if (state.paymentMethod === 'Cash') {
         const paid = parseFloat(document.getElementById('amountPaid').value) || 0;
-        canPay = paid >= total;
+        canPay = paid >= total && (serviceItems.length === 0 || loadAmountsValid);
         const changeDiv = document.getElementById('changeDisplay');
         if (paid > 0) {
           const change = paid - total;
-          document.getElementById('changeAmount').textContent = formatPeso(change >= 0 ? change : 0);
           changeDiv.style.display = 'block';
           changeDiv.style.background = change >= 0 ? '#f0fdf4' : '#fef2f2';
           changeDiv.querySelector('span').style.color = change >= 0 ? '#166534' : '#991b1b';
@@ -329,8 +384,10 @@
         } else {
           changeDiv.style.display = 'none';
         }
-      } else {
-        canPay = state.gcashReceived && document.getElementById('gcashReference').value.trim() !== '';
+      } else if (state.paymentMethod === 'GCash') {
+        canPay = state.gcashReceived && document.getElementById('gcashReference').value.trim() !== '' && (serviceItems.length === 0 || loadAmountsValid);
+      } else if (state.paymentMethod === 'Utang') {
+        canPay = !!state.selectedCustomer && (serviceItems.length === 0 || loadAmountsValid);
       }
 
       btn.disabled = !canPay;
@@ -359,17 +416,66 @@
       document.getElementById('uploadLabel').textContent = 'Click to upload GCash screenshot';
     }
 
+    async function searchCustomers(query) {
+      const resultsDiv = document.getElementById('customerResults');
+      if (!query.trim()) { resultsDiv.innerHTML = ''; return; }
+      try {
+        const res = await fetch(`/pos/api/customers?search=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if (data.customers && data.customers.length > 0) {
+          resultsDiv.innerHTML = `<div style="border:1px solid #e2e8f0;border-radius:0.5rem;overflow:hidden;margin-top:0.4rem;">` +
+            data.customers.map(c => `
+              <div onclick="selectCustomer(${c.customer_id}, '${(c.first_name + ' ' + c.last_name).replace(/'/g, "\\'")}', '${(c.phone_number || '').replace(/'/g, "\\'")}')"
+                style="padding:0.6rem 0.75rem;cursor:pointer;border-bottom:1px solid #f0f0f0;background:white;"
+                onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                <div style="font-weight:600;font-size:0.875rem;color:#1a2035;">${c.first_name} ${c.last_name}</div>
+                ${c.phone_number ? `<div style="font-size:0.75rem;color:#718096;">${c.phone_number}</div>` : ''}
+              </div>
+            `).join('') + `</div>`;
+        } else {
+          resultsDiv.innerHTML = '<div style="padding:0.6rem;color:#718096;font-size:0.875rem;margin-top:0.4rem;">No customers found</div>';
+        }
+      } catch (e) { resultsDiv.innerHTML = ''; }
+    }
+
+    function selectCustomer(id, name, phone) {
+      state.selectedCustomer = { customer_id: id, name, phone };
+      document.getElementById('customerSearch').value = '';
+      document.getElementById('customerResults').innerHTML = '';
+      const display = document.getElementById('selectedCustomerDisplay');
+      display.style.display = 'block';
+      display.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem;background:#f0fdf4;border:1px solid #86efac;border-radius:0.5rem;margin-top:0.5rem;">
+          <div>
+            <div style="font-weight:600;color:#166534;font-size:0.9rem;">${name}</div>
+            ${phone ? `<div style="font-size:0.75rem;color:#166534;">${phone}</div>` : ''}
+          </div>
+          <button onclick="clearCustomer()" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:1.25rem;line-height:1;padding:0.25rem;">×</button>
+        </div>`;
+      updateConfirmBtn();
+    }
+
+    function clearCustomer() {
+      state.selectedCustomer = null;
+      document.getElementById('selectedCustomerDisplay').style.display = 'none';
+      document.getElementById('selectedCustomerDisplay').innerHTML = '';
+      updateConfirmBtn();
+    }
+
     async function processTransaction() {
       if (document.getElementById('confirmPaymentBtn').disabled) return;
-
       document.getElementById('loadingIndicator').style.display = 'block';
       document.getElementById('confirmPaymentBtn').style.display = 'none';
 
       try {
         const body = {
-          items: state.cart.items.map(i => ({ product_id: i.id, quantity: i.quantity })),
+          items: state.cart.items.map(i => ({
+            product_id: i.id,
+            quantity: i.quantity,
+            load_amount: (i.type === 'Services' || i.stock === -1) ? (parseFloat(state.loadAmounts[i.id]) || 0) : 0
+          })),
           payment_method: state.paymentMethod,
-          customer_id: null,
+          customer_id: state.selectedCustomer ? state.selectedCustomer.customer_id : null,
           staff_id: null
         };
 
@@ -383,6 +489,7 @@
         if (!res.ok) throw new Error(data.error || 'Transaction failed');
 
         sessionStorage.removeItem('posCart');
+        document.getElementById('successTitle').textContent = state.paymentMethod === 'Utang' ? 'Utang Recorded!' : 'Payment Successful!';
         document.getElementById('transactionId').textContent = `Transaction #${data.transaction_id} • Total: ${formatPeso(data.total_price)}`;
         document.getElementById('successOverlay').style.display = 'flex';
         lucide.createIcons();
@@ -398,7 +505,6 @@
       window.location.href = '/pos';
     }
 
-    // QR file upload
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
       if (!loadCart()) return;

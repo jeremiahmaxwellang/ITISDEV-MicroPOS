@@ -161,12 +161,37 @@ exports.getProductsForPOS = async (req, res) => {
   }
 };
 
+// Search customers by name or phone (used at checkout for Utang)
+exports.searchCustomers = async (req, res) => {
+  const { search = "" } = req.query;
+  try {
+    const term = `%${search.trim()}%`;
+    const [rows] = await db.query(
+      `SELECT customer_id, first_name, last_name, phone_number
+       FROM customers
+       WHERE first_name LIKE ? OR last_name LIKE ? OR phone_number LIKE ?
+       ORDER BY first_name ASC
+       LIMIT 10`,
+      [term, term, term]
+    );
+    res.json({ success: true, customers: rows });
+  } catch (err) {
+    console.error("searchCustomers error:", err);
+    res.status(500).json({ error: "Failed to search customers" });
+  }
+};
+
 // Process a complete transaction
 exports.processTransaction = async (req, res) => {
   const { items, customer_id = null, staff_id = null, payment_method = "Cash" } = req.body;
 
   if (!items || items.length === 0) {
     return res.status(400).json({ error: "Cart is empty" });
+  }
+
+  const isUtang = payment_method === "Utang";
+  if (isUtang && !customer_id) {
+    return res.status(400).json({ error: "A customer must be selected for Utang transactions" });
   }
 
   try {
@@ -177,7 +202,7 @@ exports.processTransaction = async (req, res) => {
 
       let total_price = 0;
 
-      // Validate all items and calculate total
+      // Validate all items and calculate total (service fee + load amount)
       for (const item of items) {
         const [productRows] = await connection.query(
           `SELECT selling_price, product_type FROM products WHERE product_id = ?`,
@@ -189,16 +214,17 @@ exports.processTransaction = async (req, res) => {
         }
 
         const price = Number(productRows[0].selling_price) || 0;
-        total_price += price * item.quantity;
+        const loadAmount = productRows[0].product_type === "Services" ? (Number(item.load_amount) || 0) : 0;
+        total_price += price * item.quantity + loadAmount;
       }
 
-      // Determine status based on payment - debt goes through /debts flow
-      const status = "Paid";
+      const status = isUtang ? "Unpaid" : "Paid";
+      const storedPaymentMethod = isUtang ? "Other" : payment_method;
 
       const [transactionResult] = await connection.query(
         `INSERT INTO transactions (customer_id, staff_id, total_price, status, payment_method, date_ordered)
          VALUES (?, ?, ?, ?, ?, NOW())`,
-        [customer_id, staff_id || 1, total_price, status, payment_method]
+        [customer_id, staff_id || 1, total_price, status, storedPaymentMethod]
       );
 
       const transaction_id = transactionResult.insertId;
@@ -210,11 +236,12 @@ exports.processTransaction = async (req, res) => {
         );
 
         const price_each = Number(productRows[0].selling_price) || 0;
+        const loadAmount = productRows[0].product_type === "Services" ? (Number(item.load_amount) || 0) : 0;
 
         await connection.query(
-          `INSERT INTO transaction_orders (transaction_id, product_id, price_each, quantity)
-           VALUES (?, ?, ?, ?)`,
-          [transaction_id, item.product_id, price_each, item.quantity]
+          `INSERT INTO transaction_orders (transaction_id, product_id, price_each, quantity, load_amount)
+           VALUES (?, ?, ?, ?, ?)`,
+          [transaction_id, item.product_id, price_each, item.quantity, loadAmount]
         );
 
         // Only deduct stock for physical products
@@ -230,6 +257,19 @@ exports.processTransaction = async (req, res) => {
             [item.quantity, item.product_id]
           );
         }
+      }
+
+      // For Utang: create a debt record and link it to this transaction
+      if (isUtang) {
+        const [debtResult] = await connection.query(
+          `INSERT INTO debts (customer_id, debt_amount, status, debt_started)
+           VALUES (?, ?, 'Unpaid', CURRENT_DATE)`,
+          [customer_id, total_price]
+        );
+        await connection.query(
+          `INSERT INTO debt_transactions (debt_id, transaction_id) VALUES (?, ?)`,
+          [debtResult.insertId, transaction_id]
+        );
       }
 
       await connection.commit();

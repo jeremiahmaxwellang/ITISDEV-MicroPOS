@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/juliannalammoglia/Desktop/ITISDEV-MicroPOS -name *.sql -o -name *schema* -o -name *migration*)"
+    ]
+  }
+}

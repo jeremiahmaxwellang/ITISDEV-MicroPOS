@@ -115,6 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
         name: product.name,
         price: product.price,
         stock: product.stock,
+        type: product.type,
         quantity: 1
       });
     }
@@ -256,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <div style="padding: 1rem; background: #f9fafb; border-radius: 0.5rem; margin-bottom: 0.5rem; cursor: pointer; transition: background 0.2s;" 
                    onmouseover="this.style.background='#f0f1f3'" 
                    onmouseout="this.style.background='#f9fafb'"
-                   onclick="window.addProductToCart({id: ${item.id}, name: '${item.name.replace(/"/g, '\\"')}', price: ${item.price}, stock: ${item.stock}})">
+                   onclick="window.addProductToCart({id: ${item.id}, name: '${item.name.replace(/"/g, '\\"')}', price: ${item.price}, stock: ${item.stock}, type: '${item.type}'})">
                 <p style="font-weight: 500; color: #1a202c; margin-bottom: 0.25rem;">${item.name}</p>
                 <p style="font-size: 0.875rem; color: #718096; margin-bottom: 0.5rem;">Barcode: ${item.barcode || "N/A"}</p>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
