@@ -87,5 +87,8 @@ Charles Kevin Duelas
 Justin Nicolai Lee
 [@juicetice](https://github.com/juiceticedlsu)
 
+Lianne Maxene Balbastro
+[@Liannemax] (https://github.com/LianneMax)
+
 ## Acknowledgments
 * Sir Raphael Gonda
