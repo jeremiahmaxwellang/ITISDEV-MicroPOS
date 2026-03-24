@@ -69,3 +69,27 @@ exports.createDebt = async (req, res) => {
         res.status(500).json({ error: "Failed to add debt", detail: err.message });
     }
 };
+
+// Mark customer as paid
+exports.markPaid = async (req, res) => {
+    const { debt_id } = req.params;
+
+    try {
+        // 1. Mark the debt as paid
+        const updateDebt = `
+            UPDATE debts
+            SET status = 'Paid'
+            WHERE debt_id = ?
+        `;
+        const [result] = await db.query(updateDebt, [debt_id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Debt not found' });
+        }
+
+        res.json({ success: true, message: 'Debt marked as paid' });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

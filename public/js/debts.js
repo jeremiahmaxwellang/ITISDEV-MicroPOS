@@ -139,7 +139,7 @@ function renderTable(debts) {
                      </button>
                      <button class="debt-pay-btn" onclick="markPaid(${idx})">
                          <i data-lucide="check" style="width:14px;height:14px;"></i>
-                         Pay
+                         Mark Paid
                      </button>
                  </div>`;
 
@@ -240,17 +240,28 @@ document.addEventListener('DOMContentLoaded', () => {
 async function markPaid(idx) {
     const debt = allDebts.active[idx];
     if (!debt) return;
+
     const name = `${debt.first_name || ''} ${debt.last_name || ''}`.trim();
     if (!confirm(`Mark ${name}'s debt as paid?\nAmount: ${formatCurrency(debt.debt_amount)}`)) return;
 
     try {
-        const response = await fetch(`/debts/${debt.debt_id}/pay`, { method: 'PATCH' });
+        const response = await fetch(`/debts/${debt.debt_id}/pay`, {
+            method: 'PATCH'
+        });
+
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error);
+
+        if (!response.ok) {
+            alert('Error: ' + data.error);
+            return;
+        }
+
         showToast('Payment recorded successfully!');
-        loadDebts();
+        loadDebts(); // refresh the table
+
     } catch (err) {
-        alert('Error: ' + err.message);
+        console.error('Error:', err);
+        alert('Something went wrong. Please try again.');
     }
 }
 
