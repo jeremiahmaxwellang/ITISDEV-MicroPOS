@@ -14,6 +14,7 @@ const viewsPath = path.join(__dirname, '../../views');
 // Controller
 router.get('/active', debtsController.getActiveDebts);
 router.get('/paid', debtsController.getPaidDebts);
+router.post('/create-debt', debtsController.createDebt);
 
 // Route for /debts
 router.get('/', (req, res) => {

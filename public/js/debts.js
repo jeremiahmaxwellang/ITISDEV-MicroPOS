@@ -1,4 +1,3 @@
-
 // --- Debt Tracker Page JS (from debts.html) ---
 let allDebts = { active: [], paid: [] };
 let currentTab = 'paid';
@@ -13,6 +12,8 @@ function formatDate(dateStr) {
 function formatCurrency(amount) {
     return '₱' + parseFloat(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+const tableBody = document.getElementById('debtsTableBody');
 
 async function loadDebts() {
     try {
@@ -30,7 +31,7 @@ async function loadDebts() {
         renderTable(currentTab === 'paid' ? allDebts.paid : allDebts.active);
     } catch (error) {
         console.error('Error loading debts:', error);
-        document.getElementById('debtsTableBody').innerHTML =
+        tableBody.innerHTML =
             '<div style="padding: 2rem; text-align: center; color: #718096; font-family: Poppins, sans-serif;">Error loading debts</div>';
         renderAlertCards([]);
     }
@@ -150,7 +151,7 @@ function renderTable(debts) {
                     </div>
                     <span style="color:rgba(0,0,0,0.80);font-size:15px;font-family:'Poppins',sans-serif;">${fullName}</span>
                 </div>
-                <div style="text-align:center;color:rgba(0,0,0,0.80);font-size:13px;font-family:'Poppins',sans-serif;">${debt.facebook_profile || '—'}</div>
+                <div style="text-align:center;color:rgba(0,0,0,0.80);font-size:13px;font-family:'Poppins',sans-serif;">${debt.phone_number || '—'}</div>
                 <div style="text-align:center;color:#00B928;font-size:13px;font-family:'Arimo',sans-serif;">${formatCurrency(debt.debt_amount)}</div>
                 <div style="display:flex;align-items:center;gap:6px;color:#4A5565;font-size:14px;font-family:'Arimo',sans-serif;">
                     <i data-lucide="calendar" style="width:16px;height:16px;color:#99A1AF;flex-shrink:0;"></i>
@@ -190,7 +191,7 @@ function viewDebtDetails(idx) {
     document.getElementById('debtDetailsHeaderName').textContent = fullName;
     document.getElementById('debtDetailsCustomerName').textContent = fullName;
 
-    document.getElementById('debtDetailsPhone').textContent = debt.facebook_profile || '—';
+    document.getElementById('debtDetailsPhone').textContent = debt.phone_number || '—';
     document.getElementById('debtDetailsAmount').textContent = formatCurrency(debt.debt_amount);
     document.getElementById('debtDetailsStatus').textContent = debt.status || 'Active';
     document.getElementById('debtDetailsStatus').className = 'debt-details-status ' + (debt.status === 'Paid' ? 'paid' : debt.status === 'Overdue' ? 'overdue' : debt.status === 'Blacklisted' ? 'blacklisted' : 'active');
@@ -230,20 +231,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Dismiss by clicking outside
     const detailsModal = document.getElementById('debtDetailsModal');
     if (detailsModal) {
-        detailsModal.addEventListener('mousedown', function(e) {
+        detailsModal.addEventListener('mousedown', function (e) {
             if (e.target === this) closeDebtDetailsModal();
         });
     }
 });
 
-function markPaid(idx) {
+async function markPaid(idx) {
     const debt = allDebts.active[idx];
     if (!debt) return;
     const name = `${debt.first_name || ''} ${debt.last_name || ''}`.trim();
-    if (confirm(`Mark ${name}'s debt as paid?\nAmount: ${formatCurrency(debt.debt_amount)}`)) {
-        console.log('Marking debt as paid:', debt);
+    if (!confirm(`Mark ${name}'s debt as paid?\nAmount: ${formatCurrency(debt.debt_amount)}`)) return;
+
+    try {
+        const response = await fetch(`/debts/${debt.debt_id}/pay`, { method: 'PATCH' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
         showToast('Payment recorded successfully!');
         loadDebts();
+    } catch (err) {
+        alert('Error: ' + err.message);
     }
 }
 
@@ -256,6 +263,33 @@ function showToast(msg) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    document.getElementById('debtForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+
+        const response = await fetch('/api/debts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                first_name: form.first_name.value,
+                last_name: form.last_name.value,
+                phone_number: form.phone_number.value,
+                debt_amount: parseFloat(form.debt_amount.value),
+                debt_due: form.debt_due.value
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert('Error: ' + data.error);
+            return;
+        }
+
+        alert(data.message); // "Debt added successfully"
+    });
+
     // Search
     const searchDebt = document.getElementById('searchDebt');
     if (searchDebt) {
@@ -277,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('debtModalTitle').textContent = 'List New Debt';
             document.getElementById('debtForm').reset();
             document.getElementById('debtModal').style.display = 'flex';
-            document.getElementById('debtCustomerName').focus();
+            document.getElementById('first_name').focus();
         });
     }
 
@@ -302,26 +336,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveDebtBtn = document.getElementById('saveDebtBtn');
     if (saveDebtBtn) {
         saveDebtBtn.addEventListener('click', async () => {
-            const customerName = document.getElementById('debtCustomerName').value.trim();
+            const first_name = document.getElementById('first_name').value.trim();
+            const last_name = document.getElementById('last_name').value.trim();
             const totalDebt = parseFloat(document.getElementById('debtTotalAmount').value);
             const amountPaid = parseFloat(document.getElementById('debtAmountPaid').value) || 0;
             const contact = document.getElementById('debtContact').value;
             const notes = document.getElementById('debtNotes').value;
 
-            if (!customerName || isNaN(totalDebt)) {
+            if (!first_name || !last_name || isNaN(totalDebt)) {
                 alert('Please fill in required fields');
                 return;
             }
 
+            // Send the data to your backend
             try {
-                console.log('Saving debt:', { customerName, totalDebt, amountPaid, contact, notes });
+                const response = await fetch('/debts/create-debt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        first_name: first_name,
+                        last_name: last_name,
+                        phone_number: contact,
+                        debt_amount: totalDebt,
+                        debt_due: document.getElementById('debtDueDate').value  // add this field to your form
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to save');
+
                 showToast('Debt record saved!');
                 document.getElementById('debtModal').style.display = 'none';
                 document.getElementById('debtForm').reset();
                 loadDebts();
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error saving debt record');
+                alert('Error saving debt record: ' + error.message);
             }
         });
     }
@@ -330,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide && window.lucide.createIcons) lucide.createIcons();
     setTimeout(() => { if (window.lucide && window.lucide.createIcons) lucide.createIcons(); }, 300);
 });
+
 document.addEventListener('DOMContentLoaded', function () {
 
     // Tab switching
@@ -366,9 +417,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </td>
 
                     <td class="td-phone">
-                        ${d.facebook_profile 
-                            ? `<a href="${d.facebook_profile}" target="_blank">${d.facebook_profile}</a>` 
-                            : '—'}
+                        ${d.phone_number}
                     </td>
 
                     <td><span class="td-peso ${status}">₱${d.debt_amount}</span></td>
@@ -411,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
         }).join('');
 
-        
+
     }
 
     // Map tab index
@@ -425,12 +474,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const res = await fetch(endpoints[tabIndex]);
-            if(!res.ok) throw new Error(`Server error: ${res.status}`);
+            if (!res.ok) throw new Error(`Server error: ${res.status}`);
             const data = await res.json();
 
             renderRows(data);
         } catch (err) {
-            tableBody.innerHTML =`<tr><td colspan="6" style="text-align:center;color:red;padding:2rem;">Failed to load data.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:red;padding:2rem;">Failed to load data.</td></tr>`;
             console.error(err);
         }
     }
@@ -446,5 +495,4 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     loadDebts(0);
-
 });
