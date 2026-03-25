@@ -56,6 +56,8 @@ DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=<YOUR_SQL_PASSWORD_HERE>
 DB_NAME=micropos_db
+
+IPROG_API_TOKEN=your_actual_api_token_here
 ```
 
 ### Executing program
@@ -81,14 +83,17 @@ Ensure port 3000 is free on your device before running the server
 Jeremiah Maxwell Ang
 [@jeremiahmaxwellang](https://github.com/jeremiahmaxwellang)
 
+Lianne Maxene Balbastro
+[@Liannemax] (https://github.com/LianneMax)
+
 Charles Kevin Duelas
 [@Duelly01](https://github.com/Duelly01)
 
+Julianna Lammoglia
+[@julammoglia] (https://github.com/julammoglia)
+
 Justin Nicolai Lee
 [@juicetice](https://github.com/juiceticedlsu)
-
-Lianne Maxene Balbastro
-[@Liannemax] (https://github.com/LianneMax)
 
 ## Acknowledgments
 * Sir Raphael Gonda
