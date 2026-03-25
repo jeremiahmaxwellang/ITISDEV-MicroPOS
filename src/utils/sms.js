@@ -1,6 +1,7 @@
 const sendSMS = async (phone_number, message) => {
     // Format: changes 09171234567 into 639171234567
     const formatted = phone_number.replace(/^0/, '63').replace(/\s+/g, '');
+    console.log(`Phone num: ${phone_number}\nFormatted: ${formatted}`);
 
     const params = new URLSearchParams({
         api_token:    process.env.IPROG_API_TOKEN,
