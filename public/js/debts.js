@@ -13,6 +13,41 @@ function formatCurrency(amount) {
     return '₱' + parseFloat(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// Select customer for the Create Debts Modal
+function selectCustomer(customer_id, first_name, last_name, phone_number) {
+    // Set hidden customer ID for the payload
+    document.getElementById('selectedCustomerId').value = customer_id;
+
+    // Autofill the name fields
+    document.getElementById('first_name').value = first_name;
+    document.getElementById('last_name').value = last_name;
+
+    // Autofill phone
+    document.getElementById('debtContact').value = phone_number || '';
+
+    // Show selected preview card
+    document.getElementById('selectedCustomerName').textContent = `${first_name} ${last_name}`;
+    document.getElementById('selectedCustomerPhone').textContent = phone_number || 'No phone number';
+    document.getElementById('selectedCustomerPreview').style.display = 'flex';
+
+    // Hide dropdown
+    document.getElementById('customerSearchResults').style.display = 'none';
+    document.getElementById('customerSearchInput').value = '';
+}
+
+// Mode toggle
+function setDebtModalMode(mode) {
+    const isNew = mode === 'new';
+    document.getElementById('newCustomerFields').style.display = isNew ? 'block' : 'none';
+    document.getElementById('existingCustomerFields').style.display = isNew ? 'none' : 'block';
+    document.getElementById('phoneField').style.display = isNew ? 'block' : 'none';
+    document.getElementById('modeNewBtn').style.background = isNew ? '#155DFC' : 'transparent';
+    document.getElementById('modeNewBtn').style.color = isNew ? 'white' : '#6A7282';
+    document.getElementById('modeExistingBtn').style.background = isNew ? 'transparent' : '#155DFC';
+    document.getElementById('modeExistingBtn').style.color = isNew ? '#6A7282' : 'white';
+    document.getElementById('selectedCustomerId').value = '';
+}
+
 const tableBody = document.getElementById('debtsTableBody');
 
 async function loadDebts() {
@@ -527,18 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Mode toggle
-    function setDebtModalMode(mode) {
-        const isNew = mode === 'new';
-        document.getElementById('newCustomerFields').style.display = isNew ? 'block' : 'none';
-        document.getElementById('existingCustomerFields').style.display = isNew ? 'none' : 'block';
-        document.getElementById('phoneField').style.display = isNew ? 'block' : 'none';
-        document.getElementById('modeNewBtn').style.background = isNew ? '#155DFC' : 'transparent';
-        document.getElementById('modeNewBtn').style.color = isNew ? 'white' : '#6A7282';
-        document.getElementById('modeExistingBtn').style.background = isNew ? 'transparent' : '#155DFC';
-        document.getElementById('modeExistingBtn').style.color = isNew ? '#6A7282' : 'white';
-        document.getElementById('selectedCustomerId').value = '';
-    }
+
 
     document.getElementById('modeNewBtn').addEventListener('click', () => setDebtModalMode('new'));
     document.getElementById('modeExistingBtn').addEventListener('click', () => setDebtModalMode('existing'));
@@ -584,15 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300); // debounce 300ms
     });
 
-    // Select a customer from search results
-    function selectCustomer(customer_id, first_name, last_name, phone_number) {
-        document.getElementById('selectedCustomerId').value = customer_id;
-        document.getElementById('selectedCustomerName').textContent = `${first_name} ${last_name}`;
-        document.getElementById('selectedCustomerPhone').textContent = phone_number || 'No phone number';
-        document.getElementById('selectedCustomerPreview').style.display = 'flex';
-        document.getElementById('customerSearchResults').style.display = 'none';
-        document.getElementById('customerSearchInput').value = '';
-    }
+
 
     // Clear selected customer
     document.getElementById('clearSelectedCustomer').addEventListener('click', () => {
