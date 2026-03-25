@@ -77,6 +77,21 @@ INSERT INTO `transaction_orders` (`transaction_id`, `product_id`, `price_each`, 
 INSERT INTO `payments` (`payment_id`, `transaction_id`, `debt_id`, `staff_id`, `amount_paid`, `payment_method`, `proof_of_payment`, `notes`, `created_at`) VALUES
 (1, 1, NULL, 1, '150.00', 'GCash', 'proof-1774475078347-df6f4706.jpg', 'Ref: 123123123123; Name: Lianne Balbastro; Number: 09275630095', '2026-03-26 05:44:38.000');
 
--- PAYMENT_PROOFS
+
 INSERT INTO `payment_proofs` (`proof_id`, `staff_id`, `transaction_id`, `customer_name`, `gcash_number`, `amount_paid`, `date_paid`, `proof_image_url`, `created_at`, `updated_at`) VALUES
 (1, 1, 1, 'Lianne Balbastro', '09275630095', '150.00', '2026-03-26 00:00:00.000', '/uploads/payment-proof/proof-1774475078347-df6f4706.jpg', '2026-03-26 05:44:38.000', '2026-03-26 05:44:38.000');
+
+-- 1. Insert the Customers first (to get their IDs)
+-- We use IGNORE or check for existence to avoid duplicate email/name errors
+INSERT INTO `customers` (`customer_id`, `first_name`, `last_name`) VALUES
+(1, 'Charles Kevin', 'Duelas'),
+(2, 'Lianne Maxene', 'Balbastro'),
+(3, 'Juan', 'Karlos');
+
+-- 2. Insert the Debt Records
+-- Linking them to the customer_id based on your screenshot
+INSERT INTO `debts` (`debt_id`, `customer_id`, `debt_amount`, `debt_started`, `debt_due`, `status`) VALUES
+(4, 3, 826.00,  '2026-03-26', NULL,         'Unpaid'), -- Juan Karlos Active
+(1, 1, 1000.00, '2026-03-26', '2026-03-27', 'Unpaid'), -- Charles Active
+(2, 2, 1000.00, '2026-03-26', '2026-03-28', 'Unpaid'), -- Lianne Active
+(3, 3, 200.00,  '2026-03-26', '2026-03-26', 'Paid');   -- Juan Karlos Settled
