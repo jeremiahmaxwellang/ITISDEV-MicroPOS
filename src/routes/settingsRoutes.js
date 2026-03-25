@@ -15,5 +15,6 @@ router.get('/', (req, res) => {
 });
 
 router.post('/api/change-password', settingsController.changePassword);
+router.get('/api/export-inserts', settingsController.exportInsertsSql);
 
 module.exports = router;

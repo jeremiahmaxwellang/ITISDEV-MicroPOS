@@ -4,6 +4,7 @@
 	const form = document.getElementById('changePasswordForm');
 	const messageEl = document.getElementById('formMessage');
 	const saveButton = document.getElementById('savePasswordBtn');
+	const exportInsertsButton = document.getElementById('exportInsertsBtn');
 	const oldPasswordInput = document.getElementById('oldPassword');
 	const newPasswordInput = document.getElementById('newPassword');
 	const confirmPasswordInput = document.getElementById('confirmPassword');
@@ -149,12 +150,55 @@
 		}
 	}
 
+	async function handleExportInserts() {
+		if (!exportInsertsButton) return;
+
+		exportInsertsButton.disabled = true;
+		const label = exportInsertsButton.querySelector('span');
+		if (label) label.textContent = 'Exporting...';
+
+		try {
+			const response = await fetch('/settings/api/export-inserts');
+			if (!response.ok) {
+				const payload = await response.json().catch(() => ({ message: 'Failed to export inserts SQL.' }));
+				throw new Error(payload.message || 'Failed to export inserts SQL.');
+			}
+
+			const blob = await response.blob();
+			const disposition = response.headers.get('Content-Disposition') || '';
+			const match = disposition.match(/filename="([^"]+)"/i);
+			const fileName = match && match[1] ? match[1] : 'inserts.sql';
+
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = url;
+			link.download = fileName;
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			URL.revokeObjectURL(url);
+
+			setMessage('Inserts SQL exported successfully.', 'success');
+		} catch (err) {
+			console.error('Export inserts failed:', err);
+			setMessage(err.message || 'Failed to export inserts SQL.', 'error');
+		} finally {
+			exportInsertsButton.disabled = false;
+			if (label) label.textContent = 'Export Inserts SQL';
+			renderIcons();
+		}
+	}
+
 	async function init() {
 		renderIcons();
 		await loadCurrentUser();
 
 		if (form) {
 			form.addEventListener('submit', handleSubmit);
+		}
+
+		if (exportInsertsButton) {
+			exportInsertsButton.addEventListener('click', handleExportInserts);
 		}
 	}
 
