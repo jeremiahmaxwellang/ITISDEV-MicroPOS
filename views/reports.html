@@ -123,15 +123,6 @@
               </select>
             </label>
 
-            <button class="btn btn-z" id="zReadingBtn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="4" width="18" height="18" rx="2"></rect>
-                <line x1="8" y1="8" x2="16" y2="8"></line>
-                <line x1="8" y1="12" x2="16" y2="12"></line>
-                <line x1="8" y1="16" x2="12" y2="16"></line>
-              </svg>
-              Z-Reading (End of Day)
-            </button>
 
             <button class="btn btn-download" id="downloadBtn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -149,6 +140,7 @@
         <div class="segment-tabs">
           <button class="segment active" data-tab="products">Top Products</button>
           <button class="segment" data-tab="categories">Categories</button>
+          <button class="segment" data-tab="recommendations">Purchase Recommendations</button>
         </div>
 
         <div class="reports-grid">
@@ -157,6 +149,11 @@
           <article class="card top-list-card">
             <h3 id="listTitle">Top Selling Products</h3>
             <ul class="top-list" id="topList"></ul>
+          </article>
+
+          <article class="card recommendations-card" id="recommendationsCard" hidden>
+            <h3>Purchase Recommendations</h3>
+            <ul class="recommendations-list" id="recommendationsList"></ul>
           </article>
         </div>
 

@@ -1,3 +1,90 @@
+// Purchase Recommendations for Inventory Insights
+// Returns products that are hot sellers and need to be restocked based on recent sales
+exports.getPurchaseRecommendations = async (req, res) => {
+  // Default to last 30 days, can be changed via query param
+  const period = parseInt(req.query.period, 10) || 30;
+  // How many days of sales to keep in stock (e.g., 7 days)
+  const daysOfStock = parseInt(req.query.daysOfStock, 10) || 7;
+
+  try {
+    // 1. Get sales velocity (units sold per product in period)
+    const [salesRows] = await db.query(
+      `SELECT p.product_id, p.name, SUM(o.quantity) AS units_sold
+       FROM transaction_orders o
+       JOIN products p ON p.product_id = o.product_id
+       JOIN transactions t ON t.transaction_id = o.transaction_id
+       WHERE t.date_ordered >= DATE_SUB(NOW(), INTERVAL ? DAY)
+       GROUP BY p.product_id, p.name`,
+      [period]
+    );
+
+    // 2. Get current stock for all products
+    const [stockRows] = await db.query(
+      `SELECT p.product_id, COALESCE(SUM(CASE WHEN pb.status != 'Discontinued' THEN pb.stock_quantity ELSE 0 END), 0) AS stock
+       FROM products p
+       LEFT JOIN product_batches pb ON pb.product_id = p.product_id
+       GROUP BY p.product_id`
+    );
+
+    // 3. Map product_id to stock
+    const stockMap = {};
+    for (const row of stockRows) {
+      stockMap[row.product_id] = Number(row.stock) || 0;
+    }
+
+    // 4. Build recommendations
+    const recommendations = [];
+    // Add products with low stock (<= 5), regardless of sales
+    for (const row of stockRows) {
+      const product_id = row.product_id;
+      const stock = Number(row.stock) || 0;
+      if (stock <= 5) {
+        // Find sales info if available
+        const sale = salesRows.find(s => s.product_id === product_id) || { units_sold: 0, name: row.name };
+        recommendations.push({
+          product_id,
+          name: sale.name || row.name,
+          stock,
+          unitsSold: Number(sale.units_sold) || 0,
+          recommendedStock: null,
+          reorderAmount: null,
+          lowStock: true
+        });
+      }
+    }
+    // Add hot sellers with stock below recommended
+    for (const sale of salesRows) {
+      const product_id = sale.product_id;
+      const unitsSold = Number(sale.units_sold) || 0;
+      if (unitsSold === 0) continue;
+      const stock = stockMap[product_id] || 0;
+      const salesPerDay = unitsSold / period;
+      const recommendedStock = Math.ceil(salesPerDay * daysOfStock);
+      if (stock < recommendedStock && stock > 5) { // avoid duplicate if already in low stock
+        recommendations.push({
+          product_id,
+          name: sale.name,
+          stock,
+          unitsSold,
+          recommendedStock,
+          reorderAmount: recommendedStock - stock,
+          lowStock: false
+        });
+      }
+    }
+    // Sort: low stock first, then by reorder amount descending
+    recommendations.sort((a, b) => {
+      if (a.lowStock && !b.lowStock) return -1;
+      if (!a.lowStock && b.lowStock) return 1;
+      return (b.reorderAmount || 0) - (a.reorderAmount || 0);
+    });
+
+    res.json({ recommendations });
+  } catch (err) {
+    console.error("getPurchaseRecommendations error:", err);
+    res.status(500).json({ error: "Failed to generate purchase recommendations." });
+  }
+};
 const db = require("../config/database");
 const path = require("path");
 const fs = require("fs/promises");

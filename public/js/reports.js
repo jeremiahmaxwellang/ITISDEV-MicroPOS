@@ -8,10 +8,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const reportsGrid = document.querySelector(".reports-grid");
   const topListCard = document.querySelector(".top-list-card");
 
+  const recommendationsCard = document.getElementById("recommendationsCard");
+  const recommendationsList = document.getElementById("recommendationsList");
+
   const state = {
     period: "7",
     activeTab: "products",
-    data: null
+    data: null,
+    recommendations: null
   };
 
   const cache = {};
@@ -149,8 +153,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function syncLayoutByTab() {
     const isProducts = state.activeTab === "products";
-    reportsGrid.classList.toggle("categories-view", !isProducts);
+    const isCategories = state.activeTab === "categories";
+    const isRecommendations = state.activeTab === "recommendations";
+    reportsGrid.classList.toggle("categories-view", isCategories);
     topListCard.hidden = !isProducts;
+    highlightCard.hidden = !isProducts && !isCategories;
+    recommendationsCard.hidden = !isRecommendations;
+  }
+  function renderRecommendations(list) {
+    if (!list || list.length === 0) {
+      recommendationsList.innerHTML = `<li style="padding:1rem;color:var(--text-sub,#888);list-style:none;">No recommendations at this time. Your inventory is well stocked!</li>`;
+      return;
+    }
+    recommendationsList.innerHTML = list.map(item => `
+      <li class="recommendation-item">
+        <div><strong>${item.name}</strong></div>
+        <div>Current Stock: <strong>${item.stock}</strong></div>
+        <div>Sold (last ${state.period}d): <strong>${item.unitsSold}</strong></div>
+        <div>Recommended Stock: <strong>${item.recommendedStock}</strong></div>
+        <div style="color:#d83c6a;">Reorder: <strong>${item.reorderAmount}</strong> unit(s)</div>
+      </li>
+    `).join("");
   }
 
   function renderTopList(list) {
@@ -208,8 +231,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (state.activeTab === "products") {
       renderHighlight(highlight);
       renderTopList(topProducts);
-    } else {
+    } else if (state.activeTab === "categories") {
       renderCategoryPieChart(categories);
+    } else if (state.activeTab === "recommendations") {
+      renderRecommendations(state.recommendations);
     }
   }
 
@@ -236,22 +261,35 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   tabButtons.forEach((tab) => {
-    tab.addEventListener("click", () => {
+    tab.addEventListener("click", async () => {
       tabButtons.forEach((btn) => btn.classList.remove("active"));
       tab.classList.add("active");
       state.activeTab = tab.dataset.tab;
+      if (state.activeTab === "recommendations") {
+        await fetchRecommendations();
+      }
       renderAll();
     });
   });
+  async function fetchRecommendations() {
+    recommendationsList.innerHTML = `<li style="padding:1rem;color:var(--text-muted,#888)">Loading recommendations...</li>`;
+    try {
+      const response = await fetch(`/products/recommendations?period=${encodeURIComponent(state.period)}`);
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
+      const data = await response.json();
+      state.recommendations = data.recommendations || [];
+    } catch (err) {
+      console.error("Failed to load recommendations:", err);
+      state.recommendations = [];
+      recommendationsList.innerHTML = `<li style="padding:1rem;color:#d83c6a">Failed to load recommendations. Please try again.</li>`;
+    }
+  }
 
   periodSelect.addEventListener("change", (event) => {
     state.period = event.target.value;
     fetchAndRender(state.period);
   });
 
-  document.getElementById("zReadingBtn").addEventListener("click", () => {
-    showToast("Z-reading generated for today.");
-  });
 
   document.getElementById("downloadBtn").addEventListener("click", () => {
     console.log("[Report Download] Download button clicked. Period:", state.period, "| Active tab:", state.activeTab);
