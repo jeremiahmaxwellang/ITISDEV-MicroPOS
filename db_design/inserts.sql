@@ -44,7 +44,8 @@ INSERT INTO `products` (`product_id`, `barcode`, `name`, `volume`, `product_type
 (5, '4800016644801', 'Piattos Cheese', '40g', 'Snacks', '30.00', 5, 14, '/uploads/product-photos/product-1774474065345-8fdad045.webp'),
 (6, '4807770270291', 'Lucky Me Pancit Canton Kalamansi', '80g', 'Instant Foods', '20.00', 5, 14, '/uploads/product-photos/product-1774474289540-77568141.jpg'),
 (7, '5060250610829', 'Nissin Cup Noodles Seafood', '60g', 'Instant Foods', '44.00', 5, 14, '/uploads/product-photos/product-1774474436039-e164d929.jpg'),
-(8, '8713108000033', 'Yakult', '400ml', 'Beverages', '320.00', 5, 14, '/uploads/product-photos/product-1774474939619-d9ec7b18.jpg');
+(8, '8713108000033', 'Yakult', '400ml', 'Beverages', '320.00', 5, 14, '/uploads/product-photos/product-1774474939619-d9ec7b18.jpg'),
+(9, '12345665788567575632', 'Nestle Chuckie', '32', 'Beverages', '1', 5, 14, NULL);
 
 -- PRODUCT_BATCHES
 INSERT INTO `product_batches` (`batch_id`, `product_id`, `stock_quantity`, `purchase_date`, `expiry_date`, `status`) VALUES
