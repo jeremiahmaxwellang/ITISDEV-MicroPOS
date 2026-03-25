@@ -249,9 +249,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchAndRender(state.period);
   });
 
-  document.getElementById("zReadingBtn").addEventListener("click", () => {
-    showToast("Z-reading generated for today.");
-  });
 
   document.getElementById("downloadBtn").addEventListener("click", () => {
     console.log("[Report Download] Download button clicked. Period:", state.period, "| Active tab:", state.activeTab);
