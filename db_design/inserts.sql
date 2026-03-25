@@ -60,9 +60,14 @@ INSERT INTO `product_batches` (`product_id`, `stock_quantity`, `purchase_date`, 
 (4, 300, '2026-02-10 08:00:00', '2026-08-10 00:00:00', 'On Shelves'),
 (4, 100, '2026-01-01 08:00:00', '2026-03-01 00:00:00', 'Discontinued');
 
+
 -- LOW STOCK BATCH FOR COFFEE SACHET
 INSERT INTO `product_batches` (`product_id`, `stock_quantity`, `purchase_date`, `expiry_date`, `status`) VALUES
 (7, 2, '2026-03-20 08:00:00', '2027-03-20 00:00:00', 'On Shelves');
+
+-- INITIAL STOCK FOR GCASH CASH-OUT (product_id = 8)
+INSERT INTO `product_batches` (`product_id`, `stock_quantity`, `purchase_date`, `expiry_date`, `status`) VALUES
+(8, 5, '2026-03-25 08:00:00', NULL, 'On Shelves');
 
 
 
