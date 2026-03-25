@@ -7,6 +7,7 @@ TRUNCATE TABLE `payments`;
 TRUNCATE TABLE `transaction_orders`;
 TRUNCATE TABLE `debts`;
 TRUNCATE TABLE `transactions`;
+TRUNCATE TABLE `reported_products`;
 TRUNCATE TABLE `product_batches`;
 TRUNCATE TABLE `products`;
 TRUNCATE TABLE `customers`;

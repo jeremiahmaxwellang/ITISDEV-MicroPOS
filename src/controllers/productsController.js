@@ -190,8 +190,8 @@ exports.getProductItems = async (req, res) => {
     const filters = [];
 
     if (search.trim()) {
-      filters.push("(p.name LIKE ? OR p.barcode LIKE ?)");
-      params.push(`%${search.trim()}%`, `%${search.trim()}%`);
+      filters.push("(p.name LIKE ? OR p.barcode LIKE ? OR p.volume LIKE ?)");
+      params.push(`%${search.trim()}%`, `%${search.trim()}%`, `%${search.trim()}%`);
     }
 
     if (category && category !== "all") {
@@ -205,6 +205,7 @@ exports.getProductItems = async (req, res) => {
       `SELECT
          p.product_id,
          p.name,
+         p.volume,
          p.barcode,
          p.product_type AS category,
          p.selling_price AS price,
@@ -222,8 +223,8 @@ exports.getProductItems = async (req, res) => {
        FROM products p
        LEFT JOIN product_batches pb ON pb.product_id = p.product_id
        ${whereClause}
-       GROUP BY p.product_id, p.name, p.barcode, p.product_type, p.selling_price${photoGroupBy}
-       ORDER BY p.name ASC`,
+       GROUP BY p.product_id, p.name, p.volume, p.barcode, p.product_type, p.selling_price${photoGroupBy}
+       ORDER BY p.name ASC, p.volume ASC`,
       params
     );
 
@@ -232,6 +233,7 @@ exports.getProductItems = async (req, res) => {
       return {
         id: row.product_id,
         name: row.name,
+        volume: row.volume || null,
         barcode: row.barcode || null,
         manufacturer: getManufacturer(row.name),
         category: row.category,
@@ -251,7 +253,7 @@ exports.getProductItems = async (req, res) => {
 
 // Add a new product
 exports.addProduct = async (req, res) => {
-  const { name, category, price, stock, barcode, photo } = req.body;
+  const { name, volume, category, price, stock, barcode, photo } = req.body;
 
   if (!name || !category) {
     return res.status(400).json({ error: "Name and category are required" });
@@ -260,6 +262,7 @@ exports.addProduct = async (req, res) => {
   try {
     const photoColumn = await resolveProductPhotoColumn();
     const normalizedPhotoPath = photo || null;
+    const volumeVal = volume?.trim() || null;
 
     // Check barcode uniqueness if provided
     if (barcode && barcode.trim()) {
@@ -275,15 +278,15 @@ exports.addProduct = async (req, res) => {
     let result;
     if (photoColumn) {
       [result] = await db.query(
-        `INSERT INTO products (name, product_type, selling_price, barcode, ${photoColumn})
-         VALUES (?, ?, ?, ?, ?)`,
-        [name.trim(), category, parseFloat(price) || null, barcode?.trim() || null, normalizedPhotoPath]
+        `INSERT INTO products (name, volume, product_type, selling_price, barcode, ${photoColumn})
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null, normalizedPhotoPath]
       );
     } else {
       [result] = await db.query(
-        `INSERT INTO products (name, product_type, selling_price, barcode)
-         VALUES (?, ?, ?, ?)`,
-        [name.trim(), category, parseFloat(price) || null, barcode?.trim() || null]
+        `INSERT INTO products (name, volume, product_type, selling_price, barcode)
+         VALUES (?, ?, ?, ?, ?)`,
+        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null]
       );
     }
 
@@ -316,7 +319,7 @@ exports.addProduct = async (req, res) => {
 // Update an existing product
 exports.updateProduct = async (req, res) => {
   const { product_id } = req.params;
-  const { name, category, price, barcode, photo } = req.body;
+  const { name, volume, category, price, barcode, photo } = req.body;
 
   if (!name || !category) {
     return res.status(400).json({ error: "Name and category are required" });
@@ -325,6 +328,7 @@ exports.updateProduct = async (req, res) => {
   try {
     const photoColumn = await resolveProductPhotoColumn();
     const normalizedPhotoPath = photo || null;
+    const volumeVal = volume?.trim() || null;
 
     // Check barcode uniqueness (exclude current product)
     if (barcode && barcode.trim()) {
@@ -340,16 +344,16 @@ exports.updateProduct = async (req, res) => {
     if (photoColumn) {
       await db.query(
         `UPDATE products
-         SET name = ?, product_type = ?, selling_price = ?, barcode = ?, ${photoColumn} = ?
+         SET name = ?, volume = ?, product_type = ?, selling_price = ?, barcode = ?, ${photoColumn} = ?
          WHERE product_id = ?`,
-        [name.trim(), category, parseFloat(price) || null, barcode?.trim() || null, normalizedPhotoPath, product_id]
+        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null, normalizedPhotoPath, product_id]
       );
     } else {
       await db.query(
         `UPDATE products
-         SET name = ?, product_type = ?, selling_price = ?, barcode = ?
+         SET name = ?, volume = ?, product_type = ?, selling_price = ?, barcode = ?
          WHERE product_id = ?`,
-        [name.trim(), category, parseFloat(price) || null, barcode?.trim() || null, product_id]
+        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null, product_id]
       );
     }
 
@@ -360,6 +364,103 @@ exports.updateProduct = async (req, res) => {
       return res.status(400).json({ error: "Barcode already exists for another product" });
     }
     res.status(500).json({ error: "Failed to update product" });
+  }
+};
+
+// Get all reported items
+exports.getReportedItems = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT rp.report_id, rp.product_id,
+              p.name AS product_name, p.volume AS product_volume,
+              rp.reason, rp.quantity, rp.cost_loss, rp.reported_at, rp.notes,
+              CONCAT(COALESCE(s.first_name,''), ' ', COALESCE(s.last_name,'')) AS reported_by_name
+       FROM reported_products rp
+       JOIN products p ON p.product_id = rp.product_id
+       LEFT JOIN staff s ON s.staff_id = rp.reported_by
+       ORDER BY rp.reported_at DESC`
+    );
+    res.json({ items: rows });
+  } catch (err) {
+    console.error("getReportedItems error:", err);
+    res.status(500).json({ error: "Failed to load reported items." });
+  }
+};
+
+// Add a reported item (logs the loss and deducts stock)
+exports.addReportedItem = async (req, res) => {
+  const { product_id, reason, quantity, cost_loss, notes } = req.body;
+  const reported_by = req.session?.staff_id || null;
+
+  if (!product_id || !reason || !quantity) {
+    return res.status(400).json({ error: "Product, reason, and quantity are required." });
+  }
+
+  const qty = parseInt(quantity);
+  if (isNaN(qty) || qty <= 0) {
+    return res.status(400).json({ error: "Quantity must be greater than 0." });
+  }
+
+  try {
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      // Deduct from active batches (FIFO — earliest expiry first)
+      const [batches] = await connection.query(
+        `SELECT batch_id, stock_quantity FROM product_batches
+         WHERE product_id = ? AND status != 'Discontinued' AND stock_quantity > 0
+         ORDER BY expiry_date IS NULL ASC, expiry_date ASC, purchase_date ASC`,
+        [product_id]
+      );
+
+      let remaining = qty;
+      for (const batch of batches) {
+        if (remaining <= 0) break;
+        const deduct = Math.min(remaining, batch.stock_quantity);
+        await connection.query(
+          `UPDATE product_batches SET stock_quantity = stock_quantity - ? WHERE batch_id = ?`,
+          [deduct, batch.batch_id]
+        );
+        remaining -= deduct;
+      }
+
+      // Record the report
+      await connection.query(
+        `INSERT INTO reported_products (product_id, reason, quantity, cost_loss, notes, reported_by)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [product_id, reason, qty, parseFloat(cost_loss) || null, notes?.trim() || null, reported_by]
+      );
+
+      await connection.commit();
+      res.json({ success: true, message: "Report submitted and stock adjusted." });
+    } catch (err) {
+      await connection.rollback();
+      throw err;
+    } finally {
+      connection.release();
+    }
+  } catch (err) {
+    console.error("addReportedItem error:", err);
+    res.status(500).json({ error: "Failed to submit report." });
+  }
+};
+
+// Delete a reported item record
+exports.deleteReportedItem = async (req, res) => {
+  const { report_id } = req.params;
+  try {
+    const [result] = await db.query(
+      "DELETE FROM reported_products WHERE report_id = ?",
+      [report_id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Report not found." });
+    }
+    res.json({ success: true, message: "Report deleted." });
+  } catch (err) {
+    console.error("deleteReportedItem error:", err);
+    res.status(500).json({ error: "Failed to delete report." });
   }
 };
 

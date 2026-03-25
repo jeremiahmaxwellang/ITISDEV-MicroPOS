@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `product_id`   INT           NOT NULL AUTO_INCREMENT,
   `barcode`      VARCHAR(255)  UNIQUE NULL COMMENT 'Barcode for POS scanning',
   `name`         VARCHAR(100)  NOT NULL,
+  `volume`       VARCHAR(50)   NULL COMMENT 'Product volume or size variant (e.g. 250ml, 1kg, Large)',
   `product_type` ENUM('Beverages', 'Canned Goods', 'Instant Foods', 'Snacks', 'Dairy', 'Coffee', 'Services', 'Other') NOT NULL DEFAULT 'Other',
   `selling_price` DECIMAL(10,2) NULL,
   `photo`        MEDIUMTEXT    NULL COMMENT 'Base64 encoded product photo',
@@ -78,6 +79,35 @@ CREATE TABLE IF NOT EXISTS `product_batches` (
     FOREIGN KEY (`product_id`)
     REFERENCES `products` (`product_id`)
     ON DELETE CASCADE
+    ON UPDATE NO ACTION
+) ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `reported_products`
+-- Tracks damaged, expired, lost, or defective product losses
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `reported_products` (
+  `report_id`   INT           NOT NULL AUTO_INCREMENT,
+  `product_id`  INT           NOT NULL,
+  `reason`      ENUM('Damaged', 'Expired', 'Lost', 'Defective', 'Other') NOT NULL DEFAULT 'Damaged',
+  `quantity`    INT           NOT NULL DEFAULT 1,
+  `cost_loss`   DECIMAL(10,2) NULL,
+  `reported_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `notes`       TEXT          NULL,
+  `reported_by` INT           NULL COMMENT 'staff_id who reported this',
+  PRIMARY KEY (`report_id`),
+  INDEX `fk_reported_products_products_idx` (`product_id` ASC),
+  INDEX `fk_reported_products_staff_idx` (`reported_by` ASC),
+  CONSTRAINT `fk_reported_products_products`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `products` (`product_id`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_reported_products_staff`
+    FOREIGN KEY (`reported_by`)
+    REFERENCES `staff` (`staff_id`)
+    ON DELETE SET NULL
     ON UPDATE NO ACTION
 ) ENGINE = InnoDB;
 

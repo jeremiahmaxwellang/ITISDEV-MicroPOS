@@ -32,4 +32,9 @@ router.put("/api/:product_id", productsController.updateProduct);
 // Delete product
 router.delete("/api/:product_id", productsController.deleteProduct);
 
+// Reported products
+router.get("/api/reported", productsController.getReportedItems);
+router.post("/api/reported", productsController.addReportedItem);
+router.delete("/api/reported/:report_id", productsController.deleteReportedItem);
+
 module.exports = router;
