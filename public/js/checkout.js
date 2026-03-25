@@ -233,6 +233,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // TRANSACTION PROCESSING
   // ═══════════════════════════════════════════════════════════════════════
 
+  async function uploadGcashProofFile(file) {
+    const formData = new FormData();
+    formData.append("proofImage", file);
+    const response = await fetch("/transaction-verification/api/upload-proof", {
+      method: "POST",
+      body: formData
+    });
+    const payload = await response.json().catch(() => ({ message: "Invalid upload response." }));
+    if (!response.ok) {
+      throw new Error(payload.message || "Failed to upload proof image.");
+    }
+    if (!payload.fileName) {
+      throw new Error("Upload succeeded but no filename was returned.");
+    }
+    return payload.fileName;
+  }
+
   async function processTransaction() {
     if (!validatePaymentInput()) {
       alert("Please complete all payment details");
@@ -244,6 +261,12 @@ document.addEventListener("DOMContentLoaded", () => {
     confirmPaymentBtn.disabled = true;
 
     try {
+      let gcashProofFilename = null;
+      // If GCash, upload screenshot first
+      if (state.paymentMethod === "GCash" && gcashQRUpload.files && gcashQRUpload.files[0]) {
+        gcashProofFilename = await uploadGcashProofFile(gcashQRUpload.files[0]);
+      }
+
       const transactionData = {
         items: state.cart.items.map((item) => ({
           product_id: item.id,
@@ -251,7 +274,12 @@ document.addEventListener("DOMContentLoaded", () => {
         })),
         payment_method: state.paymentMethod,
         customer_id: null, // Can be set if customer is known
-        staff_id: null // Will be set by backend
+        staff_id: null, // Will be set by backend
+        // GCash details
+        gcash_reference: state.paymentMethod === "GCash" ? gcashReference.value.trim() : undefined,
+        gcash_customer_number: state.paymentMethod === "GCash" ? gcashCustomerNumber.value.trim() : undefined,
+        gcash_customer_name: state.paymentMethod === "GCash" ? gcashCustomerName.value.trim() : undefined,
+        gcash_proof_filename: gcashProofFilename
       };
 
       const response = await fetch("/pos/api/checkout", {
