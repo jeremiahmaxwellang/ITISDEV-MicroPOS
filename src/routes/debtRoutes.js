@@ -21,6 +21,7 @@ router.get('/paid', debtsController.getPaidDebts);
 router.get('/:debt_id/details', debtsController.getDebtDetails);
 
 router.post('/create-debt', debtsController.createDebt);
+router.post('/:debt_id/remind', debtsController.sendDebtReminder);
 
 router.patch('/:debt_id/pay', debtsController.markPaid);
 router.patch('/:customer_id/blacklist', debtsController.blacklistCustomer);

@@ -16,6 +16,7 @@ function formatCurrency(amount) {
 const tableBody = document.getElementById('debtsTableBody');
 
 async function loadDebts() {
+    const tableBody = document.getElementById('debtsTableBody');
     try {
         const [activeRes, paidRes] = await Promise.all([
             fetch('/debts/active'),
@@ -312,10 +313,10 @@ async function viewDebtDetails(idx) {
         const response = await fetch(`/debts/${debt.debt_id}/details`);
         const data = await response.json();
 
-        if (!response.ok) {
-            alert('Error: ' + data.error);
-            return;
-        }
+        if (!response.ok) { alert('Error: ' + data.error); return; }
+
+        // Get Debt ID for SMS Reminder
+        document.getElementById('sendDebtReminderBtn').dataset.debtId = data.debt_id;
 
         // -- Customer info --
         const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || '—';
@@ -395,6 +396,37 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === this) closeDebtDetailsModal();
         });
     }
+
+    // DEBT REMINDER
+    document.getElementById('sendDebtReminderBtn').addEventListener('click', async () => {
+        const debtId = document.getElementById('sendDebtReminderBtn').dataset.debtId;
+
+        // Checks if debt is undefined
+        if (!debtId || debtId === 'undefined') {
+            alert('No debt selected. Please open a debt first.');
+            return;
+        }
+
+        const btn = document.getElementById('sendDebtReminderBtn');
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+
+        try {
+            const response = await fetch(`/debts/${debtId}/remind`, { method: 'POST' });
+            const data = await response.json();
+
+            if (!response.ok) { alert('Error: ' + data.error); return; }
+
+            showToast('Reminder sent successfully!');
+
+        } catch (err) {
+            console.error('sendReminder error:', err);
+            alert('Something went wrong.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Send Debt Reminder';
+        }
+    });
 });
 
 async function markPaid(idx) {
@@ -571,6 +603,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderRows(debts) {
+        const tableBody = document.getElementById('debtsTableBody');
         if (!debts.length) {
             tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:2rem;">No records found.</td></tr>`;
             return;
@@ -645,6 +678,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ];
 
     async function loadDebts(tabIndex) {
+        const tableBody = document.getElementById('debtsTableBody');
         tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;">Loading...</td></tr>`;
 
         try {
