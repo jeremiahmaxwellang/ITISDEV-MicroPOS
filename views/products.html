@@ -15,6 +15,60 @@
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script defer src="/js/sidebar.js"></script>
+
+  <style>
+    #inventoryToolbar {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) 220px auto auto;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+
+    #inventorySearchWrap {
+      position: relative;
+      min-width: 220px;
+    }
+
+    #categoryFilter {
+      width: 100%;
+    }
+
+    #inventoryTablePanel {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    #inventoryTableScroll {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+    }
+
+    @media (max-width: 1200px) {
+      #inventoryContentLayout {
+        grid-template-columns: 1fr !important;
+      }
+
+      #inventoryToolbar {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      #inventoryToolbar #inventorySearchWrap {
+        grid-column: 1 / -1;
+      }
+
+      #servicesEditorPanel {
+        position: static !important;
+      }
+
+      #inventoryTablePanel {
+        height: auto !important;
+      }
+    }
+  </style>
 </head>
 
 <body class="with-sidebar">
@@ -63,8 +117,8 @@
 
         <!-- INVENTORY TAB -->
         <div id="tab-inventory">
-          <div style="display:flex;gap:1rem;margin-bottom:1.5rem;align-items:center;flex-wrap:wrap;">
-            <div style="flex:1;min-width:220px;position:relative;">
+          <div id="inventoryToolbar">
+            <div id="inventorySearchWrap">
               <i data-lucide="search" style="width:18px;height:18px;position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#718096;pointer-events:none;"></i>
               <input type="text" id="searchInput" placeholder="Search products or barcode…"
                 style="padding:0.75rem 1rem 0.75rem 2.75rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:0.9rem;width:100%;box-sizing:border-box;">
@@ -78,40 +132,79 @@
               <option value="Snacks">Snacks</option>
               <option value="Dairy">Dairy</option>
               <option value="Coffee">Coffee</option>
-              <option value="Services">Services</option>
               <option value="Other">Other</option>
             </select>
-            <button id="addProductBtn"
-              style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.25rem;background:#4f46e5;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;white-space:nowrap;">
-              <i data-lucide="plus" style="width:18px;height:18px;"></i> Add Product
-            </button>
             <button id="exportBtn"
               style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.25rem;background:white;color:#4f46e5;border:1px solid #4f46e5;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;white-space:nowrap;">
               <i data-lucide="download" style="width:18px;height:18px;"></i> Export
             </button>
+            <button id="addProductBtn"
+              style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem 1.25rem;background:#4f46e5;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;white-space:nowrap;">
+              <i data-lucide="plus" style="width:18px;height:18px;"></i> Add Product
+            </button>
           </div>
 
-          <div style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;">
-            <table id="productsTable" style="width:100%;border-collapse:collapse;">
-              <thead>
-                <tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0;">
-                  <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Product</th>
-                  <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Volume</th>
-                  <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Manufacturer</th>
-                  <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Category</th>
-                  <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Price</th>
-                  <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Stock</th>
-                  <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="productsContainer">
-                <tr>
-                  <td colspan="7" style="padding:3rem;text-align:center;color:#718096;">
-                    Loading products…
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div id="inventoryContentLayout" style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:1rem;align-items:start;">
+            <div id="inventoryTablePanel" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;">
+              <div id="inventoryTableScroll">
+                <table id="productsTable" style="width:100%;border-collapse:collapse;">
+                  <thead>
+                    <tr style="background:#f8fafc;border-bottom:1px solid #e2e8f0;">
+                      <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Product</th>
+                      <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Volume</th>
+                      <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Manufacturer</th>
+                      <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Category</th>
+                      <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Price</th>
+                      <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Stock</th>
+                      <th style="padding:1rem;text-align:left;font-weight:600;color:#1a2035;font-family:Outfit,sans-serif;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="productsContainer">
+                    <tr>
+                      <td colspan="7" style="padding:3rem;text-align:center;color:#718096;">
+                        Loading products…
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div id="servicesEditorPanel" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);border:1px solid #e2e8f0;padding:1rem;position:sticky;top:1rem;">
+              <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;font-weight:700;color:#1a2035;">
+                <i data-lucide="wrench" style="width:16px;height:16px;color:#4f46e5;"></i>
+                Services
+              </div>
+              <div style="font-size:0.8rem;color:#718096;margin-bottom:0.9rem;">Edit quick-service prices used by POS.</div>
+
+              <div style="border:1px solid #e2e8f0;border-radius:0.6rem;padding:0.75rem;margin-bottom:0.75rem;background:#f8fafc;">
+                <div style="display:flex;align-items:center;gap:0.4rem;font-weight:600;color:#1a2035;font-size:0.9rem;margin-bottom:0.55rem;">
+                  <i data-lucide="smartphone" style="width:14px;height:14px;color:#4f46e5;"></i>
+                  Load / E-Load
+                </div>
+                <label for="loadServicePriceInput" style="display:block;font-size:0.75rem;color:#718096;margin-bottom:0.3rem;">Service Fee (₱)</label>
+                <input id="loadServicePriceInput" type="number" min="0" step="0.01" placeholder="0.00" style="width:100%;padding:0.6rem;border:1px solid #dbe4ee;border-radius:0.45rem;font-family:Outfit,sans-serif;margin-bottom:0.45rem;">
+                <div id="loadServiceMeta" style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.5rem;">Searching service product…</div>
+                <button id="saveLoadServicePriceBtn" type="button" style="width:100%;padding:0.55rem;background:#e5e7eb;color:#374151;border:1px solid #d1d5db;border-radius:0.45rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+                  <i data-lucide="save" style="width:14px;height:14px;"></i>
+                  Save
+                </button>
+              </div>
+
+              <div style="border:1px solid #e2e8f0;border-radius:0.6rem;padding:0.75rem;background:#f8fafc;">
+                <div style="display:flex;align-items:center;gap:0.4rem;font-weight:600;color:#1a2035;font-size:0.9rem;margin-bottom:0.55rem;">
+                  <i data-lucide="banknote" style="width:14px;height:14px;color:#4f46e5;"></i>
+                  Cash-In / Cash-Out
+                </div>
+                <label for="cashServicePriceInput" style="display:block;font-size:0.75rem;color:#718096;margin-bottom:0.3rem;">Service Fee (₱)</label>
+                <input id="cashServicePriceInput" type="number" min="0" step="0.01" placeholder="0.00" style="width:100%;padding:0.6rem;border:1px solid #dbe4ee;border-radius:0.45rem;font-family:Outfit,sans-serif;margin-bottom:0.45rem;">
+                <div id="cashServiceMeta" style="font-size:0.72rem;color:#94a3b8;margin-bottom:0.5rem;">Searching service product…</div>
+                <button id="saveCashServicePriceBtn" type="button" style="width:100%;padding:0.55rem;background:#e5e7eb;color:#374151;border:1px solid #d1d5db;border-radius:0.45rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+                  <i data-lucide="save" style="width:14px;height:14px;"></i>
+                  Save
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -213,7 +306,7 @@
           <div id="barcodeHint" style="font-size:0.75rem;color:#718096;margin-top:0.3rem;"></div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+        <div id="priceStockRow" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
           <div>
             <label style="display:block;font-weight:600;color:#1a2035;margin-bottom:0.4rem;font-size:0.9rem;">Price (₱)</label>
             <input type="number" id="productPrice" placeholder="0.00" step="0.01" min="0"
@@ -237,9 +330,11 @@
             <option value="Snacks">Snacks</option>
             <option value="Dairy">Dairy</option>
             <option value="Coffee">Coffee</option>
-            <option value="Services">Services (GCash, Load, etc.)</option>
             <option value="Other">Other</option>
           </select>
+          <div id="serviceConfigHint" style="display:none;font-size:0.75rem;color:#4f46e5;margin-top:0.35rem;background:#f0f4ff;padding:0.45rem 0.6rem;border:1px solid #c7d2fe;border-radius:0.35rem;">
+            This service fee will be used for quick service buttons in POS.
+          </div>
         </div>
 
         <div>
@@ -352,6 +447,7 @@
     // ─────────────────────────────────────────────────────────────
     var allProducts = [];
     var allReportedItems = [];
+    var serviceEditorState = { load: null, cash: null };
     var modalCameraStream = null;
     var quaggaModalRunning = false;
     var quaggaDetected = false;       // lock: accept only the first detection per session
@@ -383,12 +479,120 @@
       fetch('/products/items')
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          allProducts = data.items || [];
+          allProducts = (data.items || []).filter(function(item) { return item.category !== 'Services'; });
           renderProducts(allProducts);
+          loadServiceEditorConfig();
           buildInsights(allProducts);
         })
         .catch(function() {
           container.innerHTML = '<tr><td colspan="6" style="padding:2rem;text-align:center;color:#ef4444;">Failed to load products. Is the server running?</td></tr>';
+          renderServicesEditor(null);
+        });
+    }
+
+    function renderServicesEditor(config) {
+      var loadService = config && config.load ? config.load : null;
+      var cashService = config && config.cash ? config.cash : null;
+      serviceEditorState.load = loadService;
+      serviceEditorState.cash = cashService;
+
+      var loadInput = document.getElementById('loadServicePriceInput');
+      var cashInput = document.getElementById('cashServicePriceInput');
+      var loadMeta = document.getElementById('loadServiceMeta');
+      var cashMeta = document.getElementById('cashServiceMeta');
+      var loadBtn = document.getElementById('saveLoadServicePriceBtn');
+      var cashBtn = document.getElementById('saveCashServicePriceBtn');
+
+      if (loadInput) {
+        loadInput.value = loadService ? Number(loadService.price || 0).toFixed(2) : '';
+        loadInput.disabled = !loadService;
+      }
+      if (cashInput) {
+        cashInput.value = cashService ? Number(cashService.price || 0).toFixed(2) : '';
+        cashInput.disabled = !cashService;
+      }
+      if (loadBtn) loadBtn.disabled = !loadService;
+      if (cashBtn) cashBtn.disabled = !cashService;
+
+      if (loadMeta) {
+        loadMeta.textContent = loadService
+          ? ('Service: ' + loadService.name)
+          : 'Service config unavailable.';
+      }
+
+      if (cashMeta) {
+        cashMeta.textContent = cashService
+          ? ('Service: ' + cashService.name)
+          : 'Service config unavailable.';
+      }
+
+      syncInventoryPanelsHeight();
+    }
+
+    function syncInventoryPanelsHeight() {
+      var tablePanel = document.getElementById('inventoryTablePanel');
+      var servicesPanel = document.getElementById('servicesEditorPanel');
+      if (!tablePanel || !servicesPanel) return;
+
+      if (window.innerWidth <= 1200) {
+        tablePanel.style.height = 'auto';
+        return;
+      }
+
+      tablePanel.style.height = servicesPanel.offsetHeight + 'px';
+    }
+
+    function loadServiceEditorConfig() {
+      fetch('/products/api/services-config')
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(res) {
+          if (!res.ok) throw new Error(res.data.error || 'Failed to load service config');
+          renderServicesEditor({ load: res.data.load, cash: res.data.cash });
+        })
+        .catch(function() {
+          renderServicesEditor(null);
+        });
+    }
+
+    function saveServicePrice(kind) {
+      var service = serviceEditorState[kind];
+      if (!service) {
+        showToast('Service config not loaded yet. Please try again.', 'error');
+        return;
+      }
+
+      var input = document.getElementById(kind === 'load' ? 'loadServicePriceInput' : 'cashServicePriceInput');
+      var button = document.getElementById(kind === 'load' ? 'saveLoadServicePriceBtn' : 'saveCashServicePriceBtn');
+      var value = parseFloat(input.value);
+
+      if (isNaN(value) || value < 0) {
+        showToast('Please enter a valid service fee', 'error');
+        return;
+      }
+
+      var previousHtml = button.innerHTML;
+      button.disabled = true;
+      button.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;"></i> Saving…';
+      icons();
+
+      fetch('/products/api/services-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: kind, price: value })
+      })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(res) {
+          if (!res.ok) throw new Error(res.data.error || 'Failed to update service');
+          showToast('Service price updated', 'success');
+          loadServiceEditorConfig();
+        })
+        .catch(function(err) {
+          showToast(err.message, 'error');
+        })
+        .finally(function() {
+          button.disabled = false;
+          button.innerHTML = previousHtml;
+          icons();
         });
     }
 
@@ -535,6 +739,7 @@
       document.getElementById('photoPreviewWrap').style.display = 'none';
       document.getElementById('photoPreview').src = '';
       document.getElementById('productModal').style.display = 'flex';
+      updateCategoryFields();
       setTimeout(function() { document.getElementById('productName').focus(); }, 50);
       icons();
     }
@@ -564,8 +769,28 @@
         document.getElementById('photoPreview').src = '';
       }
       document.getElementById('productModal').style.display = 'flex';
+      updateCategoryFields();
       setTimeout(function() { document.getElementById('productName').focus(); }, 50);
       icons();
+    }
+
+    function updateCategoryFields() {
+      var category = document.getElementById('productCategory').value;
+      var stockField = document.getElementById('stockField');
+      var priceStockRow = document.getElementById('priceStockRow');
+      var editId = document.getElementById('editProductId').value;
+      var hint = document.getElementById('serviceConfigHint');
+
+      if (!editId) {
+        stockField.style.display = category === 'Services' ? 'none' : '';
+      }
+
+      if (priceStockRow) {
+        var hideStock = stockField.style.display === 'none';
+        priceStockRow.style.gridTemplateColumns = hideStock ? '1fr' : '1fr 1fr';
+      }
+
+      hint.style.display = category === 'Services' ? 'block' : 'none';
     }
 
     function closeModal() {
@@ -759,6 +984,8 @@
     function init() {
       icons();
       loadProducts();
+      syncInventoryPanelsHeight();
+      window.addEventListener('resize', syncInventoryPanelsHeight);
 
       // Populate header user from session
       (function() {
@@ -881,9 +1108,18 @@
       // Search & filter
       document.getElementById('searchInput').addEventListener('input', filterProducts);
       document.getElementById('categoryFilter').addEventListener('change', filterProducts);
+      document.getElementById('productCategory').addEventListener('change', updateCategoryFields);
 
       // Report damaged item button
       document.getElementById('reportDamagedBtn').addEventListener('click', openReportModal);
+
+      // Service editor actions
+      document.getElementById('saveLoadServicePriceBtn').addEventListener('click', function() {
+        saveServicePrice('load');
+      });
+      document.getElementById('saveCashServicePriceBtn').addEventListener('click', function() {
+        saveServicePrice('cash');
+      });
 
       // Report modal close/cancel
       document.getElementById('closeReportModal').addEventListener('click', closeReportModal);

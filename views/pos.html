@@ -138,7 +138,7 @@
             <div class="cart-header">
               <div class="cart-title">
                 <i data-lucide="shopping-cart" style="width: 20px; height: 20px;"></i>
-                Cart <span id="cartCount" style="background: #3b5bdb; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">0</span>
+                Cart <span id="cartCount" style="background: #3b5bdb; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800; line-height: 1;">0</span>
               </div>
               <button class="cart-clear-btn" id="clearCartBtn" title="Clear cart">
                 <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
@@ -153,14 +153,6 @@
             </div>
 
             <div class="cart-totals">
-              <div class="cart-total-row">
-                <span>Subtotal:</span>
-                <span id="subtotal">₱ 0.00</span>
-              </div>
-              <div class="cart-total-row">
-                <span>Tax (0%):</span>
-                <span id="taxAmount">₱ 0.00</span>
-              </div>
               <div class="cart-total-row total">
                 <span>Total:</span>
                 <span id="cartTotal">₱ 0.00</span>
@@ -170,12 +162,29 @@
             <div class="cart-actions">
               <button id="checkoutBtn" class="cart-action-btn checkout" disabled>
                 <i data-lucide="credit-card" style="width: 18px; height: 18px;"></i>
-                Checkout
+                Proceed to Checkout
               </button>
-              <button id="listAsDebtBtn" class="cart-action-btn debt" disabled>
-                <i data-lucide="alert-circle" style="width: 18px; height: 18px;"></i>
-                List as Debt
-              </button>
+            </div>
+
+            <div class="services-panel">
+              <div class="services-panel-title">
+                <i data-lucide="wrench"></i>
+                Services
+              </div>
+
+              <div class="service-card">
+                <div class="service-card-subtitle" id="servicesPanelHint">Use quick service actions below.</div>
+                <div class="service-fixed-actions">
+                  <button id="openLoadServiceBtn" class="cart-action-btn service-btn printing" type="button">
+                    <i data-lucide="smartphone"></i>
+                    Load / E-Load
+                  </button>
+                  <button id="openCashServiceBtn" class="cart-action-btn service-btn cash" type="button">
+                    <i data-lucide="banknote"></i>
+                    Cash-In / Cash-Out
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -186,6 +195,63 @@
   <!-- Toast Notification -->
   <div id="messageToast" style="position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; background: white; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: none; z-index: 2000; max-width: 300px;">
     <div id="toastMessage"></div>
+  </div>
+
+  <!-- LOAD / E-LOAD MODAL -->
+  <div id="loadServiceModal" class="service-modal-overlay">
+    <div class="service-modal-card">
+      <div class="service-modal-head">
+        <h3>Load / E-Load</h3>
+        <button id="closeLoadModalBtn" type="button" class="service-modal-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="service-modal-body">
+        <div>
+          <label class="service-label" for="loadAmountInput">Load Price (₱)</label>
+          <input class="service-input" id="loadAmountInput" type="number" min="1" step="0.01" placeholder="0.00">
+        </div>
+        <div>
+          <label class="service-label" for="loadNumberInput">Number</label>
+          <input class="service-input" id="loadNumberInput" type="text" placeholder="09XX XXX XXXX">
+        </div>
+        <div>
+          <label class="service-label" for="loadNameInput">Name</label>
+          <input class="service-input" id="loadNameInput" type="text" placeholder="Customer name">
+        </div>
+      </div>
+      <div class="service-modal-actions">
+        <button id="submitLoadServiceBtn" type="button" class="cart-action-btn service-btn printing">Add Load Service</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASH-IN / CASH-OUT MODAL -->
+  <div id="cashServiceModal" class="service-modal-overlay">
+    <div class="service-modal-card">
+      <div class="service-modal-head">
+        <h3>Cash-In / Cash-Out</h3>
+        <button id="closeCashModalBtn" type="button" class="service-modal-close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="service-modal-body">
+        <div>
+          <label class="service-label" for="cashModeInput">Choose Service</label>
+          <select class="service-input" id="cashModeInput">
+            <option value="Cash In">Cash In</option>
+            <option value="Cash Out">Cash Out</option>
+          </select>
+        </div>
+        <div>
+          <label class="service-label" for="cashAmountInput">Amount Cashed In/Out (₱)</label>
+          <input class="service-input" id="cashAmountInput" type="number" min="1" step="0.01" placeholder="0.00">
+        </div>
+        <div>
+          <label class="service-label" for="cashoutFeeInput">Cashout Fee (2%)</label>
+          <input class="service-input" id="cashoutFeeInput" type="number" readonly value="0.00">
+        </div>
+      </div>
+      <div class="service-modal-actions">
+        <button id="submitCashServiceBtn" type="button" class="cart-action-btn service-btn cash">Add Cash Service</button>
+      </div>
+    </div>
   </div>
 
   <script>

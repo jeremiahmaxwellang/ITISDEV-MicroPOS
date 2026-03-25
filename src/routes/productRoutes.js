@@ -26,6 +26,10 @@ router.post("/api/upload-photo", productsController.uploadProductPhoto);
 // Add new product
 router.post("/api/add", productsController.addProduct);
 
+// Standalone service configuration
+router.get("/api/services-config", productsController.getServiceConfig);
+router.put("/api/services-config", productsController.updateServiceConfig);
+
 // Update product
 router.put("/api/:product_id", productsController.updateProduct);
 

@@ -1,3 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+
+:root {
+  --app-font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+html, body, button, input, select, textarea {
+  font-family: var(--app-font-family) !important;
+}
+
 
 /* --- Debt Tracker Page Styles (from debts.html) --- */
 body {
@@ -61,7 +71,7 @@ body {
 }
 .debt-row {
   display: grid;
-  grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 1fr 2fr;
+  grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 1fr 1fr 2fr;
   padding: 14px 15px;
   border-bottom: 1px solid rgba(0,0,0,0.10);
   align-items: center;
@@ -136,6 +146,88 @@ body {
   transition: background 0.15s;
 }
 .debt-pay-btn:hover { background: #15803d; }
+
+.debt-action-group {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.debt-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: #fff;
+  color: #0A0A0A;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.debt-icon-btn.details:hover {
+  background: #f3f4f6;
+}
+
+.debt-icon-btn.paid {
+  background: #ffffff;
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
+.debt-icon-btn.paid:hover {
+  background: #f0fdf4;
+  border-color: #15803d;
+  color: #15803d;
+}
+
+.debt-icon-btn.blacklist {
+  background: #FEF2F2;
+  color: #E7000B;
+  border-color: #FCA5A5;
+}
+
+.debt-icon-btn.blacklist:hover {
+  background: #FEE2E2;
+}
+
+.debt-icon-btn.unblacklist {
+  background: #F1F5F9;
+  color: #64748B;
+  border-color: #CBD5E1;
+}
+
+.debt-icon-btn.unblacklist:hover {
+  background: #E2E8F0;
+}
+
+.debt-reminder-inline-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #BFDBFE;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  font-size: 12px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.debt-reminder-inline-btn:hover {
+  background: #DBEAFE;
+}
+
+.debt-reminder-inline-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 
 /* --- Debt Details Modal Styles (from debts.html) --- */
 .debt-details-info-label {
@@ -676,4 +768,30 @@ body {
     font-family: 'Arimo', sans-serif;
     outline: none;
     text-align: right;
+}
+
+.debt-remind-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #BFDBFE;
+  border-radius: 10px;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  font-size: 13px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.debt-remind-all-btn:hover {
+  background: #DBEAFE;
+}
+
+.debt-remind-all-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }

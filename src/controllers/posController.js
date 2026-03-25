@@ -246,16 +246,22 @@ exports.processTransaction = async (req, res) => {
     gcash_reference = null,
     gcash_customer_number = null,
     gcash_customer_name = null,
-    gcash_proof_filename = null
+    gcash_proof_filename = null,
+    amount_paid = null   // for Partial / Split payment
   } = req.body;
 
   if (!items || items.length === 0) {
     return res.status(400).json({ error: "Cart is empty" });
   }
 
-  const isUtang = payment_method === "Utang";
-  if (isUtang && !customer_id) {
-    return res.status(400).json({ error: "A customer must be selected for Utang transactions" });
+  const isUtang   = payment_method === "Utang";
+  const isPartial = payment_method === "Partial";
+
+  if ((isUtang || isPartial) && !customer_id) {
+    return res.status(400).json({ error: "A customer must be selected for Utang/Partial transactions" });
+  }
+  if (isPartial && (amount_paid === null || Number(amount_paid) <= 0)) {
+    return res.status(400).json({ error: "amount_paid must be greater than 0 for Partial transactions" });
   }
 
   try {
@@ -282,8 +288,8 @@ exports.processTransaction = async (req, res) => {
         total_price += price * item.quantity + loadAmount;
       }
 
-      const status = isUtang ? "Unpaid" : "Paid";
-      const storedPaymentMethod = isUtang ? "Other" : payment_method;
+      const status = isUtang ? "Unpaid" : isPartial ? "Partial" : "Paid";
+      const storedPaymentMethod = (isUtang || isPartial) ? "Other" : payment_method;
       const effectiveStaffId = Number(staff_id || sessionStaffId || 1);
 
       const [transactionResult] = await connection.query(
@@ -324,7 +330,7 @@ exports.processTransaction = async (req, res) => {
         }
       }
 
-      // For Utang: create a debt record and link it to this transaction
+      // For full Utang: create a debt record for the entire amount
       if (isUtang) {
         const [debtResult] = await connection.query(
           `INSERT INTO debts (customer_id, debt_amount, status, debt_started)
@@ -334,6 +340,65 @@ exports.processTransaction = async (req, res) => {
         await connection.query(
           `INSERT INTO debt_transactions (debt_id, transaction_id) VALUES (?, ?)`,
           [debtResult.insertId, transaction_id]
+        );
+      }
+
+      // For Partial: record the upfront payment + create a debt for the remainder
+      if (isPartial) {
+        const paidNow = Number(amount_paid);
+        const debtAmount = total_price - paidNow;
+
+        if (debtAmount <= 0) {
+          throw new Error("Partial payment amount must be less than the total transaction amount");
+        }
+
+        // Payment record for the amount paid upfront
+        await connection.query(
+          `INSERT INTO payments (transaction_id, staff_id, amount_paid, payment_method, notes)
+           VALUES (?, ?, ?, 'Cash', 'Partial / Split payment — upfront portion')`,
+          [transaction_id, effectiveStaffId, paidNow]
+        );
+
+        // Debt record for the remaining balance (merge with existing active debt if present)
+        const [existingDebtRows] = await connection.query(
+          `SELECT debt_id
+           FROM debts
+           WHERE customer_id = ?
+             AND status != 'Paid'
+           ORDER BY debt_id DESC
+           LIMIT 1
+           FOR UPDATE`,
+          [customer_id]
+        );
+
+        let debtId;
+        if (existingDebtRows.length > 0) {
+          debtId = existingDebtRows[0].debt_id;
+          await connection.query(
+            `UPDATE debts
+             SET debt_amount = COALESCE(debt_amount, 0) + ?
+             WHERE debt_id = ?`,
+            [debtAmount, debtId]
+          );
+        } else {
+          const [debtResult] = await connection.query(
+            `INSERT INTO debts (customer_id, debt_amount, status, debt_started)
+             VALUES (?, ?, 'Unpaid', CURRENT_DATE)`,
+            [customer_id, debtAmount]
+          );
+          debtId = debtResult.insertId;
+        }
+
+        await connection.query(
+          `INSERT INTO debt_transactions (debt_id, transaction_id) VALUES (?, ?)`,
+          [debtId, transaction_id]
+        );
+
+        // Payment proof record for the upfront cash
+        await connection.query(
+          `INSERT INTO payment_proofs (staff_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url)
+           VALUES (?, ?, 'CASH', ?, CURRENT_DATE, NULL)`,
+          [effectiveStaffId, customer_name || "Walk-in Customer", paidNow]
         );
       }
 

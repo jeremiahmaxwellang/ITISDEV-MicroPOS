@@ -1,5 +1,13 @@
 @import url('vars.css');
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+
+:root {
+    --app-font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+html, body, button, input, select, textarea {
+    font-family: var(--app-font-family) !important;
+}
 
 /* Start of player_analysis styles */
 /* Global styles */

@@ -113,10 +113,16 @@
           </div>
         </div>
 
-        <!-- TAB TOGGLE -->
-        <div class="debt-tab-toggle">
-          <button id="tabActive" class="debt-tab-btn active" onclick="switchTab('active')">Active Debts</button>
-          <button id="tabPaid" class="debt-tab-btn" onclick="switchTab('paid')">Paid Debts</button>
+        <!-- TAB TOGGLE + REMIND ALL -->
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+          <button id="remindAllBtn" class="debt-remind-all-btn" type="button">
+            <i data-lucide="bell" style="width:16px;height:16px;"></i>
+            Remind All
+          </button>
+          <div class="debt-tab-toggle" style="margin-bottom:0;">
+            <button id="tabActive" class="debt-tab-btn active" onclick="switchTab('active')">Active Debts</button>
+            <button id="tabPaid" class="debt-tab-btn" onclick="switchTab('paid')">Paid Debts</button>
+          </div>
         </div>
 
         <!-- TABLE -->
@@ -124,11 +130,12 @@
           style="background: white; box-shadow: 0px 4px 6px -4px rgba(0,0,0,0.10), 0px 10px 15px -3px rgba(0,0,0,0.10); border-radius: 16px; overflow: hidden;">
           <!-- TABLE HEADER -->
           <div class="debt-row debt-thead">
-            <div>Pangalan ng Customer</div>
+            <div>Customer Name</div>
             <div style="text-align: center;">Contact</div>
-            <div id="thAmountLabel" style="text-align: center;">Perang Binayaran</div>
+            <div id="thAmountLabel" style="text-align: center;">Debt Amount</div>
             <div style="text-align:center;">Debt Limit</div>
-            <div id="thDateLabel" style="text-align: center;">Petsa ng Bayad</div>
+            <div id="thDateLabel" style="text-align: center;">Due Date</div>
+            <div style="text-align: center;">Mode of Payment</div>
             <div style="text-align: center;">Status</div>
             <div style="text-align: center;">Actions</div>
           </div>
@@ -238,6 +245,17 @@
           </div>
           <div>
             <label
+              style="display:block;font-weight:600;color:#1a2035;margin-bottom:.5rem;font-family:'Poppins',sans-serif;">Mode
+              of Payment</label>
+            <select id="debtModeOfPayment"
+              style="width:100%;padding:.75rem;border:1px solid #e2e8f0;border-radius:.375rem;font-family:'Poppins',sans-serif;box-sizing:border-box;background:white;">
+              <option value="Cash">Cash</option>
+              <option value="GCash">GCash</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label
               style="display:block;font-weight:600;color:#1a2035;margin-bottom:.5rem;font-family:'Poppins',sans-serif;">Due
               Date</label>
             <input name="debt_due" type="date" id="debtDueDate"
@@ -298,7 +316,6 @@
             <span id="debtDetailsAmount">₱0.00</span> <span id="debtDetailsStatus"
               class="debt-details-status active">Active</span>
           </div>
-          <button id="sendDebtReminderBtn" class="debt-details-reminder-btn">Send Debt Reminder</button>
         </div>
 
         <div class="debt-details-history-title">Transaction History</div>

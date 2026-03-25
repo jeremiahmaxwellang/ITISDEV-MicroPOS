@@ -108,9 +108,44 @@ const MANUFACTURER_HINTS = [
   { matcher: /load|gcash|photocopy/i, name: "In-Store Service" }
 ];
 
+const SERVICE_CONFIG_DEFS = {
+  load: "Load / E-Load",
+  cash: "Cash-In / Cash-Out"
+};
+
 function getManufacturer(productName) {
   const match = MANUFACTURER_HINTS.find((rule) => rule.matcher.test(productName));
   return match ? match.name : "—";
+}
+
+async function ensureServiceProduct(name) {
+  const [rows] = await db.query(
+    `SELECT product_id, name, selling_price AS price
+     FROM products
+     WHERE product_type = 'Services' AND LOWER(name) = LOWER(?)
+     LIMIT 1`,
+    [name]
+  );
+
+  if (rows.length > 0) {
+    return {
+      id: rows[0].product_id,
+      name: rows[0].name,
+      price: Number(rows[0].price) || 0
+    };
+  }
+
+  const [insertResult] = await db.query(
+    `INSERT INTO products (name, volume, product_type, selling_price, barcode)
+     VALUES (?, NULL, 'Services', 0, NULL)`,
+    [name]
+  );
+
+  return {
+    id: insertResult.insertId,
+    name,
+    price: 0
+  };
 }
 
 let productPhotoColumnPromise;
@@ -210,6 +245,8 @@ exports.getProductItems = async (req, res) => {
          p.product_type AS category,
          p.selling_price AS price,
          ${photoSelect}
+         COUNT(pb.batch_id) AS total_batches,
+         SUM(CASE WHEN pb.status != 'Discontinued' THEN 1 ELSE 0 END) AS active_batches,
          COALESCE(
            SUM(
              CASE
@@ -224,6 +261,7 @@ exports.getProductItems = async (req, res) => {
        LEFT JOIN product_batches pb ON pb.product_id = p.product_id
        ${whereClause}
        GROUP BY p.product_id, p.name, p.volume, p.barcode, p.product_type, p.selling_price${photoGroupBy}
+       HAVING total_batches = 0 OR active_batches > 0
        ORDER BY p.name ASC, p.volume ASC`,
       params
     );
@@ -476,12 +514,27 @@ exports.deleteProduct = async (req, res) => {
     );
 
     if (orders.length > 0) {
-      // Soft delete: mark batches as discontinued instead
+      // Soft delete/archive: mark batches as discontinued
       await db.query(
         "UPDATE product_batches SET status = 'Discontinued' WHERE product_id = ?",
         [product_id]
       );
-      return res.json({ success: true, message: "Product discontinued (has transaction history)" });
+
+      // Services may have no batches; create a discontinued marker batch so it is hidden from listings
+      const [batchRows] = await db.query(
+        "SELECT batch_id FROM product_batches WHERE product_id = ? LIMIT 1",
+        [product_id]
+      );
+
+      if (batchRows.length === 0) {
+        await db.query(
+          `INSERT INTO product_batches (product_id, stock_quantity, status, purchase_date)
+           VALUES (?, 0, 'Discontinued', NOW())`,
+          [product_id]
+        );
+      }
+
+      return res.json({ success: true, message: "Product archived (has transaction history)" });
     }
 
     // Hard delete if no transaction history
@@ -492,5 +545,56 @@ exports.deleteProduct = async (req, res) => {
   } catch (err) {
     console.error("deleteProduct error:", err);
     res.status(500).json({ error: "Failed to delete product" });
+  }
+};
+
+// Get standalone service configuration used by POS service buttons
+exports.getServiceConfig = async (req, res) => {
+  try {
+    const load = await ensureServiceProduct(SERVICE_CONFIG_DEFS.load);
+    const cash = await ensureServiceProduct(SERVICE_CONFIG_DEFS.cash);
+
+    res.json({ success: true, load, cash });
+  } catch (err) {
+    console.error("getServiceConfig error:", err);
+    res.status(500).json({ error: "Failed to load service config." });
+  }
+};
+
+// Update standalone service configuration
+exports.updateServiceConfig = async (req, res) => {
+  const { kind, price } = req.body;
+
+  if (!kind || !Object.prototype.hasOwnProperty.call(SERVICE_CONFIG_DEFS, kind)) {
+    return res.status(400).json({ error: "Invalid service kind." });
+  }
+
+  const numericPrice = Number(price);
+  if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+    return res.status(400).json({ error: "Price must be a valid non-negative number." });
+  }
+
+  try {
+    const service = await ensureServiceProduct(SERVICE_CONFIG_DEFS[kind]);
+
+    await db.query(
+      `UPDATE products
+       SET selling_price = ?
+       WHERE product_id = ?`,
+      [numericPrice, service.id]
+    );
+
+    res.json({
+      success: true,
+      message: "Service configuration updated.",
+      service: {
+        id: service.id,
+        name: service.name,
+        price: numericPrice
+      }
+    });
+  } catch (err) {
+    console.error("updateServiceConfig error:", err);
+    res.status(500).json({ error: "Failed to update service config." });
   }
 };

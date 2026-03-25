@@ -172,11 +172,11 @@ function renderTable(debts) {
     if (!container) return;
 
     if (currentTab === 'paid') {
-        document.getElementById('thAmountLabel').textContent = 'Perang Binayaran';
-        document.getElementById('thDateLabel').textContent = 'Petsa ng Bayad';
+        document.getElementById('thAmountLabel').textContent = 'Debt Amount';
+        document.getElementById('thDateLabel').textContent = 'Due Date';
     } else {
-        document.getElementById('thAmountLabel').textContent = 'Halaga ng Utang';
-        document.getElementById('thDateLabel').textContent = 'Petsa ng Takdang Bayad';
+        document.getElementById('thAmountLabel').textContent = 'Debt Amount';
+        document.getElementById('thDateLabel').textContent = 'Due Date';
     }
 
     if (!debts || debts.length === 0) {
@@ -206,26 +206,27 @@ function renderTable(debts) {
                     : `<span style="background:#FEF3C7;color:#92400E;font-size:12px;font-family:'Arimo',sans-serif;padding:3px 14px;border-radius:999px;">Pending</span>`;
 
         const actionBtns = isPaidTab
-            ? `<button class="debt-details-btn" onclick="viewDebtDetails(${idx})">
-            <i data-lucide="package" style="width:14px;height:14px;"></i>
-            Details
+            ? `<button class="debt-icon-btn details" onclick="viewDebtDetails(${idx})" title="Details" aria-label="Details">
+            <i data-lucide="package" style="width:16px;height:16px;"></i>
         </button>`
-            : `<div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
-            <button class="debt-details-btn" onclick="viewDebtDetails(${idx})">
-                <i data-lucide="package" style="width:14px;height:14px;"></i>
-                Details
+            : `<div class="debt-action-group">
+            <button class="debt-icon-btn details" onclick="viewDebtDetails(${idx})" title="Details" aria-label="Details">
+                <i data-lucide="package" style="width:16px;height:16px;"></i>
             </button>
-            <button class="debt-pay-btn" onclick="markPaid(${idx})">
-                <i data-lucide="check" style="width:14px;height:14px;"></i>
-                Paid?
+            <button class="debt-icon-btn paid" onclick="markPaid(${idx})" title="Mark as Paid" aria-label="Mark as Paid">
+                <i data-lucide="check" style="width:16px;height:16px;"></i>
             </button>
-            <button 
-                class="debt-blacklist-btn ${isBlacklisted ? 'unblacklist' : ''}" 
+            <button
+                class="debt-icon-btn ${isBlacklisted ? 'unblacklist' : 'blacklist'}"
                 onclick="toggleBlacklist(${idx})"
                 title="${isBlacklisted ? 'Remove from blacklist' : 'Blacklist customer'}"
+                aria-label="${isBlacklisted ? 'Unblacklist customer' : 'Blacklist customer'}"
             >
-                <i data-lucide="ban" style="width:14px;height:14px;"></i>
-                ${isBlacklisted ? 'Unblacklist' : 'Blacklist'}
+                <i data-lucide="ban" style="width:16px;height:16px;"></i>
+            </button>
+            <button class="debt-reminder-inline-btn" onclick="sendDebtReminderInline(${debt.debt_id}, this)">
+                <i data-lucide="bell" style="width:15px;height:15px;"></i>
+                Send Reminder
             </button>
         </div>`;
 
@@ -256,6 +257,7 @@ function renderTable(debts) {
                     <i data-lucide="calendar" style="width:16px;height:16px;color:#99A1AF;flex-shrink:0;"></i>
                     ${debt.status === 'Paid' ? formatDate(debt.date_paid) : formatDate(debt.debt_due)}
                 </div>
+                <div style="display:flex;justify-content:center;color:#1E2939;font-size:13px;font-family:'Arimo',sans-serif;">${debt.mode_of_payment || 'Cash'}</div>
                 <div style="display:flex;justify-content:center;">${statusBadge}</div>
                 <div style="display:flex;justify-content:center;">${actionBtns}</div>
                 </div>
@@ -392,9 +394,6 @@ async function viewDebtDetails(idx) {
 
         if (!response.ok) { alert('Error: ' + data.error); return; }
 
-        // Get Debt ID for SMS Reminder
-        document.getElementById('sendDebtReminderBtn').dataset.debtId = data.debt_id;
-
         // -- Customer info --
         const fullName = `${data.first_name || ''} ${data.last_name || ''}`.trim() || '—';
         document.getElementById('debtDetailsHeaderName').textContent = fullName;
@@ -474,36 +473,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // DEBT REMINDER
-    document.getElementById('sendDebtReminderBtn').addEventListener('click', async () => {
-        const debtId = document.getElementById('sendDebtReminderBtn').dataset.debtId;
-
-        // Checks if debt is undefined
-        if (!debtId || debtId === 'undefined') {
-            alert('No debt selected. Please open a debt first.');
-            return;
-        }
-
-        const btn = document.getElementById('sendDebtReminderBtn');
-        btn.disabled = true;
-        btn.textContent = 'Sending...';
-
-        try {
-            const response = await fetch(`/debts/${debtId}/remind`, { method: 'POST' });
-            const data = await response.json();
-
-            if (!response.ok) { alert('Error: ' + data.error); return; }
-
-            showToast('Reminder sent successfully!');
-
-        } catch (err) {
-            console.error('sendReminder error:', err);
-            alert('Something went wrong.');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Send Debt Reminder';
-        }
-    });
 });
 
 async function markPaid(idx) {
@@ -534,6 +503,37 @@ async function markPaid(idx) {
     } catch (err) {
         console.error('Error:', err);
         alert('Something went wrong. Please try again.');
+    }
+}
+
+async function sendDebtReminderInline(debtId, btn) {
+    if (!debtId || debtId === 'undefined') {
+        alert('No debt selected. Please open a debt first.');
+        return;
+    }
+
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader" style="width:15px;height:15px;"></i> Sending...';
+    if (window.lucide && window.lucide.createIcons) lucide.createIcons();
+
+    try {
+        const response = await fetch(`/debts/${debtId}/remind`, { method: 'POST' });
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert('Error: ' + data.error);
+            return;
+        }
+
+        showToast('Reminder sent successfully!');
+    } catch (err) {
+        console.error('sendReminderInline error:', err);
+        alert('Something went wrong.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+        if (window.lucide && window.lucide.createIcons) lucide.createIcons();
     }
 }
 
@@ -665,6 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveDebtBtn.addEventListener('click', async () => {
             const totalDebt = parseFloat(document.getElementById('debtTotalAmount').value);
             const debt_due = document.getElementById('debtDueDate').value;
+            const mode_of_payment = document.getElementById('debtModeOfPayment').value || 'Cash';
             const existingCustomerId = document.getElementById('selectedCustomerId').value;
             const isExistingMode = document.getElementById('existingCustomerFields').style.display !== 'none';
 
@@ -681,7 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            let payload = { debt_amount: totalDebt, debt_due };
+            let payload = { debt_amount: totalDebt, debt_due, mode_of_payment };
 
             if (isExistingMode) {
                 if (!existingCustomerId) { alert('Please select an existing customer'); return; }
@@ -727,6 +728,38 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error saving debt record: ' + error.message);
+            }
+        });
+    }
+
+    // Remind all
+    const remindAllBtn = document.getElementById('remindAllBtn');
+    if (remindAllBtn) {
+        remindAllBtn.addEventListener('click', async () => {
+            if (!confirm('Send debt reminders to all active customers?')) return;
+
+            const originalHtml = remindAllBtn.innerHTML;
+            remindAllBtn.disabled = true;
+            remindAllBtn.innerHTML = '<i data-lucide="loader" style="width:16px;height:16px;"></i> Sending...';
+            if (window.lucide && window.lucide.createIcons) lucide.createIcons();
+
+            try {
+                const response = await fetch('/debts/remind-all', { method: 'POST' });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert('Error: ' + (data.error || 'Failed to send reminders'));
+                    return;
+                }
+
+                showToast(data.message || 'Reminders processed successfully');
+            } catch (err) {
+                console.error('remindAll error:', err);
+                alert('Something went wrong.');
+            } finally {
+                remindAllBtn.disabled = false;
+                remindAllBtn.innerHTML = originalHtml;
+                if (window.lucide && window.lucide.createIcons) lucide.createIcons();
             }
         });
     }

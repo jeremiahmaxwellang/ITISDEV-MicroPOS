@@ -22,6 +22,7 @@ router.get('/:debt_id/details', debtsController.getDebtDetails);
 router.get('/search-customers', debtsController.searchCustomers);
 
 router.post('/create-debt', debtsController.createDebt);
+router.post('/remind-all', debtsController.sendAllDebtReminders);
 router.post('/:debt_id/remind', debtsController.sendDebtReminder);
 
 router.patch('/:debt_id/pay', debtsController.markPaid);

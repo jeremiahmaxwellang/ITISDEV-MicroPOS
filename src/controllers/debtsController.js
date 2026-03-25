@@ -76,7 +76,7 @@ exports.getPaidDebts = async (req, res) => {
 
 // Create new debt
 exports.createDebt = async (req, res) => {
-    const { customer_id, first_name, last_name, phone_number, debt_amount, debt_due } = req.body;
+    const { customer_id, first_name, last_name, phone_number, debt_amount, debt_due, mode_of_payment } = req.body;
 
     if (!debt_amount || !debt_due) {
         return res.status(400).json({ error: 'debt_amount and debt_due are required' });
@@ -124,10 +124,14 @@ exports.createDebt = async (req, res) => {
             }
         }
 
+        const normalizedModeOfPayment = ['Cash', 'GCash', 'Other'].includes(mode_of_payment)
+            ? mode_of_payment
+            : 'Cash';
+
         await db.query(`
-            INSERT INTO debts (customer_id, debt_amount, status, debt_due)
-            VALUES (?, ?, 'Unpaid', ?)
-        `, [finalCustomerId, debt_amount, debt_due]);
+            INSERT INTO debts (customer_id, debt_amount, mode_of_payment, status, debt_due)
+            VALUES (?, ?, ?, 'Unpaid', ?)
+        `, [finalCustomerId, debt_amount, normalizedModeOfPayment, debt_due]);
 
         res.json({ success: true, message: 'Debt added successfully' });
 
@@ -315,5 +319,59 @@ exports.searchCustomers = async (req, res) => {
         res.json(results);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+};
+
+// Send reminders to all active debts with contact numbers
+exports.sendAllDebtReminders = async (req, res) => {
+    try {
+        const [debts] = await db.query(`
+            SELECT
+                d.debt_id,
+                d.debt_amount,
+                d.debt_due,
+                c.first_name,
+                c.last_name,
+                c.phone_number
+            FROM debts d
+            JOIN customers c ON c.customer_id = d.customer_id
+            WHERE d.status != 'Paid'
+            ORDER BY d.debt_due ASC
+        `);
+
+        if (!debts.length) {
+            return res.json({ success: true, message: 'No active debts to remind.', sent: 0, skipped: 0, failed: 0 });
+        }
+
+        let sent = 0;
+        let skipped = 0;
+        let failed = 0;
+
+        for (const debt of debts) {
+            if (!debt.phone_number) {
+                skipped += 1;
+                continue;
+            }
+
+            try {
+                const message = `Hi ${debt.first_name}! May utang ka pong ₱${parseFloat(debt.debt_amount).toFixed(2)} na dapat bayaran sa ${new Date(debt.debt_due).toLocaleDateString('en-PH')}. Pakibayad na po sa Juan Sari Sari Store. Salamat!`;
+                await sendSMS(debt.phone_number, message);
+                sent += 1;
+            } catch (smsErr) {
+                console.error('sendAllDebtReminders SMS error:', smsErr);
+                failed += 1;
+            }
+        }
+
+        return res.json({
+            success: true,
+            message: `Reminders processed. Sent: ${sent}, Skipped: ${skipped}, Failed: ${failed}`,
+            sent,
+            skipped,
+            failed
+        });
+    } catch (err) {
+        console.error('sendAllDebtReminders error:', err);
+        return res.status(500).json({ error: err.message });
     }
 };

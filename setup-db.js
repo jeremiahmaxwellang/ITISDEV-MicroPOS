@@ -34,6 +34,26 @@ async function ensureProductsPhotoColumn(connection, databaseName) {
   }
 }
 
+async function ensureDebtsModeOfPaymentColumn(connection, databaseName) {
+  const [rows] = await connection.query(
+    `SELECT COLUMN_NAME
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = ?
+       AND TABLE_NAME = 'debts'
+       AND COLUMN_NAME = 'mode_of_payment'
+     LIMIT 1`,
+    [databaseName]
+  );
+
+  if (!rows.length) {
+    await connection.query(
+      `ALTER TABLE \`${databaseName}\`.\`debts\`
+       ADD COLUMN \`mode_of_payment\` ENUM('Cash', 'GCash', 'Other') NOT NULL DEFAULT 'Cash' AFTER \`debt_amount\``
+    );
+    console.log('✓ Added debts.mode_of_payment column');
+  }
+}
+
 async function setupDatabase() {
   let connection;
 
@@ -89,6 +109,9 @@ async function setupDatabase() {
 
     await ensureProductsPhotoColumn(connection, databaseName);
     console.log('✓ Products photo column verified');
+
+    await ensureDebtsModeOfPaymentColumn(connection, databaseName);
+    console.log('✓ Debts mode_of_payment column verified');
 
   } catch (error) {
     console.error('Error setting up database:');
