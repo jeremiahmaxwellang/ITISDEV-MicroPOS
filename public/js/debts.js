@@ -191,7 +191,7 @@ function renderTable(debts) {
             </button>
             <button class="debt-pay-btn" onclick="markPaid(${idx})">
                 <i data-lucide="check" style="width:14px;height:14px;"></i>
-                Pay
+                Paid?
             </button>
             <button 
                 class="debt-blacklist-btn ${isBlacklisted ? 'unblacklist' : ''}" 
