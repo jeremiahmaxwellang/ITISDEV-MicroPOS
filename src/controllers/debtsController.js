@@ -198,3 +198,33 @@ exports.blacklistCustomer = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+exports.updateDebtLimit = async (req, res) => {
+    const { customer_id } = req.params;
+    const { debt_limit } = req.body;
+
+    if (debt_limit === undefined || isNaN(debt_limit) || debt_limit < 0) {
+        return res.status(400).json({ error: 'Invalid debt limit value' });
+    }
+
+    try {
+        const [customer] = await db.query(
+            `SELECT customer_id FROM customers WHERE customer_id = ?`,
+            [customer_id]
+        );
+        if (customer.length === 0) {
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+
+        await db.query(
+            `UPDATE customers SET debt_limit = ? WHERE customer_id = ?`,
+            [debt_limit, customer_id]
+        );
+
+        res.json({ success: true, message: 'Debt limit updated', debt_limit });
+
+    } catch (err) {
+        console.error('updateDebtLimit error:', err);
+        res.status(500).json({ error: err.message });
+    }
+};

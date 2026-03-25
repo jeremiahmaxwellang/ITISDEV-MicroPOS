@@ -32,11 +32,12 @@ body {
 }
 .debt-row {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr 1.8fr;
+  grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr 1fr 2fr;
   padding: 14px 15px;
   border-bottom: 1px solid rgba(0,0,0,0.10);
   align-items: center;
 }
+
 .debt-row:last-child { border-bottom: none; }
 .debt-row:hover { background: #fafafa; }
 .debt-thead {
@@ -617,4 +618,33 @@ body {
 
 .debt-blacklist-btn.unblacklist:hover {
     background: #E2E8F0;
+}
+
+/* Debt Limit */
+.debt-limit-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Arimo', sans-serif;
+    color: #1E2939;
+    background: #F3F3F5;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.debt-limit-cell:hover { background: #E2E8F0; }
+
+.debt-limit-input {
+    width: 90px;
+    padding: 3px 8px;
+    border: 1.5px solid #155DFC;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'Arimo', sans-serif;
+    outline: none;
+    text-align: right;
 }

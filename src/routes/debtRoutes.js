@@ -20,6 +20,7 @@ router.post('/create-debt', debtsController.createDebt);
 
 router.patch('/:debt_id/pay', debtsController.markPaid);
 router.patch('/:customer_id/blacklist', debtsController.blacklistCustomer);
+router.patch('/:customer_id/debt-limit', debtsController.updateDebtLimit);
 
 // Route for /debts
 router.get('/', (req, res) => {

@@ -161,17 +161,92 @@ function renderTable(debts) {
                 </div>
                 <div style="text-align:center;color:rgba(0,0,0,0.80);font-size:13px;font-family:'Poppins',sans-serif;">${debt.phone_number || '—'}</div>
                 <div style="text-align:center;color:#00B928;font-size:13px;font-family:'Arimo',sans-serif;">${formatCurrency(debt.debt_amount)}</div>
+                                <!-- Debt limit — only show on active tab, hide on paid -->
+                <div style="display:flex;align-items:center;justify-content:center;">
+                    ${!isPaidTab ? `
+                        <div
+                            class="debt-limit-cell"
+                            onclick="editDebtLimit(this, ${debt.customer_id}, ${debt.debt_limit || 1000})"
+                            title="Click to edit"
+                        >
+                            ${formatCurrency(debt.debt_limit || 1000)}
+                            <i data-lucide="pencil" style="width:11px;height:11px;margin-left:4px;color:#99A1AF;"></i>
+                        </div>
+                    ` : '—'}
+                </div>
                 <div style="display:flex;align-items:center;gap:6px;color:#4A5565;font-size:14px;font-family:'Arimo',sans-serif;">
                     <i data-lucide="calendar" style="width:16px;height:16px;color:#99A1AF;flex-shrink:0;"></i>
                     ${debt.status === 'Paid' ? formatDate(debt.date_paid) : formatDate(debt.debt_due)}
                 </div>
                 <div style="display:flex;justify-content:center;">${statusBadge}</div>
                 <div style="display:flex;justify-content:center;">${actionBtns}</div>
-            </div>
+                </div>
         `;
     }).join('');
 
     if (window.lucide && window.lucide.createIcons) lucide.createIcons();
+}
+
+function editDebtLimit(el, customer_id, currentLimit) {
+    if (el.querySelector('input')) return; // already editing
+
+    el.innerHTML = `
+        <input
+            type="number"
+            class="debt-limit-input"
+            value="${parseFloat(currentLimit) || 1000}"
+            min="0"
+            step="0.01"
+            onclick="event.stopPropagation()"
+            onkeydown="handleDebtLimitKey(event, this, ${customer_id})"
+        />
+    `;
+
+    const input = el.querySelector('input');
+    input.focus();
+    input.select();
+    input.addEventListener('blur', () => saveDebtLimit(el, customer_id, input.value));
+}
+
+function handleDebtLimitKey(event, input, customer_id) {
+    if (event.key === 'Enter') input.blur();
+    if (event.key === 'Escape') loadDebts(); // cancel
+}
+
+async function saveDebtLimit(el, customer_id, newValue) {
+    const debt_limit = parseFloat(newValue);
+
+    if (isNaN(debt_limit) || debt_limit < 0) {
+        showToast('Invalid debt limit value');
+        loadDebts();
+        return;
+    }
+
+    try {
+        const response = await fetch(`/debts/${customer_id}/debt-limit`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ debt_limit })
+        });
+
+        const data = await response.json();
+        if (!response.ok) { alert('Error: ' + data.error); loadDebts(); return; }
+
+        // Update cell in place — no full reload needed
+        el.innerHTML = `
+            ${formatCurrency(debt_limit)}
+            <i data-lucide="pencil" style="width:11px;height:11px;margin-left:4px;color:#99A1AF;"></i>
+        `;
+        el.onclick = () => editDebtLimit(el, customer_id, debt_limit);
+        if (window.lucide) lucide.createIcons();
+
+        showToast('Debt limit updated');
+
+    } catch (err) {
+        console.error('saveDebtLimit error:', err);
+        alert('Something went wrong.');
+        loadDebts();
+    }
 }
 
 function switchTab(tab) {
@@ -520,6 +595,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </td>
 
                     <td><span class="td-peso ${status}">₱${d.debt_amount}</span></td>
+                    <td><span class="td-peso ${status}">₱${d.debt_limit}</span></td>
 
                     <td>
                         <span class="td-date ${status}">
