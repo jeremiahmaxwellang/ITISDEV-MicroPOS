@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Settings - MicroPOS</title>
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+	<link rel="stylesheet" href="/css/modern.css">
+	<link rel="stylesheet" href="/css/sidebar.css">
+	<link rel="stylesheet" href="/css/settings.css">
+
+	<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+	<script defer src="/js/sidebar.js"></script>
+	<script defer src="/js/settings.js"></script>
+</head>
+
+<body class="with-sidebar settings-body">
+	<aside class="sidebar"></aside>
+
+	<div class="main-wrapper">
+		<header class="main-header">
+			<div class="main-header-left">
+				<div>
+					<div class="main-header-title">Settings</div>
+					<div class="main-header-subtitle">Manage your account credentials securely</div>
+				</div>
+			</div>
+			<div class="main-header-right">
+				<div class="navbar-user">
+					<div class="user-avatar" id="headerUserAvatar">--</div>
+					<div>
+						<div id="headerUserName" class="settings-user-name">Staff User</div>
+						<div id="headerUserRole" class="settings-user-role">Employee</div>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<div class="main-content settings-main-content">
+			<div class="settings-shell">
+				<section class="settings-hero-card">
+					<div class="settings-hero-copy">
+						<span class="settings-eyebrow">Account Security</span>
+						<h1>Change your password</h1>
+						<p>Enter your current password once, then set and confirm your new password below.</p>
+					</div>
+					<div class="settings-hero-icon" aria-hidden="true">
+						<i data-lucide="shield-check"></i>
+					</div>
+				</section>
+
+				<section class="settings-panel">
+					<div class="settings-panel-header">
+						<div>
+							<h2>Password Settings</h2>
+							<p>Use a strong password with at least 6 characters.</p>
+						</div>
+					</div>
+
+					<form id="changePasswordForm" class="settings-form" novalidate>
+						<div id="formMessage" class="settings-message" hidden></div>
+
+						<label class="settings-field">
+							<span>Current Password</span>
+							<div class="settings-input-wrap">
+								<i data-lucide="lock"></i>
+								<input type="password" id="oldPassword" name="oldPassword" autocomplete="current-password" required>
+							</div>
+						</label>
+
+						<label class="settings-field">
+							<span>New Password</span>
+							<div class="settings-input-wrap">
+								<i data-lucide="key-round"></i>
+								<input type="password" id="newPassword" name="newPassword" autocomplete="new-password" required minlength="6">
+							</div>
+						</label>
+
+						<label class="settings-field">
+							<span>Confirm New Password</span>
+							<div class="settings-input-wrap">
+								<i data-lucide="badge-check"></i>
+								<input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password" required minlength="6">
+							</div>
+						</label>
+
+						<div class="settings-actions">
+							<button type="submit" id="savePasswordBtn" class="btn btn-primary settings-save-btn">
+								<i data-lucide="save"></i>
+								<span>Update Password</span>
+							</button>
+						</div>
+					</form>
+				</section>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
