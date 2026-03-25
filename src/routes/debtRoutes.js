@@ -19,6 +19,7 @@ router.use(requireStaffSession);
 router.get('/active', debtsController.getActiveDebts);
 router.get('/paid', debtsController.getPaidDebts);
 router.get('/:debt_id/details', debtsController.getDebtDetails);
+router.get('/search-customers', debtsController.searchCustomers);
 
 router.post('/create-debt', debtsController.createDebt);
 router.post('/:debt_id/remind', debtsController.sendDebtReminder);

@@ -518,56 +518,130 @@ document.addEventListener('DOMContentLoaded', () => {
         addDebtBtn.addEventListener('click', () => {
             document.getElementById('debtModalTitle').textContent = 'List New Debt';
             document.getElementById('debtForm').reset();
+            document.getElementById('selectedCustomerId').value = '';
+            document.getElementById('selectedCustomerPreview').style.display = 'none';
+            document.getElementById('customerSearchResults').style.display = 'none';
+            setDebtModalMode('new'); // default to new customer
             document.getElementById('debtModal').style.display = 'flex';
             document.getElementById('first_name').focus();
         });
     }
 
-    // Modal: close
-    ['closeDebtModal', 'cancelDebtModal'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) {
-            btn.addEventListener('click', () => {
-                document.getElementById('debtModal').style.display = 'none';
-            });
-        }
+    // Mode toggle
+    function setDebtModalMode(mode) {
+        const isNew = mode === 'new';
+        document.getElementById('newCustomerFields').style.display = isNew ? 'block' : 'none';
+        document.getElementById('existingCustomerFields').style.display = isNew ? 'none' : 'block';
+        document.getElementById('phoneField').style.display = isNew ? 'block' : 'none';
+        document.getElementById('modeNewBtn').style.background = isNew ? '#155DFC' : 'transparent';
+        document.getElementById('modeNewBtn').style.color = isNew ? 'white' : '#6A7282';
+        document.getElementById('modeExistingBtn').style.background = isNew ? 'transparent' : '#155DFC';
+        document.getElementById('modeExistingBtn').style.color = isNew ? '#6A7282' : 'white';
+        document.getElementById('selectedCustomerId').value = '';
+    }
+
+    document.getElementById('modeNewBtn').addEventListener('click', () => setDebtModalMode('new'));
+    document.getElementById('modeExistingBtn').addEventListener('click', () => setDebtModalMode('existing'));
+
+    // Customer search
+    let searchTimeout;
+    document.getElementById('customerSearchInput').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const q = e.target.value.trim();
+        const resultsEl = document.getElementById('customerSearchResults');
+
+        if (q.length < 2) { resultsEl.style.display = 'none'; return; }
+
+        searchTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch(`/debts/search-customers?q=${encodeURIComponent(q)}`);
+                const customers = await res.json();
+
+                if (customers.length === 0) {
+                    resultsEl.innerHTML = '<div style="padding:12px;color:#888;font-size:13px;font-family:Poppins,sans-serif;text-align:center;">No customers found</div>';
+                } else {
+                    resultsEl.innerHTML = customers.map(c => `
+                    <div 
+                        class="customer-search-result"
+                        onclick="selectCustomer(${c.customer_id}, '${c.first_name}', '${c.last_name}', '${c.phone_number || ''}')"
+                        style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;transition:background .1s;"
+                        onmouseover="this.style.background='#F3F3F5'"
+                        onmouseout="this.style.background='white'"
+                    >
+                        <div style="font-weight:600;font-size:14px;font-family:'Poppins',sans-serif;color:#1a2035;">
+                            ${c.first_name} ${c.last_name}
+                        </div>
+                        <div style="font-size:12px;color:#6A7282;font-family:'Poppins',sans-serif;">
+                            ${c.phone_number || 'No phone'} · Limit: ${formatCurrency(c.debt_limit || 1000)}
+                        </div>
+                    </div>
+                `).join('');
+                }
+                resultsEl.style.display = 'block';
+            } catch (err) {
+                console.error('Customer search error:', err);
+            }
+        }, 300); // debounce 300ms
     });
 
-    const debtModal = document.getElementById('debtModal');
-    if (debtModal) {
-        debtModal.addEventListener('click', (e) => {
-            if (e.target.id === 'debtModal') document.getElementById('debtModal').style.display = 'none';
-        });
+    // Select a customer from search results
+    function selectCustomer(customer_id, first_name, last_name, phone_number) {
+        document.getElementById('selectedCustomerId').value = customer_id;
+        document.getElementById('selectedCustomerName').textContent = `${first_name} ${last_name}`;
+        document.getElementById('selectedCustomerPhone').textContent = phone_number || 'No phone number';
+        document.getElementById('selectedCustomerPreview').style.display = 'flex';
+        document.getElementById('customerSearchResults').style.display = 'none';
+        document.getElementById('customerSearchInput').value = '';
     }
+
+    // Clear selected customer
+    document.getElementById('clearSelectedCustomer').addEventListener('click', () => {
+        document.getElementById('selectedCustomerId').value = '';
+        document.getElementById('selectedCustomerPreview').style.display = 'none';
+        document.getElementById('customerSearchInput').value = '';
+        document.getElementById('customerSearchInput').focus();
+    });
 
     // Save
     const saveDebtBtn = document.getElementById('saveDebtBtn');
     if (saveDebtBtn) {
         saveDebtBtn.addEventListener('click', async () => {
-            const first_name = document.getElementById('first_name').value.trim();
-            const last_name = document.getElementById('last_name').value.trim();
             const totalDebt = parseFloat(document.getElementById('debtTotalAmount').value);
-            const amountPaid = parseFloat(document.getElementById('debtAmountPaid').value) || 0;
-            const contact = document.getElementById('debtContact').value;
-            const notes = document.getElementById('debtNotes').value;
+            const debt_due = document.getElementById('debtDueDate').value;
+            const existingCustomerId = document.getElementById('selectedCustomerId').value;
+            const isExistingMode = document.getElementById('existingCustomerFields').style.display !== 'none';
 
-            if (!first_name || !last_name || isNaN(totalDebt)) {
-                alert('Please fill in required fields');
+            if (isNaN(totalDebt) || !debt_due) {
+                alert('Please fill in debt amount and due date');
                 return;
             }
 
-            // Send the data to your backend
+            // Build payload depending on mode
+            let payload = { debt_amount: totalDebt, debt_due };
+
+            if (isExistingMode) {
+                if (!existingCustomerId) {
+                    alert('Please select an existing customer');
+                    return;
+                }
+                payload.customer_id = existingCustomerId;
+            } else {
+                const first_name = document.getElementById('first_name').value.trim();
+                const last_name = document.getElementById('last_name').value.trim();
+                if (!first_name || !last_name) {
+                    alert('Please enter the customer name');
+                    return;
+                }
+                payload.first_name = first_name;
+                payload.last_name = last_name;
+                payload.phone_number = document.getElementById('debtContact').value.trim();
+            }
+
             try {
                 const response = await fetch('/debts/create-debt', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        first_name: first_name,
-                        last_name: last_name,
-                        phone_number: contact,
-                        debt_amount: totalDebt,
-                        debt_due: document.getElementById('debtDueDate').value  // add this field to your form
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
@@ -576,6 +650,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast('Debt record saved!');
                 document.getElementById('debtModal').style.display = 'none';
                 document.getElementById('debtForm').reset();
+                document.getElementById('selectedCustomerId').value = '';
+                document.getElementById('selectedCustomerPreview').style.display = 'none';
                 loadDebts();
             } catch (error) {
                 console.error('Error:', error);

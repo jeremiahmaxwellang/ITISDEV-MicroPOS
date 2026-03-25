@@ -76,37 +76,39 @@ exports.getPaidDebts = async (req, res) => {
 
 // Create new debt
 exports.createDebt = async (req, res) => {
-    const { first_name, last_name, phone_number, debt_amount, debt_due } = req.body;
+    const { customer_id, first_name, last_name, phone_number, debt_amount, debt_due } = req.body;
 
-    if (!first_name || !last_name || !debt_amount || !debt_due) {
-        return res.status(400).json({ error: "Name and category are required" });
+    if (!debt_amount || !debt_due) {
+        return res.status(400).json({ error: 'debt_amount and debt_due are required' });
     }
 
     try {
-        // Create enw customer if not exists
-        const createCustomer = `
-        INSERT INTO customers (first_name, last_name, phone_number, debt_limit, is_blacklisted) VALUES
-        (?, ?, ?, 1000.00, 'F')
-        `;
+        let finalCustomerId = customer_id;
 
-        const [insertResult] = await db.query(createCustomer, [first_name, last_name, phone_number]);
-        const customer_id = insertResult.insertId;
-        if (!customer_id) return res.status(404).json({ error: "Customer not found" });
+        // Only create new customer if no existing customer_id provided
+        if (!finalCustomerId) {
+            if (!first_name || !last_name) {
+                return res.status(400).json({ error: 'first_name and last_name are required for new customers' });
+            }
 
-        // Insert Debt
+            const [insertResult] = await db.query(`
+                INSERT INTO customers (first_name, last_name, phone_number, debt_limit, is_blacklisted)
+                VALUES (?, ?, ?, 1000.00, 'F')
+            `, [first_name, last_name, phone_number]);
 
-        const createDebt = `
-        INSERT INTO debts (customer_id, debt_amount, status, debt_due) VALUES
-        (?, ?, 'Unpaid', ?)
-        `;
+            finalCustomerId = insertResult.insertId;
+        }
 
-        await db.query(createDebt, [customer_id, debt_amount, debt_due]);
+        await db.query(`
+            INSERT INTO debts (customer_id, debt_amount, status, debt_due)
+            VALUES (?, ?, 'Unpaid', ?)
+        `, [finalCustomerId, debt_amount, debt_due]);
 
-        res.json({ success: true, message: "Debt added successfully" });
+        res.json({ success: true, message: 'Debt added successfully' });
 
     } catch (err) {
-        console.error("error:", err);
-        res.status(500).json({ error: "Failed to add debt", detail: err.message });
+        console.error('createDebt error:', err);
+        res.status(500).json({ error: 'Failed to add debt', detail: err.message });
     }
 };
 
@@ -266,6 +268,27 @@ exports.updateDebtLimit = async (req, res) => {
 
     } catch (err) {
         console.error('updateDebtLimit error:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Search Customers
+exports.searchCustomers = async (req, res) => {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) {
+        return res.json([]);
+    }
+
+    try {
+        const [results] = await db.query(`
+            SELECT customer_id, first_name, last_name, phone_number, debt_limit
+            FROM customers
+            WHERE first_name LIKE ? OR last_name LIKE ? OR phone_number LIKE ?
+            LIMIT 8
+        `, [`%${q}%`, `%${q}%`, `%${q}%`]);
+
+        res.json(results);
+    } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
