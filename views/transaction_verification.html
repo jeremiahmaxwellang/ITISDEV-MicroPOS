@@ -53,6 +53,26 @@
 					</button>
 				</div>
 
+				<div class="tv-filter-bar card-base">
+					<div class="tv-filter-pills" role="group" aria-label="Filter by payment method">
+						<button class="tv-pill active" data-filter="all" type="button">All</button>
+						<button class="tv-pill" data-filter="Cash" type="button">
+							<i data-lucide="banknote"></i> Cash
+						</button>
+						<button class="tv-pill" data-filter="GCash" type="button">
+							<i data-lucide="smartphone"></i> GCash
+						</button>
+					</div>
+					<div class="tv-view-toggle" role="group" aria-label="Toggle view layout">
+						<button class="tv-view-btn active" id="viewGrid" type="button" title="Card view" aria-pressed="true">
+							<i data-lucide="layout-grid"></i>
+						</button>
+						<button class="tv-view-btn" id="viewList" type="button" title="List view" aria-pressed="false">
+							<i data-lucide="list"></i>
+						</button>
+					</div>
+				</div>
+
 				<div id="paymentsList" class="proofs-grid">
 					<div class="empty-state card-base">
 						<i data-lucide="shield-check"></i>

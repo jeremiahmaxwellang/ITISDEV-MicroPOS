@@ -448,6 +448,125 @@ body {
 	transform: translateY(0);
 }
 
+/* ── Filter bar ─────────────────────────────── */
+.tv-filter-bar {
+	padding: 0.65rem 1rem;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 0.65rem;
+}
+
+.tv-filter-pills {
+	display: flex;
+	gap: 0.4rem;
+	flex-wrap: wrap;
+}
+
+.tv-pill {
+	border: 1px solid var(--tv-border);
+	background: #fff;
+	color: var(--tv-muted);
+	border-radius: 999px;
+	font-family: inherit;
+	font-size: 0.82rem;
+	font-weight: 600;
+	padding: 0.35rem 0.85rem;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	transition: all 0.15s ease;
+}
+
+.tv-pill i {
+	width: 13px;
+	height: 13px;
+}
+
+.tv-pill:hover {
+	border-color: var(--tv-primary);
+	color: var(--tv-primary);
+}
+
+.tv-pill.active {
+	background: var(--tv-primary);
+	border-color: var(--tv-primary);
+	color: #fff;
+	box-shadow: 0 4px 10px rgba(59, 91, 219, 0.25);
+}
+
+.tv-view-toggle {
+	display: flex;
+	gap: 0.3rem;
+}
+
+.tv-view-btn {
+	border: 1px solid var(--tv-border);
+	background: #fff;
+	color: var(--tv-muted);
+	border-radius: 10px;
+	width: 34px;
+	height: 34px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+
+.tv-view-btn i {
+	width: 16px;
+	height: 16px;
+}
+
+.tv-view-btn:hover {
+	border-color: var(--tv-primary);
+	color: var(--tv-primary);
+}
+
+.tv-view-btn.active {
+	background: var(--tv-primary);
+	border-color: var(--tv-primary);
+	color: #fff;
+}
+
+/* ── List view ───────────────────────────────── */
+.proofs-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.proofs-list .payment-card {
+	display: grid;
+	grid-template-columns: 1fr auto auto auto;
+	align-items: center;
+	gap: 1rem;
+	padding: 0.75rem 1rem;
+	border-radius: 12px;
+}
+
+.proofs-list .payment-card:hover {
+	transform: none;
+	background: #f8faff;
+}
+
+.proofs-list .card-top {
+	flex-direction: row;
+	align-items: center;
+}
+
+.proofs-list .card-meta {
+	margin-top: 0;
+	gap: 1rem;
+}
+
+.proofs-list .empty-state {
+	grid-column: unset;
+}
+
 @media (max-width: 900px) {
 	.form-row,
 	.detail-grid {
@@ -460,6 +579,10 @@ body {
 
 	.tv-btn {
 		width: 100%;
+	}
+
+	.proofs-list .payment-card {
+		grid-template-columns: 1fr;
 	}
 }
 

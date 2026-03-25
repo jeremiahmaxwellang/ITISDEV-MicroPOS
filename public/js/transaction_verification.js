@@ -22,6 +22,8 @@
 	let currentPreviewURL = null;
 	let toastTimer = null;
 	let currentUser = null;
+	let activeFilter = "all";
+	let activeView = "grid";
 
 	function getCurrentUser() {
 		return currentUser;
@@ -192,13 +194,21 @@
 	function renderPayments() {
 		if (!paymentsList) return;
 
-		if (!payments.length) {
+		// Apply payment method filter
+		const filtered = activeFilter === "all"
+			? payments
+			: payments.filter((p) => p.paymentMethod === activeFilter);
+
+		// Apply view class
+		paymentsList.className = activeView === "list" ? "proofs-list" : "proofs-grid";
+
+		if (!filtered.length) {
 			paymentsList.innerHTML = getEmptyStateMarkup();
 			refreshIcons();
 			return;
 		}
 
-		paymentsList.innerHTML = payments
+		paymentsList.innerHTML = filtered
 			.map((payment) => {
 				const paidDate = formatPaymentDate(payment.datePaid);
 				const methodBadge = payment.paymentMethod === "Cash" ? "CASH" : "GCASH";
@@ -229,7 +239,7 @@
 		document.querySelectorAll(".payment-card").forEach((card) => {
 			card.addEventListener("click", () => {
 				const id = Number(card.dataset.paymentId);
-				const payment = payments.find((item) => item.id === id);
+				const payment = filtered.find((item) => item.id === id);
 				if (payment) {
 					openDetailPopup(payment);
 				}
@@ -240,7 +250,7 @@
 			button.addEventListener("click", (event) => {
 				event.stopPropagation();
 				const id = Number(button.dataset.paymentId);
-				const payment = payments.find((item) => item.id === id);
+				const payment = filtered.find((item) => item.id === id);
 				if (payment) {
 					openDetailPopup(payment);
 				}
@@ -459,6 +469,44 @@
 		}
 	}
 
+	function bindFilterAndViewEvents() {
+		// Payment method filter pills
+		document.querySelectorAll(".tv-pill").forEach((pill) => {
+			pill.addEventListener("click", () => {
+				activeFilter = pill.dataset.filter;
+				document.querySelectorAll(".tv-pill").forEach((p) => p.classList.remove("active"));
+				pill.classList.add("active");
+				renderPayments();
+			});
+		});
+
+		// Card / list view toggle
+		const viewGridBtn = document.getElementById("viewGrid");
+		const viewListBtn = document.getElementById("viewList");
+
+		if (viewGridBtn) {
+			viewGridBtn.addEventListener("click", () => {
+				activeView = "grid";
+				viewGridBtn.classList.add("active");
+				viewGridBtn.setAttribute("aria-pressed", "true");
+				viewListBtn.classList.remove("active");
+				viewListBtn.setAttribute("aria-pressed", "false");
+				renderPayments();
+			});
+		}
+
+		if (viewListBtn) {
+			viewListBtn.addEventListener("click", () => {
+				activeView = "list";
+				viewListBtn.classList.add("active");
+				viewListBtn.setAttribute("aria-pressed", "true");
+				viewGridBtn.classList.remove("active");
+				viewGridBtn.setAttribute("aria-pressed", "false");
+				renderPayments();
+			});
+		}
+	}
+
 	function bindEvents() {
 		if (openModalBtn) openModalBtn.addEventListener("click", openModal);
 		if (closeModalBtn) closeModalBtn.addEventListener("click", closeModal);
@@ -494,6 +542,7 @@
 		await loadCurrentUser();
 		initHeaderUser();
 		bindEvents();
+		bindFilterAndViewEvents();
 		await loadPayments();
 		renderPayments();
 		refreshIcons();
