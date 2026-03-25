@@ -201,12 +201,15 @@ document.addEventListener("DOMContentLoaded", () => {
       recommendationsList.innerHTML = `<li style="padding:1rem;color:var(--text-sub,#888);list-style:none;">No recommendations at this time. Your inventory is well stocked!</li>`;
       return;
     }
-    // Filter out items with undefined/null/zero/empty values for key fields
+    // Show low-stock items (except services with stock 0), and best-seller logic as before
     const filtered = list.filter(item => {
-      // Only show if name is defined and recommendedStock and reorderAmount are numbers and > 0
+      if (!item || typeof item.name !== "string" || item.name.trim() === "") return false;
+      // Exclude all services
+      if (item.product_type === "Services") return false;
+      // Show if lowStock (not service)
+      if (item.lowStock) return true;
+      // Show if best-seller logic
       return (
-        item &&
-        typeof item.name === "string" && item.name.trim() !== "" &&
         typeof item.recommendedStock === "number" && item.recommendedStock > 0 &&
         typeof item.reorderAmount === "number" && item.reorderAmount > 0
       );
@@ -220,8 +223,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <div><strong>${item.name}</strong></div>
         <div>Current Stock: <strong>${item.stock}</strong></div>
         <div>Sold (last ${state.period}d): <strong>${item.unitsSold}</strong></div>
-        <div>Recommended Stock: <strong>${item.recommendedStock}</strong></div>
-        <div style="color:#d83c6a;">Reorder: <strong>${item.reorderAmount}</strong> unit(s)</div>
+        <div>Recommended Stock: <strong>${item.recommendedStock !== null ? item.recommendedStock : "-"}</strong></div>
+        <div style="color:#d83c6a;">Reorder: <strong>${item.reorderAmount !== null ? item.reorderAmount : "-"}</strong> unit(s)</div>
       </li>
     `).join("");
   }
