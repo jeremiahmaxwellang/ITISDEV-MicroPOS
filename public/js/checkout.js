@@ -85,7 +85,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       state.cart = JSON.parse(cartData);
-      state.isDebt = state.cart.isDebt || false;
+      // If cart contains GCash Cash-In or Cash-Out, force isDebt to false
+      const containsGcashCash = state.cart.items && state.cart.items.some(item =>
+        item.name && (item.name.toLowerCase().includes('gcash cash-in') || item.name.toLowerCase().includes('gcash cash-out'))
+      );
+      if (containsGcashCash) {
+        state.isDebt = false;
+        state.cart.isDebt = false;
+      } else {
+        state.isDebt = state.cart.isDebt || false;
+      }
       return state.cart;
     } catch (err) {
       console.error("Error parsing cart:", err);
