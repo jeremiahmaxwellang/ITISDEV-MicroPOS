@@ -236,7 +236,16 @@ exports.searchCustomers = async (req, res) => {
 
 // Process a complete transaction
 exports.processTransaction = async (req, res) => {
-  const { items, customer_id = null, staff_id = null, payment_method = "Cash" } = req.body;
+  const {
+    items,
+    customer_id = null,
+    staff_id = null,
+    payment_method = "Cash",
+    gcash_reference = null,
+    gcash_customer_number = null,
+    gcash_customer_name = null,
+    gcash_proof_filename = null
+  } = req.body;
 
   if (!items || items.length === 0) {
     return res.status(400).json({ error: "Cart is empty" });
@@ -322,6 +331,21 @@ exports.processTransaction = async (req, res) => {
         await connection.query(
           `INSERT INTO debt_transactions (debt_id, transaction_id) VALUES (?, ?)`,
           [debtResult.insertId, transaction_id]
+        );
+      }
+
+      // If GCash, insert payment record
+      if (payment_method === "GCash") {
+        await connection.query(
+          `INSERT INTO payments (transaction_id, staff_id, amount_paid, payment_method, proof_of_payment, notes)
+           VALUES (?, ?, ?, 'GCash', ?, ?)`,
+          [
+            transaction_id,
+            staff_id || 1,
+            total_price,
+            gcash_proof_filename || null,
+            `Ref: ${gcash_reference || ''}; Name: ${gcash_customer_name || ''}; Number: ${gcash_customer_number || ''}`
+          ]
         );
       }
 
