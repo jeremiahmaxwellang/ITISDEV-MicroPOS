@@ -8,8 +8,12 @@ const path = require('path');
 const router = express.Router();
 
 const debtsController = require('../controllers/debtsController');
+const { requireStaffSession } = require('../middleware/auth');
 
 const viewsPath = path.join(__dirname, '../../views');
+
+// Protect all debt routes - require staff login
+router.use(requireStaffSession);
 
 // Controller
 router.get('/active', debtsController.getActiveDebts);
