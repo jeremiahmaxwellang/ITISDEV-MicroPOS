@@ -36,13 +36,13 @@ INSERT INTO `customers` (`first_name`, `last_name`, `phone_number`, `debt_limit`
 -- ─────────────────────────────────────────
 -- PRODUCTS
 -- ─────────────────────────────────────────
-INSERT INTO `products` (`name`, `product_type`, `selling_price`) VALUES
-('Softdrinks (330ml)',    'Beverages',    25.00),   -- product_id = 1
-('Rice (1kg)',            'Canned Goods', 55.00),   -- product_id = 2
-('Cooking Oil (500ml)',   'Canned Goods', 78.00),   -- product_id = 3
-('Instant Noodles',       'Instant Foods',15.00),   -- product_id = 4
-('Load / E-Load',         'Services',       10.00),   -- product_id = 5
-('Photocopy (per page)',  'Services',        3.00);   -- product_id = 6
+INSERT INTO `products` (`name`, `product_type`, `selling_price`, `photo`) VALUES
+('Softdrinks (330ml)',    'Beverages',    25.00, NULL),   -- product_id = 1
+('Rice (1kg)',            'Canned Goods', 55.00, '/uploads/product-photos/product-1774422315762-a11cbb68.jpg'),   -- product_id = 2
+('Cooking Oil (500ml)',   'Canned Goods', 78.00, '/uploads/product-photos/product-1774422092154-719198de.jpg'),   -- product_id = 3
+('Instant Noodles',       'Instant Foods',15.00, '/uploads/product-photos/product-1774422223277-d1401c11.png'),   -- product_id = 4
+('Load / E-Load',         'Services',       10.00, '/uploads/product-photos/product-1774422267145-a8724701.png'),   -- product_id = 5
+('Photocopy (per page)',  'Services',        3.00, NULL);   -- product_id = 6
 
 
 -- ─────────────────────────────────────────
