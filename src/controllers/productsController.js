@@ -34,30 +34,50 @@ exports.getPurchaseRecommendations = async (req, res) => {
 
     // 4. Build recommendations
     const recommendations = [];
+    // Add products with low stock (<= 5), regardless of sales
+    for (const row of stockRows) {
+      const product_id = row.product_id;
+      const stock = Number(row.stock) || 0;
+      if (stock <= 5) {
+        // Find sales info if available
+        const sale = salesRows.find(s => s.product_id === product_id) || { units_sold: 0, name: row.name };
+        recommendations.push({
+          product_id,
+          name: sale.name || row.name,
+          stock,
+          unitsSold: Number(sale.units_sold) || 0,
+          recommendedStock: null,
+          reorderAmount: null,
+          lowStock: true
+        });
+      }
+    }
+    // Add hot sellers with stock below recommended
     for (const sale of salesRows) {
       const product_id = sale.product_id;
       const unitsSold = Number(sale.units_sold) || 0;
-      if (unitsSold === 0) continue; // Not a hot seller
+      if (unitsSold === 0) continue;
       const stock = stockMap[product_id] || 0;
-      // Sales per day
       const salesPerDay = unitsSold / period;
-      // Recommended stock = salesPerDay * daysOfStock
       const recommendedStock = Math.ceil(salesPerDay * daysOfStock);
-      // If current stock is less than recommended, suggest reorder
-      if (stock < recommendedStock) {
+      if (stock < recommendedStock && stock > 5) { // avoid duplicate if already in low stock
         recommendations.push({
           product_id,
           name: sale.name,
           stock,
           unitsSold,
           recommendedStock,
-          reorderAmount: recommendedStock - stock
+          reorderAmount: recommendedStock - stock,
+          lowStock: false
         });
       }
     }
-
-    // Sort by reorder amount descending (most urgent first)
-    recommendations.sort((a, b) => b.reorderAmount - a.reorderAmount);
+    // Sort: low stock first, then by reorder amount descending
+    recommendations.sort((a, b) => {
+      if (a.lowStock && !b.lowStock) return -1;
+      if (!a.lowStock && b.lowStock) return 1;
+      return (b.reorderAmount || 0) - (a.reorderAmount || 0);
+    });
 
     res.json({ recommendations });
   } catch (err) {

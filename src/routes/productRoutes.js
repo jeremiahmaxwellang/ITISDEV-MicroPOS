@@ -1,8 +1,9 @@
-// Purchase recommendations for inventory insights
-router.get("/recommendations", productsController.getPurchaseRecommendations);
+
 const express = require("express");
 const path = require("path");
 const router = express.Router();
+
+
 
 const productsController = require("../controllers/productsController");
 const { requireStaffSession } = require("../middleware/auth");
