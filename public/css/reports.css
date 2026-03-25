@@ -1,3 +1,36 @@
+/* Purchase Recommendations */
+.recommendations-card h3 {
+  font-size: 1.5rem;
+  font-family: var(--font-head);
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+}
+
+.recommendations-list {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  padding: 0;
+}
+
+.recommendation-item {
+  border-radius: 14px;
+  background: var(--surface-soft);
+  border: 1px solid #eaecf2;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+}
+
+.recommendation-item > div {
+  min-width: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
 * {
   box-sizing: border-box;
   margin: 0;
