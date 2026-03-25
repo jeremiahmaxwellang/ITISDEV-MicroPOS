@@ -606,6 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveDebtBtn = document.getElementById('saveDebtBtn');
     if (saveDebtBtn) {
         saveDebtBtn.addEventListener('click', async () => {
+            const phone_number = document.getElementById('debtContact').value.trim();
             const totalDebt = parseFloat(document.getElementById('debtTotalAmount').value);
             const debt_due = document.getElementById('debtDueDate').value;
             const existingCustomerId = document.getElementById('selectedCustomerId').value;
@@ -630,6 +631,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const last_name = document.getElementById('last_name').value.trim();
                 if (!first_name || !last_name) {
                     alert('Please enter the customer name');
+                    return;
+                }
+                if (!phone_number) {
+                    alert('Phone number is required');
                     return;
                 }
                 payload.first_name = first_name;
