@@ -18,9 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
     quaggaDetectedHandler: null,
     lastScanMs: 0,
     audioCtx: null,
-    tax_rate: 0.0,
     debounceTimers: {},
-    allProducts: []
+    allProducts: [],
+    serviceProducts: [],
+    serviceMap: {
+      load: null,
+      cash: null
+    }
   };
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -47,12 +51,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // Cart
   const cartItems = document.getElementById("cartItems");
   const cartCount = document.getElementById("cartCount");
-  const subtotal = document.getElementById("subtotal");
-  const taxAmount = document.getElementById("taxAmount");
   const cartTotal = document.getElementById("cartTotal");
   const clearCartBtn = document.getElementById("clearCartBtn");
   const checkoutBtn = document.getElementById("checkoutBtn");
-  const listAsDebtBtn = document.getElementById("listAsDebtBtn");
+
+  // Services section
+  const openLoadServiceBtn = document.getElementById("openLoadServiceBtn");
+  const openCashServiceBtn = document.getElementById("openCashServiceBtn");
+  const servicesPanelHint = document.getElementById("servicesPanelHint");
+  const loadServiceModal = document.getElementById("loadServiceModal");
+  const closeLoadModalBtn = document.getElementById("closeLoadModalBtn");
+  const loadAmountInput = document.getElementById("loadAmountInput");
+  const loadNumberInput = document.getElementById("loadNumberInput");
+  const loadNameInput = document.getElementById("loadNameInput");
+  const submitLoadServiceBtn = document.getElementById("submitLoadServiceBtn");
+
+  const cashServiceModal = document.getElementById("cashServiceModal");
+  const closeCashModalBtn = document.getElementById("closeCashModalBtn");
+  const cashModeInput = document.getElementById("cashModeInput");
+  const cashAmountInput = document.getElementById("cashAmountInput");
+  const cashoutFeeInput = document.getElementById("cashoutFeeInput");
+  const submitCashServiceBtn = document.getElementById("submitCashServiceBtn");
 
   // Toast
   const messageToast = document.getElementById("messageToast");
@@ -159,24 +178,179 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function calculateTotals() {
-    let subtotalAmount = 0;
+    let total = 0;
     state.cart.forEach((item) => {
-      subtotalAmount += item.price * item.quantity;
+      total += item.price * item.quantity;
+      total += Number(item.presetLoadAmount) || 0;
     });
 
-    const tax = subtotalAmount * state.tax_rate;
-    const total = subtotalAmount + tax;
-
-    subtotal.textContent = formatPeso(subtotalAmount);
-    taxAmount.textContent = formatPeso(tax);
     cartTotal.textContent = formatPeso(total);
 
     const hasItems = state.cart.length > 0;
     checkoutBtn.disabled = !hasItems;
-    listAsDebtBtn.disabled = !hasItems;
 
     const itemCount = state.cart.reduce((sum, item) => sum + item.quantity, 0);
     cartCount.textContent = itemCount;
+  }
+
+  function getLineId(item) {
+    return item.lineId || item.id;
+  }
+
+  function setServiceButtonsState() {
+    if (openLoadServiceBtn) openLoadServiceBtn.disabled = !state.serviceMap.load;
+    if (openCashServiceBtn) openCashServiceBtn.disabled = !state.serviceMap.cash;
+
+    if (!servicesPanelHint) return;
+
+    if (!state.serviceMap.load && !state.serviceMap.cash) {
+      servicesPanelHint.textContent = "Please configure Load / E-Load and Cash-In / Cash-Out in Inventory Services panel.";
+    } else if (!state.serviceMap.load) {
+      servicesPanelHint.textContent = "Missing service config: Load / E-Load.";
+    } else if (!state.serviceMap.cash) {
+      servicesPanelHint.textContent = "Missing service config: Cash-In / Cash-Out.";
+    } else {
+      servicesPanelHint.textContent = "Service pricing comes from the Inventory Services panel.";
+    }
+  }
+
+  async function loadServiceConfig() {
+    try {
+      const response = await fetch("/products/api/services-config");
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Failed to load service config");
+
+      state.serviceMap.load = payload.load
+        ? {
+            id: payload.load.id,
+            name: payload.load.name,
+            price: Number(payload.load.price) || 0,
+            type: "Services"
+          }
+        : null;
+
+      state.serviceMap.cash = payload.cash
+        ? {
+            id: payload.cash.id,
+            name: payload.cash.name,
+            price: Number(payload.cash.price) || 0,
+            type: "Services"
+          }
+        : null;
+    } catch (err) {
+      console.error("Error loading service config:", err);
+      state.serviceMap.load = null;
+      state.serviceMap.cash = null;
+    }
+
+    setServiceButtonsState();
+  }
+
+  function openLoadModal() {
+    if (!state.serviceMap.load) {
+      showMessage("Load / E-Load service is not configured", "error");
+      return;
+    }
+
+    loadAmountInput.value = "";
+    loadNumberInput.value = "";
+    loadNameInput.value = "";
+    loadServiceModal.style.display = "flex";
+    loadAmountInput.focus();
+  }
+
+  function closeLoadModal() {
+    loadServiceModal.style.display = "none";
+  }
+
+  function openCashModal() {
+    if (!state.serviceMap.cash) {
+      showMessage("Cash-In / Cash-Out service is not configured", "error");
+      return;
+    }
+
+    cashModeInput.value = "Cash In";
+    cashAmountInput.value = "";
+    cashoutFeeInput.value = "0.00";
+    cashServiceModal.style.display = "flex";
+    cashModeInput.focus();
+  }
+
+  function closeCashModal() {
+    cashServiceModal.style.display = "none";
+  }
+
+  function recalculateCashoutFee() {
+    const amount = Number(cashAmountInput.value) || 0;
+    const mode = cashModeInput.value || "Cash In";
+    const fee = mode === "Cash Out" ? amount * 0.02 : 0;
+    cashoutFeeInput.value = fee.toFixed(2);
+  }
+
+  function submitLoadService() {
+    const service = state.serviceMap.load;
+    if (!service) return;
+
+    const amount = Number(loadAmountInput.value) || 0;
+    const number = String(loadNumberInput.value || "").trim();
+    const customerName = String(loadNameInput.value || "").trim();
+
+    if (amount <= 0) {
+      showMessage("Please enter a valid load price", "error");
+      return;
+    }
+    if (!number) {
+      showMessage("Please enter the number", "error");
+      return;
+    }
+    if (!customerName) {
+      showMessage("Please enter the customer name", "error");
+      return;
+    }
+
+    addToCart({
+      id: service.id,
+      lineId: `load-${Date.now()}`,
+      name: `Load • ${customerName} (${number})`,
+      price: Number(service.price) || 0,
+      stock: -1,
+      quantity: 1,
+      type: "Services",
+      isCustomService: true,
+      requiresLoadAmount: false,
+      presetLoadAmount: amount
+    });
+
+    closeLoadModal();
+  }
+
+  function submitCashService() {
+    const service = state.serviceMap.cash;
+    if (!service) return;
+
+    const mode = cashModeInput.value || "Cash In";
+    const amount = Number(cashAmountInput.value) || 0;
+    const fee = mode === "Cash Out" ? Number(cashoutFeeInput.value) || 0 : 0;
+
+    if (amount <= 0) {
+      showMessage("Please enter a valid amount", "error");
+      return;
+    }
+
+    addToCart({
+      id: service.id,
+      lineId: `cash-${Date.now()}`,
+      name: mode,
+      price: fee,
+      stock: -1,
+      quantity: 1,
+      type: "Services",
+      isCustomService: true,
+      requiresLoadAmount: false,
+      presetLoadAmount: amount
+    });
+
+    closeCashModal();
   }
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -199,7 +373,10 @@ document.addEventListener("DOMContentLoaded", () => {
           type: item.category,
           photo: item.photo || null
         }));
-        renderProducts(state.allProducts);
+        await loadServiceConfig();
+
+        const displayProducts = state.allProducts.filter((item) => item.type !== "Services");
+        renderProducts(displayProducts);
       }
     } catch (err) {
       console.error("Error loading products:", err);
@@ -246,7 +423,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showMessage("This product is out of stock", "error");
       return;
     }
-    addToCart({ id, name, price, stock });
+    addToCart({ id, name, price, stock, type: "Product" });
   };
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -254,17 +431,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // ═══════════════════════════════════════════════════════════════════════
 
   function addToCart(product) {
-    const existing = state.cart.find((item) => item.id === product.id);
+    const shouldMerge = !product.isCustomService;
+    const existing = shouldMerge
+      ? state.cart.find((item) => !item.isCustomService && item.id === product.id)
+      : null;
 
     if (existing) {
       existing.quantity += 1;
     } else {
       state.cart.push({
         id: product.id,
+        lineId: product.lineId || product.id,
         name: product.name,
         price: product.price,
         stock: product.stock,
-        quantity: 1
+        quantity: product.quantity || 1,
+        type: product.type || "Product",
+        isCustomService: Boolean(product.isCustomService),
+        serviceType: product.serviceType || null,
+        presetLoadAmount: Number(product.presetLoadAmount) || 0,
+        requiresLoadAmount: Boolean(product.requiresLoadAmount)
       });
     }
 
@@ -273,16 +459,19 @@ document.addEventListener("DOMContentLoaded", () => {
     showMessage(`Added ${product.name} to cart`, "success");
   }
 
-  function removeFromCart(productId) {
-    state.cart = state.cart.filter((item) => item.id !== productId);
+  function removeFromCart(lineId) {
+    state.cart = state.cart.filter((item) => String(getLineId(item)) !== String(lineId));
     renderCart();
     calculateTotals();
   }
 
-  function updateCartQuantity(productId, newQuantity) {
-    const item = state.cart.find((item) => item.id === productId);
+  function updateCartQuantity(lineId, newQuantity) {
+    const item = state.cart.find((entry) => String(getLineId(entry)) === String(lineId));
     if (item) {
-      newQuantity = Math.max(1, Math.min(newQuantity, item.stock));
+      const hasUnlimitedStock = item.stock === -1;
+      newQuantity = hasUnlimitedStock
+        ? Math.max(1, newQuantity)
+        : Math.max(1, Math.min(newQuantity, item.stock));
       item.quantity = newQuantity;
       renderCart();
       calculateTotals();
@@ -311,18 +500,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     cartItems.innerHTML = state.cart.map((item) => {
-      const itemTotal = item.price * item.quantity;
+      const lineId = getLineId(item);
+      const itemTotal = item.price * item.quantity + (Number(item.presetLoadAmount) || 0);
+      const quantityControls = `<div class="cart-item-qty">
+          <button onclick="window.updateQty('${lineId}', -1)">−</button>
+          <input type="number" value="${item.quantity}" readonly>
+          <button onclick="window.updateQty('${lineId}', 1)">+</button>
+        </div>`;
+
       return `
         <div class="cart-item">
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-row">
-            <div class="cart-item-qty">
-              <button onclick="window.updateQty(${item.id}, -1)">−</button>
-              <input type="number" value="${item.quantity}" readonly>
-              <button onclick="window.updateQty(${item.id}, 1)">+</button>
-            </div>
+            ${quantityControls}
             <div class="cart-item-price">${formatPeso(itemTotal)}</div>
-            <button class="cart-item-remove" onclick="window.removeItem(${item.id})">
+            <button class="cart-item-remove" onclick="window.removeItem('${lineId}')">
               <i data-lucide="x" style="width: 14px; height: 14px;"></i>
             </button>
           </div>
@@ -333,15 +525,15 @@ document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
   }
 
-  window.updateQty = function (productId, delta) {
-    const item = state.cart.find((item) => item.id === productId);
+  window.updateQty = function (lineId, delta) {
+    const item = state.cart.find((entry) => String(getLineId(entry)) === String(lineId));
     if (item) {
-      updateCartQuantity(productId, item.quantity + delta);
+      updateCartQuantity(lineId, item.quantity + delta);
     }
   };
 
-  window.removeItem = function (productId) {
-    removeFromCart(productId);
+  window.removeItem = function (lineId) {
+    removeFromCart(lineId);
   };
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -397,12 +589,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // ═══════════════════════════════════════════════════════════════════════
 
   function searchProducts(query) {
+    const browseItems = state.allProducts.filter((product) => product.type !== "Services");
+
     if (!query.trim()) {
-      renderProducts(state.allProducts);
+      renderProducts(browseItems);
       return;
     }
 
-    const filtered = state.allProducts.filter((product) =>
+    const filtered = browseItems.filter((product) =>
       product.name.toLowerCase().includes(query.toLowerCase()) ||
       (product.barcode && product.barcode.includes(query))
     );
@@ -602,21 +796,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "/pos/checkout";
   }
 
-  function proceedAsDebt() {
-    if (state.cart.length === 0) {
-      showMessage("Cart is empty", "error");
-      return;
-    }
-
-    sessionStorage.setItem("posCart", JSON.stringify({
-      items: state.cart,
-      subtotal: state.cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
-      isDebt: true
-    }));
-
-    window.location.href = "/pos/checkout";
-  }
-
   // ═══════════════════════════════════════════════════════════════════════
   // EVENT LISTENERS
   // ═══════════════════════════════════════════════════════════════════════
@@ -659,7 +838,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // Cart
   clearCartBtn.addEventListener("click", clearCart);
   checkoutBtn.addEventListener("click", proceedToCheckout);
-  listAsDebtBtn.addEventListener("click", proceedAsDebt);
+
+  if (openLoadServiceBtn) openLoadServiceBtn.addEventListener("click", openLoadModal);
+  if (openCashServiceBtn) openCashServiceBtn.addEventListener("click", openCashModal);
+  if (closeLoadModalBtn) closeLoadModalBtn.addEventListener("click", closeLoadModal);
+  if (closeCashModalBtn) closeCashModalBtn.addEventListener("click", closeCashModal);
+  if (submitLoadServiceBtn) submitLoadServiceBtn.addEventListener("click", submitLoadService);
+  if (submitCashServiceBtn) submitCashServiceBtn.addEventListener("click", submitCashService);
+  if (cashModeInput) cashModeInput.addEventListener("change", recalculateCashoutFee);
+  if (cashAmountInput) cashAmountInput.addEventListener("input", recalculateCashoutFee);
+
+  if (loadServiceModal) {
+    loadServiceModal.addEventListener("click", (event) => {
+      if (event.target === loadServiceModal) closeLoadModal();
+    });
+  }
+
+  if (cashServiceModal) {
+    cashServiceModal.addEventListener("click", (event) => {
+      if (event.target === cashServiceModal) closeCashModal();
+    });
+  }
 
   // Sidebar navigation
   const sidebarNavIcons = document.querySelectorAll(".sidebar-nav-icon[data-page]");

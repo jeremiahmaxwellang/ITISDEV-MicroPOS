@@ -9,7 +9,7 @@
   /** Nav items rendered in the main nav section */
   const NAV_ITEMS = [
     { href: '/pos',      icon: 'shopping-cart', label: 'Point of Sale' },
-    { href: '/products', icon: 'package',        label: 'Products'      },
+    { href: '/products', icon: 'package',        label: 'Inventory'     },
     { href: '/debts',    icon: 'file-text',      label: 'Debt Tracker'  },
     { href: '/transaction-verification', icon: 'badge-check', label: 'Transaction Verification' },
     { href: '/reports',  icon: 'bar-chart-2',    label: 'Reports', ownerOnly: true },

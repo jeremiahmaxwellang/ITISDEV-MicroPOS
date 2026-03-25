@@ -63,9 +63,6 @@
             <div id="loadTotalRow" style="display:none;justify-content:space-between;margin-bottom:0.5rem;font-size:0.9rem;color:#92400e;">
               <span>Load Amount</span><span id="loadTotalAmount">₱0.00</span>
             </div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem;font-size:0.9rem;color:#718096;">
-              <span>Tax</span><span id="taxAmount">₱0.00</span>
-            </div>
             <div style="display:flex;justify-content:space-between;font-size:1.25rem;font-weight:700;color:#4f46e5;padding-top:0.75rem;border-top:1px solid #e2e8f0;">
               <span>Total</span><span id="totalAmount">₱0.00</span>
             </div>
@@ -104,11 +101,23 @@
             </div>
             <!-- Utang Card — full width -->
             <div id="utangCard" onclick="selectPaymentMethod('Utang')"
-              style="border:2px solid #e2e8f0;background:white;border-radius:0.75rem;padding:1rem;cursor:pointer;display:flex;align-items:center;gap:1rem;transition:all 0.2s;">
+              style="border:2px solid #e2e8f0;background:white;border-radius:0.75rem;padding:1rem;cursor:pointer;display:flex;align-items:center;gap:1rem;transition:all 0.2s;margin-bottom:0.75rem;">
               <i data-lucide="clock" class="pay-icon" style="width:28px;height:28px;color:#718096;flex-shrink:0;"></i>
               <div style="flex:1;">
                 <div class="pay-label" style="font-weight:600;color:#718096;font-size:0.95rem;">Utang (I Owe You)</div>
-                <div style="font-size:0.75rem;color:#a0aec0;margin-top:0.1rem;">Record as customer debt</div>
+                <div style="font-size:0.75rem;color:#a0aec0;margin-top:0.1rem;">Record as full customer debt</div>
+              </div>
+              <div class="pay-check" style="display:none;">
+                <i data-lucide="check-circle" style="width:20px;height:20px;color:#4f46e5;"></i>
+              </div>
+            </div>
+            <!-- Partial Utang Card — full width -->
+            <div id="partialCard" onclick="selectPaymentMethod('Partial')"
+              style="border:2px solid #e2e8f0;background:white;border-radius:0.75rem;padding:1rem;cursor:pointer;display:flex;align-items:center;gap:1rem;transition:all 0.2s;">
+              <i data-lucide="split" class="pay-icon" style="width:28px;height:28px;color:#718096;flex-shrink:0;"></i>
+              <div style="flex:1;">
+                <div class="pay-label" style="font-weight:600;color:#718096;font-size:0.95rem;">Partial / Split Payment</div>
+                <div style="font-size:0.75rem;color:#a0aec0;margin-top:0.1rem;">Pay part now, rest becomes debt</div>
               </div>
               <div class="pay-check" style="display:none;">
                 <i data-lucide="check-circle" style="width:20px;height:20px;color:#4f46e5;"></i>
@@ -148,46 +157,17 @@
               style="width:100%;padding:0.875rem;background:#3b82f6;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.5rem;font-size:0.9rem;">
               <i data-lucide="qr-code" style="width:18px;height:18px;"></i> Show QR Code
             </button>
-            <button id="gcashReceivedBtn" onclick="markGcashReceived()"
+            <button onclick="openGcashModal()"
               style="width:100%;padding:0.875rem;background:#38a169;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;font-size:0.9rem;">
-              <i data-lucide="check" style="width:18px;height:18px;"></i> Payment Received - Enter Details
+              <i data-lucide="check" style="width:18px;height:18px;"></i> Payment Received — Enter Details
             </button>
-          </div>
-
-          <!-- GCash reference inputs (shown after "Payment Received") -->
-          <div id="gcashDetailsBox" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;display:none;">
-            <h3 style="font-size:0.95rem;font-weight:700;color:#1a2035;margin-bottom:1rem;">GCash Details</h3>
-            <div style="display:flex;flex-direction:column;gap:0.75rem;">
-              <div>
-                <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Reference Number *</label>
-                <input type="text" id="gcashReference" placeholder="e.g. 1234567890"
-                  style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;">
+            <!-- GCash saved-details summary (shown after modal confirmed) -->
+            <div id="gcashSummary" style="display:none;margin-top:1rem;padding:0.75rem;background:#f0fdf4;border:1px solid #86efac;border-radius:0.5rem;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+                <span style="font-weight:600;color:#166534;font-size:0.875rem;">GCash Details Saved</span>
+                <button onclick="openGcashModal()" style="background:none;border:none;cursor:pointer;color:#4f46e5;font-size:0.8rem;font-weight:600;text-decoration:underline;padding:0;">Edit</button>
               </div>
-              <div>
-                <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Customer GCash Number</label>
-                <input type="text" id="gcashCustomerNumber" placeholder="09XX XXX XXXX"
-                  style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;">
-              </div>
-              <div>
-                <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Customer Name</label>
-                <input type="text" id="gcashCustomerName" placeholder="Name on receipt"
-                  style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;">
-              </div>
-              <!-- QR screenshot upload -->
-              <div>
-                <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Screenshot Proof</label>
-                <label for="gcashQRUpload" id="qrUploadLabel" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border:1.5px dashed #e2e8f0;border-radius:0.375rem;cursor:pointer;color:#718096;font-size:0.875rem;transition:border-color 0.2s;" onmouseover="this.style.borderColor='#4f46e5'" onmouseout="this.style.borderColor='#e2e8f0'">
-                  <i data-lucide="upload" style="width:18px;height:18px;"></i>
-                  <span id="uploadLabel">Click to upload GCash screenshot</span>
-                </label>
-                <input type="file" id="gcashQRUpload" accept="image/*" style="display:none;">
-                <div id="qrPreview" style="display:none;margin-top:0.5rem;position:relative;">
-                  <img id="qrImage" style="width:100%;border-radius:0.375rem;border:1px solid #e2e8f0;" alt="GCash proof">
-                  <button onclick="removeQR()" style="position:absolute;top:0.4rem;right:0.4rem;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:0.25rem;padding:0.3rem 0.5rem;cursor:pointer;font-size:0.75rem;display:flex;align-items:center;gap:0.25rem;">
-                    <i data-lucide="x" style="width:13px;height:13px;"></i>
-                  </button>
-                </div>
-              </div>
+              <div id="gcashSummaryText" style="font-size:0.8rem;color:#166534;"></div>
             </div>
           </div>
 
@@ -199,6 +179,30 @@
               style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:0.9rem;box-sizing:border-box;">
             <div id="customerResults"></div>
             <div id="selectedCustomerDisplay" style="display:none;"></div>
+          </div>
+
+          <!-- Partial payment box (hidden by default) -->
+          <div id="partialBox" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;display:none;">
+            <h3 style="font-size:0.95rem;font-weight:700;color:#1a2035;margin-bottom:0.75rem;">Split / Partial Payment</h3>
+            <div style="font-size:0.8rem;color:#718096;margin-bottom:1rem;">Select the customer who will carry the remaining debt.</div>
+            <input type="text" id="partialCustomerSearch" placeholder="Search customer by name or phone…"
+              oninput="searchPartialCustomers(this.value)"
+              style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:0.9rem;box-sizing:border-box;margin-bottom:0.5rem;">
+            <div id="partialCustomerResults"></div>
+            <div id="partialSelectedCustomerDisplay" style="display:none;"></div>
+            <div style="margin-top:1rem;">
+              <label style="display:block;font-weight:600;color:#1a2035;margin-bottom:0.3rem;font-size:0.9rem;">Amount Paid Upfront (₱) *</label>
+              <input type="number" id="partialAmountPaid" placeholder="0.00" step="0.01" min="0"
+                oninput="updatePartialDebt()"
+                style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:1rem;box-sizing:border-box;">
+            </div>
+            <div id="partialDebtDisplay" style="display:none;margin-top:0.75rem;padding:0.75rem;border-radius:0.5rem;background:#fef2f2;border:1px solid #fecaca;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-weight:600;color:#991b1b;font-size:0.9rem;">Remaining Debt</span>
+                <span id="partialDebtAmount" style="font-weight:700;font-size:1.125rem;color:#991b1b;">₱0.00</span>
+              </div>
+              <div style="font-size:0.75rem;color:#991b1b;margin-top:0.25rem;">This amount will be recorded as customer debt.</div>
+            </div>
           </div>
 
           <!-- Confirm Payment button -->
@@ -213,6 +217,63 @@
             Processing payment…
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GCASH DETAILS MODAL -->
+  <div id="gcashModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:white;border-radius:1rem;padding:0;max-width:440px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.3);overflow:hidden;">
+      <div style="padding:1.25rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="font-size:1rem;font-weight:700;color:#1a2035;margin:0;display:flex;align-items:center;gap:0.5rem;">
+          <i data-lucide="smartphone" style="width:18px;height:18px;color:#3b82f6;"></i> GCash Payment Details
+        </h3>
+        <button onclick="closeGcashModal()" style="background:none;border:none;cursor:pointer;color:#718096;display:flex;padding:0.25rem;">
+          <i data-lucide="x" style="width:20px;height:20px;"></i>
+        </button>
+      </div>
+      <div style="padding:1.5rem;display:flex;flex-direction:column;gap:0.875rem;">
+        <div>
+          <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Reference Number *</label>
+          <input type="text" id="gcashReference" placeholder="e.g. 1234567890"
+            style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;font-size:0.95rem;"
+            oninput="updateConfirmBtn()">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Account Name *</label>
+          <input type="text" id="gcashCustomerName" placeholder="Name on GCash account"
+            style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;font-size:0.95rem;"
+            oninput="updateConfirmBtn()">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">GCash Number <span style="font-weight:400;color:#718096;">(optional)</span></label>
+          <input type="text" id="gcashCustomerNumber" placeholder="09XX XXX XXXX"
+            style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;font-size:0.95rem;">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Screenshot Proof *</label>
+          <label for="gcashQRUpload" id="qrUploadLabel" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border:1.5px dashed #e2e8f0;border-radius:0.375rem;cursor:pointer;color:#718096;font-size:0.875rem;transition:border-color 0.2s;" onmouseover="this.style.borderColor='#4f46e5'" onmouseout="this.style.borderColor='#e2e8f0'">
+            <i data-lucide="upload" style="width:18px;height:18px;"></i>
+            <span id="uploadLabel">Click to upload GCash screenshot</span>
+          </label>
+          <input type="file" id="gcashQRUpload" accept="image/*" style="display:none;">
+          <div id="qrPreview" style="display:none;margin-top:0.5rem;position:relative;">
+            <img id="qrImage" style="width:100%;border-radius:0.375rem;border:1px solid #e2e8f0;" alt="GCash proof">
+            <button onclick="removeQR()" style="position:absolute;top:0.4rem;right:0.4rem;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:0.25rem;padding:0.3rem 0.5rem;cursor:pointer;font-size:0.75rem;display:flex;align-items:center;gap:0.25rem;">
+              <i data-lucide="x" style="width:13px;height:13px;"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div style="padding:1rem 1.5rem;border-top:1px solid #e2e8f0;display:flex;gap:0.75rem;justify-content:flex-end;">
+        <button onclick="closeGcashModal()"
+          style="padding:0.75rem 1.25rem;background:white;border:1px solid #e2e8f0;color:#1a2035;border-radius:0.375rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;">
+          Cancel
+        </button>
+        <button id="confirmGcashBtn" onclick="confirmGcashDetails()"
+          style="padding:0.75rem 1.25rem;background:#38a169;color:white;border:none;border-radius:0.375rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:0.5rem;">
+          <i data-lucide="check" style="width:16px;height:16px;"></i> Confirm Details
+        </button>
       </div>
     </div>
   </div>
@@ -261,18 +322,30 @@
   </div>
 
   <script>
-    const TAX_RATE = 0;
     let state = {
       cart: null,
       paymentMethod: 'Cash',
       gcashQRImage: null,
       gcashReceived: false,
+      gcashDetails: null,    // { reference, customerName, customerNumber, proofFilename }
       loadAmounts: {},       // { product_id: amount }
-      selectedCustomer: null // { customer_id, name, phone }
+      selectedCustomer: null,        // for Utang full debt
+      partialSelectedCustomer: null  // for Partial / Split payment
     };
 
     function formatPeso(v) {
       return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(v);
+    }
+
+    function getLineKey(item) {
+      return item.lineId || item.id;
+    }
+
+    function requiresLoadAmount(item) {
+      if ((parseFloat(item?.presetLoadAmount) || 0) > 0) return false;
+      if (item && item.requiresLoadAmount === true) return true;
+      const name = String(item && item.name ? item.name : '').toLowerCase();
+      return /cash\s*in|cash\s*out|load|e-?load|gcash|maya/.test(name);
     }
 
     function loadCart() {
@@ -280,6 +353,17 @@
       if (!raw) { alert('No cart data. Redirecting…'); window.location.href = '/pos'; return null; }
       try {
         state.cart = JSON.parse(raw);
+
+        if (state.cart && Array.isArray(state.cart.items)) {
+          state.cart.items.forEach((item) => {
+            const key = getLineKey(item);
+            const preset = parseFloat(item.presetLoadAmount) || 0;
+            if (preset > 0) {
+              state.loadAmounts[key] = preset;
+            }
+          });
+        }
+
         return state.cart;
       } catch (e) {
         alert('Invalid cart data. Redirecting…');
@@ -292,6 +376,7 @@
       if (!state.cart || !state.cart.items) return;
       const list = document.getElementById('orderItemsList');
       list.innerHTML = state.cart.items.map(item => `
+        ${(() => { const lineKey = getLineKey(item); return `
         <div style="display:flex;align-items:center;gap:1rem;padding:0.75rem;background:#f8fafc;border-radius:0.5rem;">
           <div style="width:56px;height:56px;background:linear-gradient(135deg,#f0f4ff,#edf2f7);border-radius:0.5rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i data-lucide="${item.type === 'Services' ? 'smartphone' : 'package'}" style="width:24px;height:24px;color:#4f46e5;opacity:0.6;"></i>
@@ -302,21 +387,22 @@
           </div>
           <div style="font-weight:700;color:#1a2035;">₱${(item.price * item.quantity).toFixed(2)}</div>
         </div>
-        ${(item.type === 'Services' || item.stock === -1) ? `
+        ${(item.type === 'Services' || item.stock === -1) && requiresLoadAmount(item) ? `
         <div style="margin-top:0.4rem;padding:0.75rem;background:#fffbeb;border:1px solid #fde68a;border-radius:0.5rem;">
           <label style="display:block;font-size:0.8rem;font-weight:600;color:#92400e;margin-bottom:0.4rem;">
-            Load Amount (₱) — actual amount the customer is loading
+            Service Amount (₱) — amount handled by this service
           </label>
-          <input type="number" id="load_${item.id}" placeholder="e.g. 50.00" min="0" step="0.01"
-            oninput="updateLoadAmount(${item.id}, this.value)"
+          <input type="number" id="load_${lineKey}" value="${(parseFloat(state.loadAmounts[lineKey]) || 0) > 0 ? (parseFloat(state.loadAmounts[lineKey]) || 0).toFixed(2) : ''}" placeholder="e.g. 50.00" min="0" step="0.01"
+            oninput="updateLoadAmount('${lineKey}', this.value)"
             style="width:100%;padding:0.5rem 0.75rem;border:1px solid #fcd34d;border-radius:0.375rem;font-family:Outfit,sans-serif;font-size:0.9rem;box-sizing:border-box;outline:none;">
         </div>` : ''}
+      `; })()}
       `).join('');
       lucide.createIcons();
     }
 
-    function updateLoadAmount(productId, value) {
-      state.loadAmounts[productId] = parseFloat(value) || 0;
+    function updateLoadAmount(lineKey, value) {
+      state.loadAmounts[lineKey] = parseFloat(value) || 0;
       calculateTotals();
       updateConfirmBtn();
     }
@@ -325,10 +411,8 @@
       if (!state.cart) return { total: 0 };
       const subtotal = state.cart.subtotal || 0;
       const loadTotal = Object.values(state.loadAmounts).reduce((s, v) => s + (parseFloat(v) || 0), 0);
-      const tax = subtotal * TAX_RATE;
-      const total = subtotal + tax + loadTotal;
+      const total = subtotal + loadTotal;
       document.getElementById('subtotalAmount').textContent = formatPeso(subtotal);
-      document.getElementById('taxAmount').textContent = formatPeso(tax);
       document.getElementById('totalAmount').textContent = formatPeso(total);
       const loadRow = document.getElementById('loadTotalRow');
       if (loadRow) {
@@ -337,14 +421,15 @@
       }
       document.getElementById('gcashAmountDisplay').textContent = formatPeso(total);
       document.getElementById('qrModalAmount').textContent = formatPeso(total);
-      return { subtotal, tax, loadTotal, total };
+      return { subtotal, loadTotal, total };
     }
 
     function selectPaymentMethod(method) {
       state.paymentMethod = method;
 
-      ['Cash', 'GCash', 'Utang'].forEach(m => {
+      ['Cash', 'GCash', 'Utang', 'Partial'].forEach(m => {
         const card = document.getElementById(m.toLowerCase() + 'Card');
+        if (!card) return;
         const active = m === method;
         card.style.border = active ? '2px solid #4f46e5' : '2px solid #e2e8f0';
         card.style.background = active ? '#f0f4ff' : 'white';
@@ -355,10 +440,18 @@
 
       document.getElementById('cashInputBox').style.display = method === 'Cash' ? 'block' : 'none';
       document.getElementById('gcashInputBox').style.display = method === 'GCash' ? 'block' : 'none';
-      document.getElementById('gcashDetailsBox').style.display = 'none';
       document.getElementById('utangBox').style.display = method === 'Utang' ? 'block' : 'none';
-      state.gcashReceived = false;
+      document.getElementById('partialBox').style.display = method === 'Partial' ? 'block' : 'none';
+
+      if (method !== 'GCash') { state.gcashReceived = false; state.gcashDetails = null; }
       if (method !== 'Utang') state.selectedCustomer = null;
+      if (method !== 'Partial') state.partialSelectedCustomer = null;
+
+      // Auto-open GCash modal when GCash is selected
+      if (method === 'GCash') {
+        document.getElementById('gcashSummary').style.display = 'none';
+        openGcashModal();
+      }
 
       updateConfirmBtn();
     }
@@ -370,12 +463,13 @@
 
       // All service items must have a load amount entered
       const serviceItems = state.cart ? state.cart.items.filter(i => i.type === 'Services' || i.stock === -1) : [];
-      const loadAmountsValid = serviceItems.every(i => (parseFloat(state.loadAmounts[i.id]) || 0) > 0);
+      const serviceItemsWithAmount = serviceItems.filter(requiresLoadAmount);
+      const loadAmountsValid = serviceItemsWithAmount.every(i => (parseFloat(state.loadAmounts[getLineKey(i)]) || 0) > 0);
 
       if (state.paymentMethod === 'Cash') {
         const paid = parseFloat(document.getElementById('amountPaid').value) || 0;
         const hasCashCustomerName = document.getElementById('cashCustomerName').value.trim() !== '';
-        canPay = hasCashCustomerName && paid >= total && (serviceItems.length === 0 || loadAmountsValid);
+        canPay = hasCashCustomerName && paid >= total && (serviceItemsWithAmount.length === 0 || loadAmountsValid);
         const changeDiv = document.getElementById('changeDisplay');
         if (paid > 0) {
           const change = paid - total;
@@ -389,11 +483,12 @@
           changeDiv.style.display = 'none';
         }
       } else if (state.paymentMethod === 'GCash') {
-        const hasScreenshot = !!(document.getElementById('gcashQRUpload').files || [])[0];
-        const hasGcashName = document.getElementById('gcashCustomerName').value.trim() !== '';
-        canPay = state.gcashReceived && document.getElementById('gcashReference').value.trim() !== '' && hasGcashName && hasScreenshot && (serviceItems.length === 0 || loadAmountsValid);
+        canPay = state.gcashReceived && !!state.gcashDetails && (serviceItemsWithAmount.length === 0 || loadAmountsValid);
       } else if (state.paymentMethod === 'Utang') {
-        canPay = !!state.selectedCustomer && (serviceItems.length === 0 || loadAmountsValid);
+        canPay = !!state.selectedCustomer && (serviceItemsWithAmount.length === 0 || loadAmountsValid);
+      } else if (state.paymentMethod === 'Partial') {
+        const paid = parseFloat(document.getElementById('partialAmountPaid').value) || 0;
+        canPay = !!state.partialSelectedCustomer && paid > 0 && paid < total && (serviceItemsWithAmount.length === 0 || loadAmountsValid);
       }
 
       btn.disabled = !canPay;
@@ -406,11 +501,41 @@
       lucide.createIcons();
     }
 
-    function markGcashReceived() {
-      state.gcashReceived = true;
-      document.getElementById('gcashDetailsBox').style.display = 'block';
-      document.getElementById('gcashReference').focus();
+    function openGcashModal() {
+      document.getElementById('gcashModal').style.display = 'flex';
       lucide.createIcons();
+      setTimeout(() => document.getElementById('gcashReference').focus(), 50);
+    }
+
+    function closeGcashModal() {
+      document.getElementById('gcashModal').style.display = 'none';
+      // If no details saved yet and modal cancelled, revert to Cash
+      if (!state.gcashReceived) selectPaymentMethod('Cash');
+    }
+
+    function confirmGcashDetails() {
+      const ref = document.getElementById('gcashReference').value.trim();
+      const name = document.getElementById('gcashCustomerName').value.trim();
+      const hasScreenshot = !!(document.getElementById('gcashQRUpload').files || [])[0];
+
+      if (!ref) { alert('Reference Number is required.'); return; }
+      if (!name) { alert('Account Name is required.'); return; }
+      if (!hasScreenshot) { alert('Please upload the GCash screenshot proof.'); return; }
+
+      state.gcashReceived = true;
+      state.gcashDetails = {
+        reference: ref,
+        customerName: name,
+        customerNumber: document.getElementById('gcashCustomerNumber').value.trim()
+      };
+
+      // Show summary
+      const summaryText = `Ref: ${ref} · Name: ${name}` +
+        (state.gcashDetails.customerNumber ? ` · #${state.gcashDetails.customerNumber}` : '');
+      document.getElementById('gcashSummaryText').textContent = summaryText;
+      document.getElementById('gcashSummary').style.display = 'block';
+
+      document.getElementById('gcashModal').style.display = 'none';
       updateConfirmBtn();
     }
 
@@ -420,6 +545,66 @@
       document.getElementById('qrUploadLabel').style.display = 'flex';
       document.getElementById('gcashQRUpload').value = '';
       document.getElementById('uploadLabel').textContent = 'Click to upload GCash screenshot';
+      updateConfirmBtn();
+    }
+
+    async function searchPartialCustomers(query) {
+      const resultsDiv = document.getElementById('partialCustomerResults');
+      if (!query.trim()) { resultsDiv.innerHTML = ''; return; }
+      try {
+        const res = await fetch(`/pos/api/customers?search=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if (data.customers && data.customers.length > 0) {
+          resultsDiv.innerHTML = `<div style="border:1px solid #e2e8f0;border-radius:0.5rem;overflow:hidden;margin-top:0.4rem;">` +
+            data.customers.map(c => `
+              <div onclick="selectPartialCustomer(${c.customer_id}, '${(c.first_name + ' ' + c.last_name).replace(/'/g, "\\'")}', '${(c.phone_number || '').replace(/'/g, "\\'")}')"
+                style="padding:0.6rem 0.75rem;cursor:pointer;border-bottom:1px solid #f0f0f0;background:white;"
+                onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                <div style="font-weight:600;font-size:0.875rem;color:#1a2035;">${c.first_name} ${c.last_name}</div>
+                ${c.phone_number ? `<div style="font-size:0.75rem;color:#718096;">${c.phone_number}</div>` : ''}
+              </div>
+            `).join('') + `</div>`;
+        } else {
+          resultsDiv.innerHTML = '<div style="padding:0.6rem;color:#718096;font-size:0.875rem;margin-top:0.4rem;">No customers found</div>';
+        }
+      } catch (e) { resultsDiv.innerHTML = ''; }
+    }
+
+    function selectPartialCustomer(id, name, phone) {
+      state.partialSelectedCustomer = { customer_id: id, name, phone };
+      document.getElementById('partialCustomerSearch').value = '';
+      document.getElementById('partialCustomerResults').innerHTML = '';
+      const display = document.getElementById('partialSelectedCustomerDisplay');
+      display.style.display = 'block';
+      display.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem;background:#f0fdf4;border:1px solid #86efac;border-radius:0.5rem;margin-top:0.5rem;">
+          <div>
+            <div style="font-weight:600;color:#166534;font-size:0.9rem;">${name}</div>
+            ${phone ? `<div style="font-size:0.75rem;color:#166534;">${phone}</div>` : ''}
+          </div>
+          <button onclick="clearPartialCustomer()" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:1.25rem;line-height:1;padding:0.25rem;">×</button>
+        </div>`;
+      updateConfirmBtn();
+    }
+
+    function clearPartialCustomer() {
+      state.partialSelectedCustomer = null;
+      document.getElementById('partialSelectedCustomerDisplay').style.display = 'none';
+      document.getElementById('partialSelectedCustomerDisplay').innerHTML = '';
+      updateConfirmBtn();
+    }
+
+    function updatePartialDebt() {
+      const { total } = calculateTotals();
+      const paid = parseFloat(document.getElementById('partialAmountPaid').value) || 0;
+      const debtDisplay = document.getElementById('partialDebtDisplay');
+      if (paid > 0 && paid < total) {
+        const remaining = total - paid;
+        document.getElementById('partialDebtAmount').textContent = formatPeso(remaining);
+        debtDisplay.style.display = 'block';
+      } else {
+        debtDisplay.style.display = 'none';
+      }
       updateConfirmBtn();
     }
 
@@ -499,30 +684,35 @@
         let gcashProofFilename = null;
         if (state.paymentMethod === 'GCash') {
           const gcashProofFile = (document.getElementById('gcashQRUpload').files || [])[0] || null;
-          if (!gcashProofFile) {
-            throw new Error('Please upload the GCash screenshot proof before confirming payment.');
-          }
+          if (!gcashProofFile) throw new Error('Please upload the GCash screenshot proof before confirming payment.');
           gcashProofFilename = await uploadProofImage(gcashProofFile);
         }
+
+        const { total } = calculateTotals();
+        const isPartial = state.paymentMethod === 'Partial';
+        const partialAmountPaid = isPartial ? (parseFloat(document.getElementById('partialAmountPaid').value) || 0) : null;
 
         const body = {
           items: state.cart.items.map(i => ({
             product_id: i.id,
             quantity: i.quantity,
-            load_amount: (i.type === 'Services' || i.stock === -1) ? (parseFloat(state.loadAmounts[i.id]) || 0) : 0
+            load_amount: (i.type === 'Services' || i.stock === -1)
+              ? (parseFloat(state.loadAmounts[getLineKey(i)]) || parseFloat(i.presetLoadAmount) || 0)
+              : 0
           })),
           payment_method: state.paymentMethod,
-          customer_id: state.selectedCustomer ? state.selectedCustomer.customer_id : null,
+          customer_id: isPartial
+            ? (state.partialSelectedCustomer ? state.partialSelectedCustomer.customer_id : null)
+            : (state.selectedCustomer ? state.selectedCustomer.customer_id : null),
           staff_id: null,
           customer_name: state.paymentMethod === 'Cash'
             ? document.getElementById('cashCustomerName').value.trim()
             : (state.selectedCustomer ? state.selectedCustomer.name : null),
-          gcash_reference: state.paymentMethod === 'GCash' ? document.getElementById('gcashReference').value.trim() : null,
-          gcash_customer_number: state.paymentMethod === 'GCash' ? document.getElementById('gcashCustomerNumber').value.trim() : null,
-          gcash_customer_name: state.paymentMethod === 'GCash'
-            ? document.getElementById('gcashCustomerName').value.trim()
-            : null,
-          gcash_proof_filename: state.paymentMethod === 'GCash' ? gcashProofFilename : null
+          gcash_reference: state.paymentMethod === 'GCash' ? (state.gcashDetails?.reference || null) : null,
+          gcash_customer_number: state.paymentMethod === 'GCash' ? (state.gcashDetails?.customerNumber || null) : null,
+          gcash_customer_name: state.paymentMethod === 'GCash' ? (state.gcashDetails?.customerName || null) : null,
+          gcash_proof_filename: state.paymentMethod === 'GCash' ? gcashProofFilename : null,
+          amount_paid: partialAmountPaid
         };
 
         const res = await fetch('/pos/api/checkout', {
@@ -535,7 +725,8 @@
         if (!res.ok) throw new Error(data.error || 'Transaction failed');
 
         sessionStorage.removeItem('posCart');
-        document.getElementById('successTitle').textContent = state.paymentMethod === 'Utang' ? 'Utang Recorded!' : 'Payment Successful!';
+        const titles = { Utang: 'Utang Recorded!', Partial: 'Split Payment Recorded!' };
+        document.getElementById('successTitle').textContent = titles[state.paymentMethod] || 'Payment Successful!';
         document.getElementById('transactionId').textContent = `Transaction #${data.transaction_id} • Total: ${formatPeso(data.total_price)}`;
         document.getElementById('successOverlay').style.display = 'flex';
         lucide.createIcons();
@@ -560,9 +751,6 @@
 
       document.getElementById('amountPaid').addEventListener('input', updateConfirmBtn);
       document.getElementById('cashCustomerName').addEventListener('input', updateConfirmBtn);
-      document.getElementById('gcashReference').addEventListener('input', updateConfirmBtn);
-      document.getElementById('gcashCustomerNumber').addEventListener('input', updateConfirmBtn);
-      document.getElementById('gcashCustomerName').addEventListener('input', updateConfirmBtn);
 
       document.getElementById('gcashQRUpload').addEventListener('change', function(e) {
         const file = e.target.files[0];
