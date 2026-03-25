@@ -187,7 +187,21 @@ document.addEventListener("DOMContentLoaded", () => {
       recommendationsList.innerHTML = `<li style="padding:1rem;color:var(--text-sub,#888);list-style:none;">No recommendations at this time. Your inventory is well stocked!</li>`;
       return;
     }
-    recommendationsList.innerHTML = list.map(item => `
+    // Filter out items with undefined/null/zero/empty values for key fields
+    const filtered = list.filter(item => {
+      // Only show if name is defined and recommendedStock and reorderAmount are numbers and > 0
+      return (
+        item &&
+        typeof item.name === "string" && item.name.trim() !== "" &&
+        typeof item.recommendedStock === "number" && item.recommendedStock > 0 &&
+        typeof item.reorderAmount === "number" && item.reorderAmount > 0
+      );
+    });
+    if (filtered.length === 0) {
+      recommendationsList.innerHTML = `<li style="padding:1rem;color:var(--text-sub,#888);list-style:none;">No recommendations at this time. Your inventory is well stocked!</li>`;
+      return;
+    }
+    recommendationsList.innerHTML = filtered.map(item => `
       <li class="recommendation-item">
         <div><strong>${item.name}</strong></div>
         <div>Current Stock: <strong>${item.stock}</strong></div>
@@ -250,15 +264,21 @@ document.addEventListener("DOMContentLoaded", () => {
     renderMetrics(metrics);
     syncLayoutByTab();
 
-    if (state.activeTab === "products") {
+    // Hide recommendations card if recommendations are undefined
+    if (state.activeTab === "recommendations") {
+      if (typeof state.recommendations === "undefined") {
+        recommendationsCard.hidden = true;
+      } else {
+        recommendationsCard.hidden = false;
+        renderRecommendations(state.recommendations);
+      }
+    } else if (state.activeTab === "products") {
       renderHighlight(highlight);
       renderTopList(topProducts);
     } else if (state.activeTab === "categories") {
       renderCategoryPieChart(categories);
     } else if (state.activeTab === "forecast") {
       renderForecast(state.forecast);
-    } else if (state.activeTab === "recommendations") {
-      renderRecommendations(state.recommendations);
     }
   }
 
