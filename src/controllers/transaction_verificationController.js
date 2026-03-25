@@ -60,7 +60,7 @@ exports.uploadPaymentProof = async (req, res) => {
 exports.getPaymentProofs = async (req, res) => {
 	try {
 		const [rows] = await mySqlPool.query(
-			`SELECT proof_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url, created_at
+			`SELECT proof_id, transaction_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url, created_at
 			 FROM payment_proofs
 			 ORDER BY created_at DESC`,
 			[]
@@ -75,10 +75,14 @@ exports.getPaymentProofs = async (req, res) => {
 
 exports.createPaymentProof = async (req, res) => {
 	const staffId = req.session.user.staff_id;
-	const { customerName, gcashNumber, amountPaid, datePaid, imageUrl } = req.body;
+	const { transactionId, customerName, gcashNumber, amountPaid, datePaid, imageUrl } = req.body;
 
-	if (!customerName || !gcashNumber || !amountPaid || !datePaid || !imageUrl) {
+	if (!transactionId || !customerName || !gcashNumber || !amountPaid || !datePaid || !imageUrl) {
 		return res.status(400).json({ message: "All fields are required." });
+	}
+
+	if (!Number.isInteger(Number(transactionId)) || Number(transactionId) <= 0) {
+		return res.status(400).json({ message: "A valid transaction ID is required." });
 	}
 
 	if (!Number.isFinite(Number(amountPaid)) || Number(amountPaid) <= 0) {
@@ -86,11 +90,20 @@ exports.createPaymentProof = async (req, res) => {
 	}
 
 	try {
+		const [txRows] = await mySqlPool.query(
+			"SELECT transaction_id FROM transactions WHERE transaction_id = ? LIMIT 1",
+			[Number(transactionId)]
+		);
+
+		if (!txRows.length) {
+			return res.status(400).json({ message: "Transaction ID does not exist." });
+		}
+
 		const [result] = await mySqlPool.query(
 			`INSERT INTO payment_proofs
-			 (staff_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url)
-			 VALUES (?, ?, ?, ?, ?, ?)`,
-			[staffId, customerName, gcashNumber, Number(amountPaid), datePaid, imageUrl]
+			 (staff_id, transaction_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url)
+			 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			[staffId, Number(transactionId), customerName, gcashNumber, Number(amountPaid), datePaid, imageUrl]
 		);
 
 		return res.status(201).json({

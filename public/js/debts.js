@@ -39,6 +39,18 @@ function formatCurrency(amount) {
     return '₱' + parseFloat(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function getTodayISO() {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${now.getFullYear()}-${month}-${day}`;
+}
+
+function isPastDate(dateStr) {
+    if (!dateStr) return false;
+    return dateStr < getTodayISO();
+}
+
 let selectedCustomerDebtLimit = null;
 
 // Select customer for the Create Debts Modal
@@ -358,7 +370,15 @@ async function toggleBlacklist(idx) {
     const isBlacklisted = debt.is_blacklisted === 'T';
     const action = isBlacklisted ? 'remove from blacklist' : 'blacklist';
 
-    if (!confirm(`Are you sure you want to ${action} ${name}?`)) return;
+    const confirmed = window.appDialog
+        ? await window.appDialog.confirm(`Are you sure you want to ${action} ${name}?`, {
+            title: 'Confirm Action',
+            type: 'warning',
+            confirmText: 'Yes',
+            cancelText: 'Cancel'
+        })
+        : confirm(`Are you sure you want to ${action} ${name}?`);
+    if (!confirmed) return;
 
     try {
         const response = await fetch(`/debts/${debt.customer_id}/blacklist`, {
@@ -387,6 +407,7 @@ async function viewDebtDetails(idx) {
     setTimeout(() => document.getElementById('debtDetailsModal').classList.add('show'), 10);
     document.getElementById('debtDetailsTxList').innerHTML = '<div style="text-align:center;padding:1rem;color:#888;">Loading...</div>';
     document.getElementById('debtDetailsPaymentList').innerHTML = '';
+    document.getElementById('debtDetailsPaymentTotal').textContent = formatCurrency(0);
 
     try {
         const response = await fetch(`/debts/${debt.debt_id}/details`);
@@ -431,11 +452,18 @@ async function viewDebtDetails(idx) {
         // -- Payment history --
         const payList = document.getElementById('debtDetailsPaymentList');
         if (data.payments && data.payments.length > 0) {
+            const totalPaidHistory = data.payments.reduce((sum, pay) => {
+                return sum + (parseFloat(pay.amount_paid) || 0);
+            }, 0);
+            document.getElementById('debtDetailsPaymentTotal').textContent = formatCurrency(totalPaidHistory);
+
             payList.innerHTML = data.payments.map(pay => `
                 <div class="debt-details-tx-item">
                     <div class="debt-details-tx-info">
                         <div class="debt-details-tx-name">${pay.payment_method}</div>
                         <div class="debt-details-tx-meta">
+                            Debt #${pay.related_debt_id || pay.debt_id || '—'}${pay.debt_status ? ` (${pay.debt_status})` : ''}
+                            &nbsp;·&nbsp;
                             Recorded by: ${pay.staff_first_name || 'N/A'} ${pay.staff_last_name || ''}
                             &nbsp;·&nbsp;
                             ${new Date(pay.created_at).toLocaleDateString('en-PH')}
@@ -446,7 +474,8 @@ async function viewDebtDetails(idx) {
                 </div>
             `).join('');
         } else {
-            payList.innerHTML = '<div style="color:#888;padding:1rem;text-align:center;">No payments recorded yet.</div>';
+            document.getElementById('debtDetailsPaymentTotal').textContent = formatCurrency(0);
+            payList.innerHTML = '<div style="color:#888;padding:1rem;text-align:center;">No payment history found for this customer yet.</div>';
         }
 
     } catch (err) {
@@ -480,7 +509,15 @@ async function markPaid(idx) {
     if (!debt) return;
 
     const name = `${debt.first_name || ''} ${debt.last_name || ''}`.trim();
-    if (!confirm(`Mark ${name}'s debt as paid?\nAmount: ${formatCurrency(debt.debt_amount)}`)) return;
+    const confirmed = window.appDialog
+        ? await window.appDialog.confirm(`Mark ${name}'s debt as paid?\nAmount: ${formatCurrency(debt.debt_amount)}`, {
+            title: 'Mark as Paid',
+            type: 'warning',
+            confirmText: 'Mark Paid',
+            cancelText: 'Cancel'
+        })
+        : confirm(`Mark ${name}'s debt as paid?\nAmount: ${formatCurrency(debt.debt_amount)}`);
+    if (!confirmed) return;
 
     try {
         const response = await fetch(`/debts/${debt.debt_id}/pay`, {
@@ -594,6 +631,8 @@ document.addEventListener('DOMContentLoaded', () => {
         addDebtBtn.addEventListener('click', () => {
             document.getElementById('debtModalTitle').textContent = 'List New Debt';
             document.getElementById('debtForm').reset();
+            const debtDueDateEl = document.getElementById('debtDueDate');
+            if (debtDueDateEl) debtDueDateEl.min = getTodayISO();
             document.getElementById('selectedCustomerId').value = '';
             document.getElementById('selectedCustomerPreview').style.display = 'none';
             document.getElementById('customerSearchResults').style.display = 'none';
@@ -674,6 +713,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            if (isPastDate(debt_due)) {
+                alert('Due date cannot be in the past.');
+                return;
+            }
+
             // Frontend debt limit check for existing customers
             if (isExistingMode && selectedCustomerDebtLimit !== null) {
                 if (totalDebt > selectedCustomerDebtLimit) {
@@ -736,7 +780,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const remindAllBtn = document.getElementById('remindAllBtn');
     if (remindAllBtn) {
         remindAllBtn.addEventListener('click', async () => {
-            if (!confirm('Send debt reminders to all active customers?')) return;
+            const confirmed = window.appDialog
+                ? await window.appDialog.confirm('Send debt reminders to all active customers?', {
+                    title: 'Send Reminders',
+                    type: 'warning',
+                    confirmText: 'Send',
+                    cancelText: 'Cancel'
+                })
+                : confirm('Send debt reminders to all active customers?');
+            if (!confirmed) return;
 
             const originalHtml = remindAllBtn.innerHTML;
             remindAllBtn.disabled = true;

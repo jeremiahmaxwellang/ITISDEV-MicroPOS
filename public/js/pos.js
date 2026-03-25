@@ -145,13 +145,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function clearCart() {
-    if (confirm("Clear the entire cart?")) {
-      state.cart = [];
-      renderCart();
-      calculateTotals();
-      showMessage("Cart cleared", "info");
-    }
+  async function clearCart() {
+    const confirmed = window.appDialog
+      ? await window.appDialog.confirm("Clear the entire cart?", {
+          title: "Clear Cart",
+          type: "warning",
+          confirmText: "Clear",
+          cancelText: "Cancel"
+        })
+      : confirm("Clear the entire cart?");
+
+    if (!confirmed) return;
+
+    state.cart = [];
+    renderCart();
+    calculateTotals();
+    showMessage("Cart cleared", "info");
   }
 
   function renderCart() {

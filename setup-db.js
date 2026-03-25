@@ -54,6 +54,88 @@ async function ensureDebtsModeOfPaymentColumn(connection, databaseName) {
   }
 }
 
+async function ensureProductsAlertColumns(connection, databaseName) {
+  const [reorderRows] = await connection.query(
+    `SELECT COLUMN_NAME
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = ?
+       AND TABLE_NAME = 'products'
+       AND COLUMN_NAME = 'reorder_threshold'
+     LIMIT 1`,
+    [databaseName]
+  );
+
+  if (!reorderRows.length) {
+    await connection.query(
+      `ALTER TABLE \`${databaseName}\`.\`products\`
+       ADD COLUMN \`reorder_threshold\` INT NOT NULL DEFAULT 5 AFTER \`selling_price\``
+    );
+    console.log('✓ Added products.reorder_threshold column');
+  }
+
+  const [nearExpiryRows] = await connection.query(
+    `SELECT COLUMN_NAME
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = ?
+       AND TABLE_NAME = 'products'
+       AND COLUMN_NAME = 'near_expiry_days'
+     LIMIT 1`,
+    [databaseName]
+  );
+
+  if (!nearExpiryRows.length) {
+    await connection.query(
+      `ALTER TABLE \`${databaseName}\`.\`products\`
+       ADD COLUMN \`near_expiry_days\` INT NOT NULL DEFAULT 14 AFTER \`reorder_threshold\``
+    );
+    console.log('✓ Added products.near_expiry_days column');
+  }
+}
+
+async function ensurePaymentProofTransactionLink(connection, databaseName) {
+  const [columnRows] = await connection.query(
+    `SELECT COLUMN_NAME
+     FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = ?
+       AND TABLE_NAME = 'payment_proofs'
+       AND COLUMN_NAME = 'transaction_id'
+     LIMIT 1`,
+    [databaseName]
+  );
+
+  if (!columnRows.length) {
+    await connection.query(
+      `ALTER TABLE \`${databaseName}\`.\`payment_proofs\`
+       ADD COLUMN \`transaction_id\` INT NULL AFTER \`staff_id\``
+    );
+    console.log('✓ Added payment_proofs.transaction_id column');
+  }
+
+  const [fkRows] = await connection.query(
+    `SELECT CONSTRAINT_NAME
+     FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+     WHERE TABLE_SCHEMA = ?
+       AND TABLE_NAME = 'payment_proofs'
+       AND COLUMN_NAME = 'transaction_id'
+       AND REFERENCED_TABLE_NAME = 'transactions'
+     LIMIT 1`,
+    [databaseName]
+  );
+
+  if (!fkRows.length) {
+    await connection.query(
+      `ALTER TABLE \`${databaseName}\`.\`payment_proofs\`
+       ADD INDEX \`fk_payment_proofs_transactions_idx\` (\`transaction_id\` ASC),
+       ADD CONSTRAINT \`fk_payment_proofs_transactions\`
+         FOREIGN KEY (\`transaction_id\`)
+         REFERENCES \`${databaseName}\`.\`transactions\` (\`transaction_id\`)
+         ON DELETE SET NULL
+         ON UPDATE NO ACTION`
+    );
+    console.log('✓ Added payment_proofs.transaction_id foreign key');
+  }
+}
+
 async function setupDatabase() {
   let connection;
 
@@ -112,6 +194,12 @@ async function setupDatabase() {
 
     await ensureDebtsModeOfPaymentColumn(connection, databaseName);
     console.log('✓ Debts mode_of_payment column verified');
+
+    await ensureProductsAlertColumns(connection, databaseName);
+    console.log('✓ Products alert columns verified');
+
+    await ensurePaymentProofTransactionLink(connection, databaseName);
+    console.log('✓ Payment proof transaction linkage verified');
 
   } catch (error) {
     console.error('Error setting up database:');

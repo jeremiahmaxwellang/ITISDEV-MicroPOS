@@ -14,6 +14,9 @@
   <link rel="stylesheet" href="/css/sidebar.css">
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script defer src="/js/app-dialog.js"></script>
   <script defer src="/js/sidebar.js"></script>
 </head>
 
@@ -61,7 +64,7 @@
               <span>Subtotal (fees)</span><span id="subtotalAmount">₱0.00</span>
             </div>
             <div id="loadTotalRow" style="display:none;justify-content:space-between;margin-bottom:0.5rem;font-size:0.9rem;color:#92400e;">
-              <span>Load Amount</span><span id="loadTotalAmount">₱0.00</span>
+              <span id="loadTotalLabel">Service Amount</span><span id="loadTotalAmount">₱0.00</span>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:1.25rem;font-weight:700;color:#4f46e5;padding-top:0.75rem;border-top:1px solid #e2e8f0;">
               <span>Total</span><span id="totalAmount">₱0.00</span>
@@ -87,13 +90,13 @@
                   <i data-lucide="check-circle" style="width:18px;height:18px;color:#4f46e5;"></i>
                 </div>
               </div>
-              <!-- GCash Card -->
-              <div id="gcashCard" onclick="selectPaymentMethod('GCash')"
+              <!-- QRPH Card -->
+              <div id="gcashCard" onclick="selectPaymentMethod('QRPH')"
                 style="border:2px solid #e2e8f0;background:white;border-radius:0.75rem;padding:1.25rem;cursor:pointer;text-align:center;transition:all 0.2s;">
                 <div style="display:flex;justify-content:center;margin-bottom:0.5rem;">
                   <i data-lucide="smartphone" class="pay-icon" style="width:32px;height:32px;color:#718096;"></i>
                 </div>
-                <div class="pay-label" style="font-weight:600;color:#718096;font-size:0.95rem;">GCash</div>
+                <div class="pay-label" style="font-weight:600;color:#718096;font-size:0.95rem;">QRPH</div>
                 <div class="pay-check" style="display:none;justify-content:center;margin-top:0.4rem;">
                   <i data-lucide="check-circle" style="width:18px;height:18px;color:#4f46e5;"></i>
                 </div>
@@ -141,30 +144,26 @@
             </div>
           </div>
 
-          <!-- GCash input (hidden by default) -->
+          <!-- QRPH input (hidden by default) -->
           <div id="gcashInputBox" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;display:none;">
             <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:0.5rem;padding:0.875rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.75rem;">
               <i data-lucide="info" style="width:18px;height:18px;color:#3b82f6;flex-shrink:0;"></i>
               <div style="font-size:0.875rem;color:#1e40af;">
-                Show QR code or process payment through <strong id="gcashNumber">—</strong>
+                QRPH details and QR code will open automatically when this method is selected.
               </div>
             </div>
             <div style="text-align:center;margin-bottom:1rem;">
               <div style="font-size:0.875rem;color:#718096;margin-bottom:0.5rem;">Amount to pay</div>
               <div id="gcashAmountDisplay" style="font-size:1.75rem;font-weight:700;color:#4f46e5;">₱0.00</div>
             </div>
-            <button id="showQRBtn" onclick="showQRModal()"
-              style="width:100%;padding:0.875rem;background:#3b82f6;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.5rem;font-size:0.9rem;">
-              <i data-lucide="qr-code" style="width:18px;height:18px;"></i> Show QR Code
-            </button>
             <button onclick="openGcashModal()"
               style="width:100%;padding:0.875rem;background:#38a169;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;font-size:0.9rem;">
-              <i data-lucide="check" style="width:18px;height:18px;"></i> Payment Received — Enter Details
+              <i data-lucide="qr-code" style="width:18px;height:18px;"></i> Open QRPH Payment Modal
             </button>
-            <!-- GCash saved-details summary (shown after modal confirmed) -->
+            <!-- QRPH saved-details summary (shown after modal confirmed) -->
             <div id="gcashSummary" style="display:none;margin-top:1rem;padding:0.75rem;background:#f0fdf4;border:1px solid #86efac;border-radius:0.5rem;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
-                <span style="font-weight:600;color:#166534;font-size:0.875rem;">GCash Details Saved</span>
+                <span style="font-weight:600;color:#166534;font-size:0.875rem;">QRPH Details Saved</span>
                 <button onclick="openGcashModal()" style="background:none;border:none;cursor:pointer;color:#4f46e5;font-size:0.8rem;font-weight:600;text-decoration:underline;padding:0;">Edit</button>
               </div>
               <div id="gcashSummaryText" style="font-size:0.8rem;color:#166534;"></div>
@@ -221,18 +220,25 @@
     </div>
   </div>
 
-  <!-- GCASH DETAILS MODAL -->
+  <!-- QRPH DETAILS MODAL -->
   <div id="gcashModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center;padding:1rem;">
-    <div style="background:white;border-radius:1rem;padding:0;max-width:440px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.3);overflow:hidden;">
+    <div style="background:white;border-radius:1rem;padding:0;max-width:440px;width:100%;max-height:90vh;box-shadow:0 20px 50px rgba(0,0,0,0.3);overflow-y:auto;">
       <div style="padding:1.25rem 1.5rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
         <h3 style="font-size:1rem;font-weight:700;color:#1a2035;margin:0;display:flex;align-items:center;gap:0.5rem;">
-          <i data-lucide="smartphone" style="width:18px;height:18px;color:#3b82f6;"></i> GCash Payment Details
+          <i data-lucide="smartphone" style="width:18px;height:18px;color:#3b82f6;"></i> QRPH Payment Details
         </h3>
         <button onclick="closeGcashModal()" style="background:none;border:none;cursor:pointer;color:#718096;display:flex;padding:0.25rem;">
           <i data-lucide="x" style="width:20px;height:20px;"></i>
         </button>
       </div>
       <div style="padding:1.5rem;display:flex;flex-direction:column;gap:0.875rem;">
+        <div style="border:2px solid #3b82f6;border-radius:0.75rem;padding:1rem;text-align:center;background:#eff6ff;">
+          <div style="margin-bottom:0.6rem;display:flex;justify-content:center;">
+            <img src="/images/Static%20QR.png" alt="QRPH QR Code" style="width:140px;height:140px;object-fit:contain;border-radius:0.5rem;border:2px solid #3b82f6;background:white;" />
+          </div>
+          <div style="font-size:0.75rem;color:#1e3a8a;margin-bottom:0.3rem;">Scan to pay via QRPH</div>
+          <div id="gcashModalAmount" style="font-size:1.25rem;font-weight:700;color:#1d4ed8;">₱0.00</div>
+        </div>
         <div>
           <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Reference Number *</label>
           <input type="text" id="gcashReference" placeholder="e.g. 1234567890"
@@ -241,12 +247,12 @@
         </div>
         <div>
           <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Account Name *</label>
-          <input type="text" id="gcashCustomerName" placeholder="Name on GCash account"
+          <input type="text" id="gcashCustomerName" placeholder="Name on QRPH account"
             style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;font-size:0.95rem;"
             oninput="updateConfirmBtn()">
         </div>
         <div>
-          <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">GCash Number <span style="font-weight:400;color:#718096;">(optional)</span></label>
+          <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">QRPH Number <span style="font-weight:400;color:#718096;">(optional)</span></label>
           <input type="text" id="gcashCustomerNumber" placeholder="09XX XXX XXXX"
             style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.375rem;font-family:Outfit,sans-serif;box-sizing:border-box;font-size:0.95rem;">
         </div>
@@ -254,11 +260,11 @@
           <label style="display:block;font-size:0.875rem;font-weight:600;color:#1a2035;margin-bottom:0.3rem;">Screenshot Proof *</label>
           <label for="gcashQRUpload" id="qrUploadLabel" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;border:1.5px dashed #e2e8f0;border-radius:0.375rem;cursor:pointer;color:#718096;font-size:0.875rem;transition:border-color 0.2s;" onmouseover="this.style.borderColor='#4f46e5'" onmouseout="this.style.borderColor='#e2e8f0'">
             <i data-lucide="upload" style="width:18px;height:18px;"></i>
-            <span id="uploadLabel">Click to upload GCash screenshot</span>
+            <span id="uploadLabel">Click to upload QRPH screenshot</span>
           </label>
           <input type="file" id="gcashQRUpload" accept="image/*" style="display:none;">
-          <div id="qrPreview" style="display:none;margin-top:0.5rem;position:relative;">
-            <img id="qrImage" style="width:100%;border-radius:0.375rem;border:1px solid #e2e8f0;" alt="GCash proof">
+          <div id="qrPreview" style="display:none;margin-top:0.5rem;position:relative;text-align:center;">
+            <img id="qrImage" style="max-width:100%;width:auto;max-height:220px;border-radius:0.375rem;border:1px solid #e2e8f0;object-fit:contain;background:#f8fafc;" alt="QRPH proof">
             <button onclick="removeQR()" style="position:absolute;top:0.4rem;right:0.4rem;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:0.25rem;padding:0.3rem 0.5rem;cursor:pointer;font-size:0.75rem;display:flex;align-items:center;gap:0.25rem;">
               <i data-lucide="x" style="width:13px;height:13px;"></i>
             </button>
@@ -286,6 +292,10 @@
       </div>
       <h2 id="successTitle" style="font-size:1.5rem;font-weight:700;color:#1a2035;margin-bottom:0.5rem;">Payment Successful!</h2>
       <p id="transactionId" style="color:#718096;font-size:0.9rem;margin-bottom:1.5rem;"></p>
+      <button onclick="downloadReceiptPng()"
+        style="width:100%;padding:0.875rem;background:#38a169;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:700;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-bottom:0.65rem;">
+        <i data-lucide="download" style="width:18px;height:18px;"></i> Download Receipt (PNG)
+      </button>
       <button onclick="newSale()"
         style="width:100%;padding:0.875rem;background:#4f46e5;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:700;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
         <i data-lucide="plus" style="width:18px;height:18px;"></i> New Sale
@@ -293,26 +303,42 @@
     </div>
   </div>
 
-  <!-- GCASH QR MODAL -->
+  <div id="receiptTemplate" style="position:fixed;left:-9999px;top:0;width:360px;background:#fff;padding:18px;font-family:Outfit,sans-serif;color:#1a2035;border:1px solid #e2e8f0;">
+    <div style="text-align:center;margin-bottom:10px;">
+      <div style="font-size:1rem;font-weight:700;">MicroPOS Receipt</div>
+      <div id="receiptDate" style="font-size:0.75rem;color:#718096;"></div>
+      <div id="receiptTransaction" style="font-size:0.75rem;color:#718096;"></div>
+    </div>
+    <div id="receiptItems" style="font-size:0.8rem;border-top:1px dashed #cbd5e0;border-bottom:1px dashed #cbd5e0;padding:8px 0;"></div>
+    <div style="margin-top:10px;font-size:0.85rem;">
+      <div style="display:flex;justify-content:space-between;"><span>Subtotal</span><strong id="receiptSubtotal"></strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Service Amount</span><strong id="receiptServiceAmount"></strong></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.95rem;"><span>Total</span><strong id="receiptTotal"></strong></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;"><span>Payment Method</span><strong id="receiptMethod"></strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Customer</span><strong id="receiptCustomer"></strong></div>
+    </div>
+  </div>
+
+  <!-- QRPH QR MODAL -->
   <div id="qrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:2000;align-items:center;justify-content:center;">
     <div style="background:white;border-radius:1rem;padding:1.5rem;max-width:380px;width:90%;box-shadow:0 20px 50px rgba(0,0,0,0.3);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-        <h3 style="font-weight:700;color:#1a2035;margin:0;">GCash QR Code</h3>
+        <h3 style="font-weight:700;color:#1a2035;margin:0;">QRPH QR Code</h3>
         <button onclick="document.getElementById('qrModal').style.display='none'" style="background:none;border:none;cursor:pointer;color:#718096;display:flex;">
           <i data-lucide="x" style="width:20px;height:20px;"></i>
         </button>
       </div>
-      <p style="font-size:0.875rem;color:#718096;margin-bottom:1rem;">Ask customer to scan this QR code with their GCash app</p>
+      <p style="font-size:0.875rem;color:#718096;margin-bottom:1rem;">Ask customer to scan this QR code with their QRPH app</p>
       <div style="border:3px solid #3b82f6;border-radius:0.75rem;padding:1.5rem;text-align:center;margin-bottom:1rem;">
         <div style="margin-bottom:0.75rem;display:flex;justify-content:center;">
-          <img src="/images/Static%20QR.png" alt="GCash QR Code" style="width:160px;height:160px;object-fit:contain;border-radius:0.5rem;border:2px solid #3b82f6;background:white;" />
+          <img src="/images/Static%20QR.png" alt="QRPH QR Code" style="width:160px;height:160px;object-fit:contain;border-radius:0.5rem;border:2px solid #3b82f6;background:white;" />
         </div>
         <div style="font-size:0.8rem;color:#718096;margin-bottom:0.5rem;">Scan to pay</div>
         <div id="qrModalAmount" style="font-size:1.75rem;font-weight:700;color:#4f46e5;">₱0.00</div>
       </div>
       <div style="text-align:center;font-size:0.875rem;color:#718096;margin-bottom:1rem;">
         <div style="font-weight:600;color:#1a2035;" id="storeName">Juan's Sari-Sari Store</div>
-        <div>GCash #: <span id="storeGcashNum">—</span></div>
+        <div>QRPH #: <span id="storeGcashNum">—</span></div>
       </div>
       <button onclick="markGcashReceived();document.getElementById('qrModal').style.display='none';"
         style="width:100%;padding:0.875rem;background:#38a169;color:white;border:none;border-radius:0.5rem;font-family:Outfit,sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
@@ -333,6 +359,8 @@
       partialSelectedCustomer: null  // for Partial / Split payment
     };
 
+    let receiptSnapshot = null;
+
     function formatPeso(v) {
       return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2 }).format(v);
     }
@@ -345,7 +373,171 @@
       if ((parseFloat(item?.presetLoadAmount) || 0) > 0) return false;
       if (item && item.requiresLoadAmount === true) return true;
       const name = String(item && item.name ? item.name : '').toLowerCase();
-      return /cash\s*in|cash\s*out|load|e-?load|gcash|maya/.test(name);
+      return /cash\s*in|cash\s*out|load|e-?load|qrph|gcash|maya/.test(name);
+    }
+
+    function getServiceKind(item) {
+      const name = String(item && item.name ? item.name : '').toLowerCase();
+      if (/cash\s*in|cash\s*out/.test(name)) return 'cash';
+      if (/load|e-?load|qrph|gcash|maya/.test(name)) return 'load';
+      return 'service';
+    }
+
+    function getCashServiceMode(item) {
+      const name = String(item && item.name ? item.name : '').toLowerCase();
+      if (/cash\s*out/.test(name)) return 'cash_out';
+      if (/cash\s*in/.test(name)) return 'cash_in';
+      return null;
+    }
+
+    function getCashServiceRestriction() {
+      if (!state.cart || !Array.isArray(state.cart.items)) {
+        return { requiredMethod: null, hasConflict: false };
+      }
+
+      const hasCashIn = state.cart.items.some(item => getCashServiceMode(item) === 'cash_in');
+      const hasCashOut = state.cart.items.some(item => getCashServiceMode(item) === 'cash_out');
+
+      if (hasCashIn && hasCashOut) {
+        return { requiredMethod: null, hasConflict: true };
+      }
+      if (hasCashOut) {
+        return { requiredMethod: 'QRPH', hasConflict: false };
+      }
+      if (hasCashIn) {
+        return { requiredMethod: 'Cash', hasConflict: false };
+      }
+
+      return { requiredMethod: null, hasConflict: false };
+    }
+
+    function applyPaymentMethodRestrictions() {
+      const restriction = getCashServiceRestriction();
+      const allMethods = ['Cash', 'QRPH', 'Utang', 'Partial'];
+
+      allMethods.forEach((method) => {
+        const card = document.getElementById(method.toLowerCase() + 'Card');
+        if (!card) return;
+
+        const shouldDisable = restriction.requiredMethod
+          ? method !== restriction.requiredMethod
+          : false;
+
+        card.style.opacity = shouldDisable ? '0.55' : '1';
+        card.style.pointerEvents = shouldDisable ? 'none' : 'auto';
+        card.style.filter = shouldDisable ? 'grayscale(0.15)' : 'none';
+      });
+    }
+
+    function getServiceBadgeLabel(item) {
+      const kind = getServiceKind(item);
+      if (kind === 'cash') return 'CASH';
+      if (kind === 'load') return 'LOAD';
+      return 'SERVICE';
+    }
+
+    function parseEmvTlv(payload) {
+      const entries = [];
+      let idx = 0;
+
+      while (idx + 4 <= payload.length) {
+        const tag = payload.slice(idx, idx + 2);
+        const lenStr = payload.slice(idx + 2, idx + 4);
+        const length = parseInt(lenStr, 10);
+        if (!Number.isInteger(length) || length < 0) break;
+
+        const valueStart = idx + 4;
+        const valueEnd = valueStart + length;
+        if (valueEnd > payload.length) break;
+
+        entries.push({ tag, value: payload.slice(valueStart, valueEnd) });
+        idx = valueEnd;
+      }
+
+      return entries;
+    }
+
+    function normalizeReferenceCandidate(value) {
+      const cleaned = String(value || '').trim().replace(/[^A-Za-z0-9]/g, '');
+      if (cleaned.length < 8) return null;
+      return cleaned;
+    }
+
+
+    function extractReferenceFromQrPayload(payload) {
+      const raw = String(payload || '').trim();
+      if (!raw) return null;
+
+      const directMatch = raw.match(/(?:ref(?:erence)?|rrn|trace)\s*[:#-]?\s*([A-Za-z0-9]{8,})/i);
+      if (directMatch && directMatch[1]) {
+        return normalizeReferenceCandidate(directMatch[1]);
+      }
+
+      const topLevel = parseEmvTlv(raw);
+      const addtlData = topLevel.find((entry) => entry.tag === '62');
+
+      if (addtlData && addtlData.value) {
+        const nested = parseEmvTlv(addtlData.value);
+        const preferredTags = ['05', '01', '03', '07', '09'];
+
+        for (const tag of preferredTags) {
+          const hit = nested.find((entry) => entry.tag === tag);
+          const candidate = normalizeReferenceCandidate(hit && hit.value);
+          if (candidate) return candidate;
+        }
+      }
+
+      const topPreferredTags = ['11', '37', '05', '01'];
+      for (const tag of topPreferredTags) {
+        const hit = topLevel.find((entry) => entry.tag === tag);
+        const candidate = normalizeReferenceCandidate(hit && hit.value);
+        if (candidate) return candidate;
+      }
+
+      return null;
+    }
+
+    async function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => resolve(String(event.target && event.target.result ? event.target.result : ''));
+        reader.onerror = () => reject(new Error('Failed to read file.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function decodeQrTextFromImageDataUrl(dataUrl) {
+      if (!window.jsQR || !dataUrl) return null;
+
+      const img = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('Could not load image for QR decoding.'));
+        image.src = dataUrl;
+      });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return null;
+
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = window.jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: 'attemptBoth' });
+
+      return code && code.data ? String(code.data) : null;
+    }
+
+
+    function getServiceTotalLabel() {
+      if (!state.cart || !Array.isArray(state.cart.items)) return 'Service Amount';
+      const services = state.cart.items.filter(i => i.type === 'Services' || i.stock === -1);
+      const hasCashService = services.some(i => getServiceKind(i) === 'cash');
+      const hasLoadService = services.some(i => getServiceKind(i) === 'load');
+      if (hasCashService && !hasLoadService) return 'Cash Amount';
+      if (!hasCashService && hasLoadService) return 'Load Amount';
+      return 'Service Amount';
     }
 
     function loadCart() {
@@ -382,7 +574,7 @@
             <i data-lucide="${item.type === 'Services' ? 'smartphone' : 'package'}" style="width:24px;height:24px;color:#4f46e5;opacity:0.6;"></i>
           </div>
           <div style="flex:1;">
-            <div style="font-weight:600;color:#1a2035;">${item.name}${item.type === 'Services' ? ' <span style="background:#fef3c7;color:#92400e;padding:0.1rem 0.4rem;border-radius:0.25rem;font-size:0.7rem;font-weight:600;">LOAD</span>' : ''}</div>
+            <div style="font-weight:600;color:#1a2035;">${item.name}${item.type === 'Services' ? ` <span style="background:#fef3c7;color:#92400e;padding:0.1rem 0.4rem;border-radius:0.25rem;font-size:0.7rem;font-weight:600;">${getServiceBadgeLabel(item)}</span>` : ''}</div>
             <div style="font-size:0.8rem;color:#718096;">Service fee: ₱${parseFloat(item.price).toFixed(2)} &times; ${item.quantity}</div>
           </div>
           <div style="font-weight:700;color:#1a2035;">₱${(item.price * item.quantity).toFixed(2)}</div>
@@ -417,20 +609,43 @@
       const loadRow = document.getElementById('loadTotalRow');
       if (loadRow) {
         loadRow.style.display = loadTotal > 0 ? 'flex' : 'none';
+        const labelEl = document.getElementById('loadTotalLabel');
+        if (labelEl) labelEl.textContent = getServiceTotalLabel();
         document.getElementById('loadTotalAmount').textContent = formatPeso(loadTotal);
       }
       document.getElementById('gcashAmountDisplay').textContent = formatPeso(total);
-      document.getElementById('qrModalAmount').textContent = formatPeso(total);
+      const modalAmountEl = document.getElementById('gcashModalAmount');
+      if (modalAmountEl) modalAmountEl.textContent = formatPeso(total);
+      const qrModalAmountEl = document.getElementById('qrModalAmount');
+      if (qrModalAmountEl) qrModalAmountEl.textContent = formatPeso(total);
       return { subtotal, loadTotal, total };
     }
 
     function selectPaymentMethod(method) {
-      state.paymentMethod = method;
+      applyPaymentMethodRestrictions();
 
-      ['Cash', 'GCash', 'Utang', 'Partial'].forEach(m => {
+      const restriction = getCashServiceRestriction();
+      let requestedMethod = method;
+
+      if (restriction.hasConflict) {
+        state.paymentMethod = requestedMethod;
+      } else if (restriction.requiredMethod && method !== restriction.requiredMethod) {
+        if (window.appDialog) {
+          window.appDialog.alert(`This service only allows ${restriction.requiredMethod} payment.`, {
+            title: 'Payment Method Restricted',
+            type: 'warning'
+          });
+        }
+        requestedMethod = restriction.requiredMethod;
+        state.paymentMethod = restriction.requiredMethod;
+      } else {
+        state.paymentMethod = requestedMethod;
+      }
+
+      ['Cash', 'QRPH', 'Utang', 'Partial'].forEach(m => {
         const card = document.getElementById(m.toLowerCase() + 'Card');
         if (!card) return;
-        const active = m === method;
+        const active = m === state.paymentMethod;
         card.style.border = active ? '2px solid #4f46e5' : '2px solid #e2e8f0';
         card.style.background = active ? '#f0f4ff' : 'white';
         card.querySelector('.pay-icon').style.color = active ? '#4f46e5' : '#718096';
@@ -438,17 +653,17 @@
         card.querySelector('.pay-check').style.display = active ? 'flex' : 'none';
       });
 
-      document.getElementById('cashInputBox').style.display = method === 'Cash' ? 'block' : 'none';
-      document.getElementById('gcashInputBox').style.display = method === 'GCash' ? 'block' : 'none';
-      document.getElementById('utangBox').style.display = method === 'Utang' ? 'block' : 'none';
-      document.getElementById('partialBox').style.display = method === 'Partial' ? 'block' : 'none';
+      document.getElementById('cashInputBox').style.display = state.paymentMethod === 'Cash' ? 'block' : 'none';
+      document.getElementById('gcashInputBox').style.display = state.paymentMethod === 'QRPH' ? 'block' : 'none';
+      document.getElementById('utangBox').style.display = state.paymentMethod === 'Utang' ? 'block' : 'none';
+      document.getElementById('partialBox').style.display = state.paymentMethod === 'Partial' ? 'block' : 'none';
 
-      if (method !== 'GCash') { state.gcashReceived = false; state.gcashDetails = null; }
-      if (method !== 'Utang') state.selectedCustomer = null;
-      if (method !== 'Partial') state.partialSelectedCustomer = null;
+      if (state.paymentMethod !== 'QRPH') { state.gcashReceived = false; state.gcashDetails = null; }
+      if (state.paymentMethod !== 'Utang') state.selectedCustomer = null;
+      if (state.paymentMethod !== 'Partial') state.partialSelectedCustomer = null;
 
-      // Auto-open GCash modal when GCash is selected
-      if (method === 'GCash') {
+      // Auto-open QRPH modal when QRPH is selected
+      if (state.paymentMethod === 'QRPH') {
         document.getElementById('gcashSummary').style.display = 'none';
         openGcashModal();
       }
@@ -465,6 +680,7 @@
       const serviceItems = state.cart ? state.cart.items.filter(i => i.type === 'Services' || i.stock === -1) : [];
       const serviceItemsWithAmount = serviceItems.filter(requiresLoadAmount);
       const loadAmountsValid = serviceItemsWithAmount.every(i => (parseFloat(state.loadAmounts[getLineKey(i)]) || 0) > 0);
+      const restriction = getCashServiceRestriction();
 
       if (state.paymentMethod === 'Cash') {
         const paid = parseFloat(document.getElementById('amountPaid').value) || 0;
@@ -482,13 +698,20 @@
         } else {
           changeDiv.style.display = 'none';
         }
-      } else if (state.paymentMethod === 'GCash') {
+      } else if (state.paymentMethod === 'QRPH') {
         canPay = state.gcashReceived && !!state.gcashDetails && (serviceItemsWithAmount.length === 0 || loadAmountsValid);
       } else if (state.paymentMethod === 'Utang') {
         canPay = !!state.selectedCustomer && (serviceItemsWithAmount.length === 0 || loadAmountsValid);
       } else if (state.paymentMethod === 'Partial') {
         const paid = parseFloat(document.getElementById('partialAmountPaid').value) || 0;
         canPay = !!state.partialSelectedCustomer && paid > 0 && paid < total && (serviceItemsWithAmount.length === 0 || loadAmountsValid);
+      }
+
+      if (restriction.hasConflict) {
+        canPay = false;
+      }
+      if (restriction.requiredMethod && state.paymentMethod !== restriction.requiredMethod) {
+        canPay = false;
       }
 
       btn.disabled = !canPay;
@@ -501,6 +724,10 @@
       lucide.createIcons();
     }
 
+    function markGcashReceived() {
+      openGcashModal();
+    }
+
     function openGcashModal() {
       document.getElementById('gcashModal').style.display = 'flex';
       lucide.createIcons();
@@ -509,8 +736,17 @@
 
     function closeGcashModal() {
       document.getElementById('gcashModal').style.display = 'none';
-      // If no details saved yet and modal cancelled, revert to Cash
-      if (!state.gcashReceived) selectPaymentMethod('Cash');
+      // If no details saved yet and modal cancelled:
+      // - For cash-out-required QRPH flow, return to POS (avoid modal loop)
+      // - Otherwise revert to Cash
+      if (!state.gcashReceived) {
+        const restriction = getCashServiceRestriction();
+        if (restriction.requiredMethod === 'QRPH') {
+          window.location.href = '/pos';
+          return;
+        }
+        selectPaymentMethod('Cash');
+      }
     }
 
     function confirmGcashDetails() {
@@ -520,7 +756,7 @@
 
       if (!ref) { alert('Reference Number is required.'); return; }
       if (!name) { alert('Account Name is required.'); return; }
-      if (!hasScreenshot) { alert('Please upload the GCash screenshot proof.'); return; }
+      if (!hasScreenshot) { alert('Please upload the QRPH screenshot proof.'); return; }
 
       state.gcashReceived = true;
       state.gcashDetails = {
@@ -544,8 +780,45 @@
       document.getElementById('qrPreview').style.display = 'none';
       document.getElementById('qrUploadLabel').style.display = 'flex';
       document.getElementById('gcashQRUpload').value = '';
-      document.getElementById('uploadLabel').textContent = 'Click to upload GCash screenshot';
+      document.getElementById('uploadLabel').textContent = 'Click to upload QRPH screenshot';
       updateConfirmBtn();
+    }
+
+    async function downloadReceiptPng() {
+      if (!receiptSnapshot) {
+        alert('No completed transaction receipt yet.');
+        return;
+      }
+
+      const template = document.getElementById('receiptTemplate');
+      const itemsHost = document.getElementById('receiptItems');
+
+      document.getElementById('receiptDate').textContent = new Date(receiptSnapshot.generatedAt).toLocaleString('en-PH');
+      document.getElementById('receiptTransaction').textContent = `Transaction #${receiptSnapshot.transactionId}`;
+      document.getElementById('receiptSubtotal').textContent = formatPeso(receiptSnapshot.subtotal);
+      document.getElementById('receiptServiceAmount').textContent = formatPeso(receiptSnapshot.serviceAmount);
+      document.getElementById('receiptTotal').textContent = formatPeso(receiptSnapshot.total);
+      document.getElementById('receiptMethod').textContent = receiptSnapshot.paymentMethod;
+      document.getElementById('receiptCustomer').textContent = receiptSnapshot.customerName || 'Walk-in Customer';
+
+      itemsHost.innerHTML = receiptSnapshot.items.map((item) => `
+        <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;">
+          <span>${item.name} x${item.quantity}</span>
+          <strong>${formatPeso(item.lineTotal)}</strong>
+        </div>
+      `).join('');
+
+      const canvas = await html2canvas(template, {
+        scale: 2,
+        backgroundColor: '#ffffff'
+      });
+
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `receipt-${receiptSnapshot.transactionId}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
     }
 
     async function searchPartialCustomers(query) {
@@ -681,10 +954,18 @@
       document.getElementById('confirmPaymentBtn').style.display = 'none';
 
       try {
+        const restriction = getCashServiceRestriction();
+        if (restriction.hasConflict) {
+          throw new Error('Cannot checkout with both Cash In and Cash Out services in one transaction.');
+        }
+        if (restriction.requiredMethod && state.paymentMethod !== restriction.requiredMethod) {
+          throw new Error(`This service requires ${restriction.requiredMethod} as payment method.`);
+        }
+
         let gcashProofFilename = null;
-        if (state.paymentMethod === 'GCash') {
+        if (state.paymentMethod === 'QRPH') {
           const gcashProofFile = (document.getElementById('gcashQRUpload').files || [])[0] || null;
-          if (!gcashProofFile) throw new Error('Please upload the GCash screenshot proof before confirming payment.');
+          if (!gcashProofFile) throw new Error('Please upload the QRPH screenshot proof before confirming payment.');
           gcashProofFilename = await uploadProofImage(gcashProofFile);
         }
 
@@ -696,6 +977,7 @@
           items: state.cart.items.map(i => ({
             product_id: i.id,
             quantity: i.quantity,
+            service_mode: getCashServiceMode(i),
             load_amount: (i.type === 'Services' || i.stock === -1)
               ? (parseFloat(state.loadAmounts[getLineKey(i)]) || parseFloat(i.presetLoadAmount) || 0)
               : 0
@@ -708,10 +990,10 @@
           customer_name: state.paymentMethod === 'Cash'
             ? document.getElementById('cashCustomerName').value.trim()
             : (state.selectedCustomer ? state.selectedCustomer.name : null),
-          gcash_reference: state.paymentMethod === 'GCash' ? (state.gcashDetails?.reference || null) : null,
-          gcash_customer_number: state.paymentMethod === 'GCash' ? (state.gcashDetails?.customerNumber || null) : null,
-          gcash_customer_name: state.paymentMethod === 'GCash' ? (state.gcashDetails?.customerName || null) : null,
-          gcash_proof_filename: state.paymentMethod === 'GCash' ? gcashProofFilename : null,
+          gcash_reference: state.paymentMethod === 'QRPH' ? (state.gcashDetails?.reference || null) : null,
+          gcash_customer_number: state.paymentMethod === 'QRPH' ? (state.gcashDetails?.customerNumber || null) : null,
+          gcash_customer_name: state.paymentMethod === 'QRPH' ? (state.gcashDetails?.customerName || null) : null,
+          gcash_proof_filename: state.paymentMethod === 'QRPH' ? gcashProofFilename : null,
           amount_paid: partialAmountPaid
         };
 
@@ -723,6 +1005,24 @@
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Transaction failed');
+
+        receiptSnapshot = {
+          generatedAt: Date.now(),
+          transactionId: data.transaction_id,
+          subtotal: Number(calculateTotals().subtotal || 0),
+          serviceAmount: Number(calculateTotals().loadTotal || 0),
+          total: Number(data.total_price || 0),
+          paymentMethod: state.paymentMethod,
+          customerName: state.paymentMethod === 'Cash'
+            ? (document.getElementById('cashCustomerName').value.trim() || 'Walk-in Customer')
+            : (state.gcashDetails?.customerName || state.selectedCustomer?.name || state.partialSelectedCustomer?.name || 'Walk-in Customer'),
+          items: state.cart.items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            lineTotal: (Number(item.price) || 0) * (Number(item.quantity) || 0)
+              + (Number(state.loadAmounts[getLineKey(item)]) || Number(item.presetLoadAmount) || 0)
+          }))
+        };
 
         sessionStorage.removeItem('posCart');
         const titles = { Utang: 'Utang Recorded!', Partial: 'Split Payment Recorded!' };
@@ -747,24 +1047,39 @@
       if (!loadCart()) return;
       renderOrder();
       calculateTotals();
+      applyPaymentMethodRestrictions();
       selectPaymentMethod('Cash');
 
       document.getElementById('amountPaid').addEventListener('input', updateConfirmBtn);
       document.getElementById('cashCustomerName').addEventListener('input', updateConfirmBtn);
 
-      document.getElementById('gcashQRUpload').addEventListener('change', function(e) {
+      document.getElementById('gcashQRUpload').addEventListener('change', async function(e) {
         const file = e.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-          state.gcashQRImage = ev.target.result;
+
+        try {
+          const dataUrl = await readFileAsDataUrl(file);
+          state.gcashQRImage = dataUrl;
           document.getElementById('qrImage').src = state.gcashQRImage;
           document.getElementById('qrPreview').style.display = 'block';
           document.getElementById('qrUploadLabel').style.display = 'none';
           document.getElementById('uploadLabel').textContent = file.name;
+
+          const qrText = await decodeQrTextFromImageDataUrl(dataUrl);
+          const detectedReference = extractReferenceFromQrPayload(qrText);
+
+          if (detectedReference) {
+            const refInput = document.getElementById('gcashReference');
+            if (refInput && !refInput.value.trim()) {
+              refInput.value = detectedReference;
+              updateConfirmBtn();
+            }
+          }
+
           lucide.createIcons();
-        };
-        reader.readAsDataURL(file);
+        } catch (err) {
+          console.error('QRPH proof processing error:', err);
+        }
       });
     });
   </script>

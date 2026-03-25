@@ -116,3 +116,90 @@ exports.getReportMetrics = async (req, res) => {
         res.status(500).json({ error: "Database error" });
     }
 };
+
+exports.getDemandForecast = async (req, res) => {
+    const period = parseInt(req.query.period, 10);
+    const horizonDays = parseInt(req.query.horizonDays, 10) || 7;
+
+    if (!VALID_PERIODS.includes(period)) {
+        return res.status(400).json({ error: "Invalid period. Use 7, 30, or 90." });
+    }
+
+    if (!Number.isInteger(horizonDays) || horizonDays <= 0 || horizonDays > 30) {
+        return res.status(400).json({ error: "Invalid horizonDays. Use 1 to 30." });
+    }
+
+    try {
+        const [salesRows] = await db.query(
+            `SELECT p.product_id,
+                    p.name,
+                    p.product_type,
+                    COALESCE(SUM(o.quantity), 0) AS units_sold
+             FROM products p
+             LEFT JOIN transaction_orders o ON o.product_id = p.product_id
+             LEFT JOIN transactions t ON t.transaction_id = o.transaction_id
+               AND t.date_ordered >= DATE_SUB(NOW(), INTERVAL ? DAY)
+             WHERE p.product_type != 'Services'
+             GROUP BY p.product_id, p.name, p.product_type`,
+            [period]
+        );
+
+        const [stockRows] = await db.query(
+            `SELECT p.product_id,
+                    COALESCE(SUM(
+                        CASE
+                          WHEN pb.status != 'Discontinued' THEN COALESCE(pb.stock_quantity, 0)
+                          ELSE 0
+                        END
+                    ), 0) AS stock
+             FROM products p
+             LEFT JOIN product_batches pb ON pb.product_id = p.product_id
+             WHERE p.product_type != 'Services'
+             GROUP BY p.product_id`
+        );
+
+        const stockMap = {};
+        for (const row of stockRows) {
+            stockMap[row.product_id] = Number(row.stock) || 0;
+        }
+
+        const forecast = salesRows
+            .map((row) => {
+                const unitsSold = Number(row.units_sold) || 0;
+                const avgDailyUnits = unitsSold / period;
+                const forecastUnits = Math.ceil(avgDailyUnits * horizonDays);
+                const currentStock = Number(stockMap[row.product_id] || 0);
+                const projectedBalance = currentStock - forecastUnits;
+
+                return {
+                    product_id: row.product_id,
+                    name: row.name,
+                    category: row.product_type,
+                    periodDays: period,
+                    horizonDays,
+                    unitsSold,
+                    avgDailyUnits: Number(avgDailyUnits.toFixed(2)),
+                    forecastUnits,
+                    currentStock,
+                    projectedBalance,
+                    stockoutRisk: projectedBalance < 0
+                };
+            })
+            .sort((a, b) => {
+                if (a.stockoutRisk && !b.stockoutRisk) return -1;
+                if (!a.stockoutRisk && b.stockoutRisk) return 1;
+                return b.forecastUnits - a.forecastUnits;
+            })
+            .slice(0, 20);
+
+        return res.json({
+            period,
+            horizonDays,
+            generatedAt: new Date().toISOString(),
+            forecast
+        });
+    } catch (err) {
+        console.error("getDemandForecast error:", err);
+        return res.status(500).json({ error: "Failed to generate demand forecast." });
+    }
+};

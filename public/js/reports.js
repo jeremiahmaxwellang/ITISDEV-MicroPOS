@@ -10,12 +10,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const recommendationsCard = document.getElementById("recommendationsCard");
   const recommendationsList = document.getElementById("recommendationsList");
+  const forecastCard = document.getElementById("forecastCard");
+  const forecastList = document.getElementById("forecastList");
 
   const state = {
     period: "7",
     activeTab: "products",
     data: null,
-    recommendations: null
+    recommendations: null,
+    forecast: null
   };
 
   const cache = {};
@@ -155,10 +158,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const isProducts = state.activeTab === "products";
     const isCategories = state.activeTab === "categories";
     const isRecommendations = state.activeTab === "recommendations";
+    const isForecast = state.activeTab === "forecast";
     reportsGrid.classList.toggle("categories-view", isCategories);
     topListCard.hidden = !isProducts;
     highlightCard.hidden = !isProducts && !isCategories;
     recommendationsCard.hidden = !isRecommendations;
+    forecastCard.hidden = !isForecast;
+  }
+
+  function renderForecast(list) {
+    if (!list || list.length === 0) {
+      forecastList.innerHTML = `<li style="padding:1rem;color:var(--text-sub,#888);list-style:none;">No forecast data for this period.</li>`;
+      return;
+    }
+
+    forecastList.innerHTML = list.map(item => `
+      <li class="recommendation-item">
+        <div><strong>${item.name}</strong> <span style="color:#6b7280">(${item.category || "Other"})</span></div>
+        <div>Avg/day: <strong>${item.avgDailyUnits}</strong> unit(s)</div>
+        <div>Forecast (7d): <strong>${item.forecastUnits}</strong> unit(s)</div>
+        <div>Current stock: <strong>${item.currentStock}</strong></div>
+        <div style="color:${item.stockoutRisk ? "#d83c6a" : "#059669"};">Projected balance: <strong>${item.projectedBalance}</strong></div>
+      </li>
+    `).join("");
   }
   function renderRecommendations(list) {
     if (!list || list.length === 0) {
@@ -233,6 +255,8 @@ document.addEventListener("DOMContentLoaded", () => {
       renderTopList(topProducts);
     } else if (state.activeTab === "categories") {
       renderCategoryPieChart(categories);
+    } else if (state.activeTab === "forecast") {
+      renderForecast(state.forecast);
     } else if (state.activeTab === "recommendations") {
       renderRecommendations(state.recommendations);
     }
@@ -253,6 +277,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
       cache[period] = data;
       state.data = data;
+
+      if (state.activeTab === "recommendations") {
+        await fetchRecommendations();
+      }
+      if (state.activeTab === "forecast") {
+        await fetchForecast();
+      }
+
       renderAll();
     } catch (err) {
       console.error("Failed to load report metrics:", err);
@@ -267,6 +299,9 @@ document.addEventListener("DOMContentLoaded", () => {
       state.activeTab = tab.dataset.tab;
       if (state.activeTab === "recommendations") {
         await fetchRecommendations();
+      }
+      if (state.activeTab === "forecast") {
+        await fetchForecast();
       }
       renderAll();
     });
@@ -285,8 +320,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function fetchForecast() {
+    forecastList.innerHTML = `<li style="padding:1rem;color:var(--text-muted,#888)">Loading forecast...</li>`;
+    try {
+      const response = await fetch(`/reports/forecast?period=${encodeURIComponent(state.period)}&horizonDays=7`);
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
+      const data = await response.json();
+      state.forecast = data.forecast || [];
+    } catch (err) {
+      console.error("Failed to load forecast:", err);
+      state.forecast = [];
+      forecastList.innerHTML = `<li style="padding:1rem;color:#d83c6a">Failed to load forecast. Please try again.</li>`;
+    }
+  }
+
   periodSelect.addEventListener("change", (event) => {
     state.period = event.target.value;
+    state.recommendations = null;
+    state.forecast = null;
     fetchAndRender(state.period);
   });
 

@@ -12,5 +12,6 @@ router.use(requireStoreOwnerSession);
 
 // GET /reports/metrics?period=7|30|90
 router.get("/metrics", reportsController.getReportMetrics);
+router.get("/forecast", reportsController.getDemandForecast);
 
 module.exports = router;

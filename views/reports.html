@@ -140,6 +140,7 @@
         <div class="segment-tabs">
           <button class="segment active" data-tab="products">Top Products</button>
           <button class="segment" data-tab="categories">Categories</button>
+          <button class="segment" data-tab="forecast">Forecasting</button>
           <button class="segment" data-tab="recommendations">Purchase Recommendations</button>
         </div>
 
@@ -154,6 +155,11 @@
           <article class="card recommendations-card" id="recommendationsCard" hidden>
             <h3>Purchase Recommendations</h3>
             <ul class="recommendations-list" id="recommendationsList"></ul>
+          </article>
+
+          <article class="card recommendations-card" id="forecastCard" hidden>
+            <h3>Demand Forecast (Next 7 Days)</h3>
+            <ul class="recommendations-list" id="forecastList"></ul>
           </article>
         </div>
 

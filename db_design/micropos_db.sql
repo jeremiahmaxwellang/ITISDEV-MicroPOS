@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS `products` (
   `volume`       VARCHAR(50)   NULL COMMENT 'Product volume or size variant (e.g. 250ml, 1kg, Large)',
   `product_type` ENUM('Beverages', 'Canned Goods', 'Instant Foods', 'Snacks', 'Dairy', 'Coffee', 'Services', 'Other') NOT NULL DEFAULT 'Other',
   `selling_price` DECIMAL(10,2) NULL,
+  `reorder_threshold` INT NOT NULL DEFAULT 5 COMMENT 'Per-item low stock alert threshold',
+  `near_expiry_days` INT NOT NULL DEFAULT 14 COMMENT 'Days before expiry to trigger near-expiry alerts',
   `photo`        MEDIUMTEXT    NULL COMMENT 'Base64 encoded product photo',
   PRIMARY KEY (`product_id`),
   INDEX `idx_barcode` (`barcode` ASC)
@@ -252,6 +254,7 @@ CREATE TABLE IF NOT EXISTS `payments` (
 CREATE TABLE IF NOT EXISTS `payment_proofs` (
   `proof_id`        INT           NOT NULL AUTO_INCREMENT,
   `staff_id`        INT           NOT NULL,
+  `transaction_id`  INT           NULL,
   `customer_name`   VARCHAR(100)  NOT NULL,
   `gcash_number`    VARCHAR(50)   NOT NULL,
   `amount_paid`     DECIMAL(10,2) NOT NULL,
@@ -261,10 +264,16 @@ CREATE TABLE IF NOT EXISTS `payment_proofs` (
   `updated_at`      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`proof_id`),
   INDEX `fk_payment_proofs_staff_idx` (`staff_id` ASC),
+  INDEX `fk_payment_proofs_transactions_idx` (`transaction_id` ASC),
   CONSTRAINT `fk_payment_proofs_staff`
     FOREIGN KEY (`staff_id`)
     REFERENCES `staff` (`staff_id`)
     ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_payment_proofs_transactions`
+    FOREIGN KEY (`transaction_id`)
+    REFERENCES `transactions` (`transaction_id`)
+    ON DELETE SET NULL
     ON UPDATE NO ACTION
 ) ENGINE = InnoDB;
 

@@ -12,6 +12,7 @@
 	const previewContainer = document.getElementById("imagePreviewContainer");
 
 	const custNameInput = document.getElementById("custName");
+	const transactionIdInput = document.getElementById("transactionId");
 	const gcashNumInput = document.getElementById("gcashNum");
 	const amountInput = document.getElementById("amountPaid");
 	const dateInput = document.getElementById("datePaid");
@@ -141,6 +142,7 @@
 			payments = Array.isArray(data)
 				? data.map((payment) => ({
 					id: payment.proof_id,
+						transactionId: payment.transaction_id,
 					customerName: payment.customer_name,
 					gcashNumber: payment.gcash_number,
 					paymentMethod: String(payment.gcash_number || "").toUpperCase() === "CASH" ? "Cash" : "GCash",
@@ -165,6 +167,7 @@
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
+				transactionId: payment.transactionId,
 				customerName: payment.customerName,
 				gcashNumber: payment.gcashNumber,
 				amountPaid: payment.amountPaid,
@@ -211,7 +214,7 @@
 		paymentsList.innerHTML = filtered
 			.map((payment) => {
 				const paidDate = formatPaymentDate(payment.datePaid);
-				const methodBadge = payment.paymentMethod === "Cash" ? "CASH" : "GCASH";
+				const methodBadge = payment.paymentMethod === "Cash" ? "CASH" : "QRPH";
 				return `
 					<article class="payment-card" data-payment-id="${payment.id}">
 						<div class="card-top">
@@ -272,6 +275,7 @@
 
 	function resetForm() {
 		custNameInput.value = "";
+		transactionIdInput.value = "";
 		gcashNumInput.value = "";
 		amountInput.value = "";
 		dateInput.value = "";
@@ -308,7 +312,7 @@
 	function openDetailPopup(payment) {
 		const imageSrc = payment.imageUrl || "";
 		const isCash = payment.paymentMethod === "Cash";
-		const methodLabel = isCash ? "Payment Method" : "GCash Number";
+		const methodLabel = isCash ? "Payment Method" : "QRPH Number";
 		const methodValue = isCash ? "Cash" : (payment.gcashNumber || "Not provided");
 		const imageHtml = imageSrc
 			? `<img src="${imageSrc}" alt="Payment proof image for ${escapeHtml(payment.customerName)}">`
@@ -325,6 +329,10 @@
 				<div class="detail-row">
 					<span class="detail-label">Customer Name</span>
 					<div class="detail-value">${escapeHtml(payment.customerName)}</div>
+				</div>
+				<div class="detail-row">
+					<span class="detail-label">Transaction ID</span>
+					<div class="detail-value">${escapeHtml(payment.transactionId || "Not linked")}</div>
 				</div>
 				<div class="detail-row">
 					<span class="detail-label">${methodLabel}</span>
@@ -411,17 +419,22 @@
 	}
 
 	async function addPayment() {
+		const transactionId = Number(transactionIdInput.value);
 		const customerName = custNameInput.value.trim();
 		const gcashNumber = gcashNumInput.value.trim();
 		const amountPaid = Number(amountInput.value);
 		const datePaid = dateInput.value;
 
+		if (!Number.isInteger(transactionId) || transactionId <= 0) {
+			showToast("Transaction ID is required.");
+			return;
+		}
 		if (!customerName) {
 			showToast("Customer name is required.");
 			return;
 		}
 		if (!gcashNumber) {
-			showToast("GCash number is required.");
+			showToast("QRPH number is required.");
 			return;
 		}
 		if (!Number.isFinite(amountPaid) || amountPaid <= 0) {
@@ -443,6 +456,7 @@
 		try {
 			const imageUrl = await uploadPaymentProofFile(currentSelectedFile);
 			await savePaymentToDB({
+				transactionId,
 				customerName,
 				gcashNumber,
 				amountPaid,

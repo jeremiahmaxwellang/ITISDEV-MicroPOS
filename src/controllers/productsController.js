@@ -105,7 +105,7 @@ const MANUFACTURER_HINTS = [
   { matcher: /rebisco/i, name: "Rebisco" },
   { matcher: /surf|ariel|downy/i, name: "P&G / Unilever" },
   { matcher: /del\s*monte/i, name: "Del Monte" },
-  { matcher: /load|gcash|photocopy/i, name: "In-Store Service" }
+  { matcher: /load|qrph|gcash|photocopy/i, name: "In-Store Service" }
 ];
 
 const SERVICE_CONFIG_DEFS = {
@@ -244,6 +244,8 @@ exports.getProductItems = async (req, res) => {
          p.barcode,
          p.product_type AS category,
          p.selling_price AS price,
+         COALESCE(p.reorder_threshold, 5) AS reorder_threshold,
+         COALESCE(p.near_expiry_days, 14) AS near_expiry_days,
          ${photoSelect}
          COUNT(pb.batch_id) AS total_batches,
          SUM(CASE WHEN pb.status != 'Discontinued' THEN 1 ELSE 0 END) AS active_batches,
@@ -260,7 +262,7 @@ exports.getProductItems = async (req, res) => {
        FROM products p
        LEFT JOIN product_batches pb ON pb.product_id = p.product_id
        ${whereClause}
-       GROUP BY p.product_id, p.name, p.volume, p.barcode, p.product_type, p.selling_price${photoGroupBy}
+      GROUP BY p.product_id, p.name, p.volume, p.barcode, p.product_type, p.selling_price, p.reorder_threshold, p.near_expiry_days${photoGroupBy}
        HAVING total_batches = 0 OR active_batches > 0
        ORDER BY p.name ASC, p.volume ASC`,
       params
@@ -278,7 +280,9 @@ exports.getProductItems = async (req, res) => {
         price: Number(row.price) || 0,
         photo: row.photo || null,
         stock,
-        lowStock: stock > 0 && stock <= 5
+        reorderThreshold: Number(row.reorder_threshold) || 5,
+        nearExpiryDays: Number(row.near_expiry_days) || 14,
+        lowStock: stock > 0 && stock <= (Number(row.reorder_threshold) || 5)
       };
     });
 
@@ -291,7 +295,10 @@ exports.getProductItems = async (req, res) => {
 
 // Add a new product
 exports.addProduct = async (req, res) => {
-  const { name, volume, category, price, stock, barcode, photo } = req.body;
+  const { name, volume, category, price, stock, barcode, photo, reorderThreshold, nearExpiryDays } = req.body;
+  const normalizedReorderThreshold = Math.max(0, Number.isFinite(Number(reorderThreshold)) ? Number(reorderThreshold) : 5);
+  const normalizedNearExpiryDays = Math.max(1, Number.isFinite(Number(nearExpiryDays)) ? Number(nearExpiryDays) : 14);
+
 
   if (!name || !category) {
     return res.status(400).json({ error: "Name and category are required" });
@@ -316,15 +323,15 @@ exports.addProduct = async (req, res) => {
     let result;
     if (photoColumn) {
       [result] = await db.query(
-        `INSERT INTO products (name, volume, product_type, selling_price, barcode, ${photoColumn})
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null, normalizedPhotoPath]
+        `INSERT INTO products (name, volume, product_type, selling_price, barcode, reorder_threshold, near_expiry_days, ${photoColumn})
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null, normalizedReorderThreshold, normalizedNearExpiryDays, normalizedPhotoPath]
       );
     } else {
       [result] = await db.query(
-        `INSERT INTO products (name, volume, product_type, selling_price, barcode)
-         VALUES (?, ?, ?, ?, ?)`,
-        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null]
+        `INSERT INTO products (name, volume, product_type, selling_price, barcode, reorder_threshold, near_expiry_days)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null, normalizedReorderThreshold, normalizedNearExpiryDays]
       );
     }
 
@@ -357,7 +364,10 @@ exports.addProduct = async (req, res) => {
 // Update an existing product
 exports.updateProduct = async (req, res) => {
   const { product_id } = req.params;
-  const { name, volume, category, price, barcode, photo } = req.body;
+  const { name, volume, category, price, barcode, photo, reorderThreshold, nearExpiryDays } = req.body;
+  const normalizedReorderThreshold = Math.max(0, Number.isFinite(Number(reorderThreshold)) ? Number(reorderThreshold) : 5);
+  const normalizedNearExpiryDays = Math.max(1, Number.isFinite(Number(nearExpiryDays)) ? Number(nearExpiryDays) : 14);
+
 
   if (!name || !category) {
     return res.status(400).json({ error: "Name and category are required" });
@@ -382,16 +392,16 @@ exports.updateProduct = async (req, res) => {
     if (photoColumn) {
       await db.query(
         `UPDATE products
-         SET name = ?, volume = ?, product_type = ?, selling_price = ?, barcode = ?, ${photoColumn} = ?
+         SET name = ?, volume = ?, product_type = ?, selling_price = ?, barcode = ?, reorder_threshold = ?, near_expiry_days = ?, ${photoColumn} = ?
          WHERE product_id = ?`,
-        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null, normalizedPhotoPath, product_id]
+        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null, normalizedReorderThreshold, normalizedNearExpiryDays, normalizedPhotoPath, product_id]
       );
     } else {
       await db.query(
         `UPDATE products
-         SET name = ?, volume = ?, product_type = ?, selling_price = ?, barcode = ?
+         SET name = ?, volume = ?, product_type = ?, selling_price = ?, barcode = ?, reorder_threshold = ?, near_expiry_days = ?
          WHERE product_id = ?`,
-        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null, product_id]
+        [name.trim(), volumeVal, category, parseFloat(price) || null, barcode?.trim() || null, normalizedReorderThreshold, normalizedNearExpiryDays, product_id]
       );
     }
 
@@ -596,5 +606,70 @@ exports.updateServiceConfig = async (req, res) => {
   } catch (err) {
     console.error("updateServiceConfig error:", err);
     res.status(500).json({ error: "Failed to update service config." });
+  }
+};
+
+exports.getInventoryAlerts = async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT
+         p.product_id,
+         p.name,
+         p.product_type,
+         COALESCE(p.reorder_threshold, 5) AS reorder_threshold,
+         COALESCE(p.near_expiry_days, 14) AS near_expiry_days,
+         COALESCE(SUM(CASE WHEN pb.status != 'Discontinued' THEN pb.stock_quantity ELSE 0 END), 0) AS current_stock,
+         MIN(
+           CASE
+             WHEN pb.status != 'Discontinued' AND pb.expiry_date IS NOT NULL
+             THEN DATEDIFF(pb.expiry_date, CURDATE())
+             ELSE NULL
+           END
+         ) AS min_days_to_expiry
+       FROM products p
+       LEFT JOIN product_batches pb ON pb.product_id = p.product_id
+       WHERE p.product_type != 'Services'
+       GROUP BY p.product_id, p.name, p.product_type, p.reorder_threshold, p.near_expiry_days
+       ORDER BY p.name ASC`
+    );
+
+    const alerts = rows.map((row) => {
+      const currentStock = Number(row.current_stock) || 0;
+      const reorderThreshold = Number(row.reorder_threshold) || 5;
+      const nearExpiryDays = Number(row.near_expiry_days) || 14;
+      const daysToExpiry = row.min_days_to_expiry === null ? null : Number(row.min_days_to_expiry);
+
+      const outOfStock = currentStock <= 0;
+      const lowStock = !outOfStock && currentStock <= reorderThreshold;
+      const nearExpiry = Number.isFinite(daysToExpiry) && daysToExpiry >= 0 && daysToExpiry <= nearExpiryDays;
+
+      return {
+        product_id: row.product_id,
+        name: row.name,
+        category: row.product_type,
+        currentStock,
+        reorderThreshold,
+        nearExpiryDays,
+        daysToExpiry,
+        outOfStock,
+        lowStock,
+        nearExpiry
+      };
+    });
+
+    const attention = alerts.filter((item) => item.outOfStock || item.lowStock || item.nearExpiry);
+
+    return res.json({
+      summary: {
+        outOfStock: alerts.filter((item) => item.outOfStock).length,
+        lowStock: alerts.filter((item) => item.lowStock).length,
+        nearExpiry: alerts.filter((item) => item.nearExpiry).length,
+        totalProducts: alerts.length
+      },
+      alerts: attention
+    });
+  } catch (err) {
+    console.error("getInventoryAlerts error:", err);
+    return res.status(500).json({ error: "Failed to load inventory alerts." });
   }
 };

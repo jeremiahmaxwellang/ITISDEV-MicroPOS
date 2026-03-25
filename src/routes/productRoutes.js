@@ -30,6 +30,10 @@ router.post("/api/add", productsController.addProduct);
 router.get("/api/services-config", productsController.getServiceConfig);
 router.put("/api/services-config", productsController.updateServiceConfig);
 
+// Inventory alerts + recommendations
+router.get("/api/alerts", productsController.getInventoryAlerts);
+router.get("/recommendations", productsController.getPurchaseRecommendations);
+
 // Update product
 router.put("/api/:product_id", productsController.updateProduct);
 

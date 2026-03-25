@@ -248,49 +248,21 @@ exports.processTransaction = async (req, res) => {
     gcash_customer_name = null,
     gcash_proof_filename = null,
     amount_paid = null   // for Partial / Split payment
-    gcash_cash_type = null // 'cash-in' or 'cash-out', optional
   } = req.body;
 
-
+  const normalizedPaymentMethod = payment_method === "QRPH" ? "GCash" : payment_method;
   if (!items || items.length === 0) {
     return res.status(400).json({ error: "Cart is empty" });
   }
 
-  const isUtang   = payment_method === "Utang";
-  const isPartial = payment_method === "Partial";
+  const isUtang   = normalizedPaymentMethod === "Utang";
+  const isPartial = normalizedPaymentMethod === "Partial";
 
   if ((isUtang || isPartial) && !customer_id) {
     return res.status(400).json({ error: "A customer must be selected for Utang/Partial transactions" });
   }
   if (isPartial && (amount_paid === null || Number(amount_paid) <= 0)) {
     return res.status(400).json({ error: "amount_paid must be greater than 0 for Partial transactions" });
-  // Detect if cart contains GCash Cash-In or Cash-Out product
-  let containsGcashCashIn = false;
-  let containsGcashCashOut = false;
-  let gcashProductItem = null;
-  for (const item of items) {
-    if (item.name && typeof item.name === 'string') {
-      if (item.name.toLowerCase().includes('gcash cash-in')) {
-        containsGcashCashIn = true;
-        gcashProductItem = item;
-      }
-      if (item.name.toLowerCase().includes('gcash cash-out')) {
-        containsGcashCashOut = true;
-        gcashProductItem = item;
-      }
-    }
-  }
-
-  // If either, require gcash_customer_number and proof
-  if ((containsGcashCashIn || containsGcashCashOut)) {
-    if (!gcash_customer_number || !gcash_proof_filename) {
-      return res.status(400).json({ error: "GCash number and proof of transaction are required for GCash Cash-In/Cash-Out." });
-    }
-  }
-
-  const isUtang = payment_method === "Utang";
-  if (isUtang && !customer_id) {
-    return res.status(400).json({ error: "A customer must be selected for Utang transactions" });
   }
 
   try {
@@ -301,10 +273,13 @@ exports.processTransaction = async (req, res) => {
 
       let total_price = 0;
 
+      let hasCashInService = false;
+      let hasCashOutService = false;
+
       // Validate all items and calculate total (service fee + load amount)
       for (const item of items) {
         const [productRows] = await connection.query(
-          `SELECT selling_price, product_type FROM products WHERE product_id = ?`,
+          `SELECT name, selling_price, product_type FROM products WHERE product_id = ?`,
           [item.product_id]
         );
 
@@ -312,13 +287,35 @@ exports.processTransaction = async (req, res) => {
           throw new Error(`Product ${item.product_id} not found`);
         }
 
+        const productName = String(productRows[0].name || "").toLowerCase();
         const price = Number(productRows[0].selling_price) || 0;
         const loadAmount = productRows[0].product_type === "Services" ? (Number(item.load_amount) || 0) : 0;
+
+        const isCashServiceProduct =
+          productRows[0].product_type === "Services" &&
+          /cash\s*-?\s*in|cash\s*-?\s*out/.test(productName);
+
+        if (isCashServiceProduct) {
+          const serviceMode = String(item.service_mode || "").toLowerCase();
+          if (serviceMode === "cash_in") hasCashInService = true;
+          if (serviceMode === "cash_out") hasCashOutService = true;
+        }
+
         total_price += price * item.quantity + loadAmount;
       }
 
+      if (hasCashInService && hasCashOutService) {
+        throw new Error("Cannot process both Cash In and Cash Out services in one transaction");
+      }
+      if (hasCashInService && normalizedPaymentMethod !== "Cash") {
+        throw new Error("Cash In service requires Cash payment method");
+      }
+      if (hasCashOutService && normalizedPaymentMethod !== "GCash") {
+        throw new Error("Cash Out service requires QRPH payment method");
+      }
+
       const status = isUtang ? "Unpaid" : isPartial ? "Partial" : "Paid";
-      const storedPaymentMethod = (isUtang || isPartial) ? "Other" : payment_method;
+      const storedPaymentMethod = (isUtang || isPartial) ? "Other" : normalizedPaymentMethod;
       const effectiveStaffId = Number(staff_id || sessionStaffId || 1);
 
       const [transactionResult] = await connection.query(
@@ -425,14 +422,14 @@ exports.processTransaction = async (req, res) => {
 
         // Payment proof record for the upfront cash
         await connection.query(
-          `INSERT INTO payment_proofs (staff_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url)
-           VALUES (?, ?, 'CASH', ?, CURRENT_DATE, NULL)`,
-          [effectiveStaffId, customer_name || "Walk-in Customer", paidNow]
+          `INSERT INTO payment_proofs (staff_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url, transaction_id)
+           VALUES (?, ?, 'CASH', ?, CURRENT_DATE, NULL, ?)`,
+          [effectiveStaffId, customer_name || "Walk-in Customer", paidNow, transaction_id]
         );
       }
 
       // If GCash, insert payment record
-      if (payment_method === "GCash") {
+      if (normalizedPaymentMethod === "GCash") {
         await connection.query(
           `INSERT INTO payments (transaction_id, staff_id, amount_paid, payment_method, proof_of_payment, notes)
            VALUES (?, ?, ?, 'GCash', ?, ?)`,
@@ -446,8 +443,8 @@ exports.processTransaction = async (req, res) => {
         );
       }
 
-      if (payment_method === "Cash" || payment_method === "GCash") {
-        const preferredCustomerName = payment_method === "GCash"
+      if (normalizedPaymentMethod === "Cash" || normalizedPaymentMethod === "GCash") {
+        const preferredCustomerName = normalizedPaymentMethod === "GCash"
           ? (gcash_customer_name || customer_name)
           : customer_name;
 
@@ -455,35 +452,25 @@ exports.processTransaction = async (req, res) => {
           preferredCustomerName || "Walk-in Customer"
         ).trim() || "Walk-in Customer";
 
-        const normalizedPaymentNumber = payment_method === "GCash"
+        const normalizedPaymentNumber = normalizedPaymentMethod === "GCash"
           ? (String(gcash_customer_number || "N/A").trim() || "N/A")
           : "CASH";
 
-        const proofImageUrl = payment_method === "GCash" && gcash_proof_filename
+        const proofImageUrl = normalizedPaymentMethod === "GCash" && gcash_proof_filename
           ? `/uploads/payment-proof/${gcash_proof_filename}`
           : null;
 
         await connection.query(
           `INSERT INTO payment_proofs
-           (staff_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url)
-           VALUES (?, ?, ?, ?, CURRENT_DATE, ?)`,
+           (staff_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url, transaction_id)
+           VALUES (?, ?, ?, ?, CURRENT_DATE, ?, ?)`,
           [
             effectiveStaffId,
             normalizedCustomerName,
             normalizedPaymentNumber,
             total_price,
-            proofImageUrl
-      // If GCash Cash-In or Cash-Out, store in payment_proofs table
-      if ((containsGcashCashIn || containsGcashCashOut)) {
-        await connection.query(
-          `INSERT INTO payment_proofs (staff_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url)
-           VALUES (?, ?, ?, ?, CURDATE(), ?)`,
-          [
-            staff_id || 1,
-            gcash_customer_name || 'N/A',
-            gcash_customer_number,
-            total_price,
-            gcash_proof_filename
+            proofImageUrl,
+            transaction_id
           ]
         );
       }
@@ -495,7 +482,7 @@ exports.processTransaction = async (req, res) => {
         transaction_id,
         total_price,
         items_count: items.reduce((sum, item) => sum + item.quantity, 0),
-        payment_method
+        payment_method: payment_method === "QRPH" ? "QRPH" : normalizedPaymentMethod
       });
     } catch (err) {
       await connection.rollback();

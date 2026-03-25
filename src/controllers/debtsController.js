@@ -82,6 +82,17 @@ exports.createDebt = async (req, res) => {
         return res.status(400).json({ error: 'debt_amount and debt_due are required' });
     }
 
+    const dueDate = new Date(`${debt_due}T00:00:00`);
+    if (Number.isNaN(dueDate.getTime())) {
+        return res.status(400).json({ error: 'Invalid due date' });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (dueDate < today) {
+        return res.status(400).json({ error: 'Due date cannot be in the past' });
+    }
+
     try {
         let finalCustomerId = customer_id;
 
@@ -208,10 +219,14 @@ exports.getDebtDetails = async (req, res) => {
             WHERE dt.debt_id = ?
         `, [debt_id]);
 
-        // 3. Get payment history for this debt
+        // 3. Get payment history for this customer (including past paid debts)
         const [payments] = await db.query(`
-            SELECT 
+            SELECT DISTINCT
                 pay.payment_id,
+                pay.debt_id,
+                pay.transaction_id,
+                COALESCE(d_direct.debt_id, d_tx.debt_id) AS related_debt_id,
+                COALESCE(d_direct.status, d_tx.status)   AS debt_status,
                 pay.amount_paid,
                 pay.payment_method,
                 pay.proof_of_payment,
@@ -220,10 +235,13 @@ exports.getDebtDetails = async (req, res) => {
                 s.first_name AS staff_first_name,
                 s.last_name  AS staff_last_name
             FROM payments pay
+            LEFT JOIN debts d_direct ON d_direct.debt_id = pay.debt_id
+            LEFT JOIN debt_transactions dt ON dt.transaction_id = pay.transaction_id
+            LEFT JOIN debts d_tx ON d_tx.debt_id = dt.debt_id
             LEFT JOIN staff s ON s.staff_id = pay.staff_id
-            WHERE pay.debt_id = ?
+            WHERE d_direct.customer_id = ? OR d_tx.customer_id = ?
             ORDER BY pay.created_at DESC
-        `, [debt_id]);
+        `, [debt.customer_id, debt.customer_id]);
 
         res.json({
             ...debt,
