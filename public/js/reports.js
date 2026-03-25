@@ -172,7 +172,21 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    forecastList.innerHTML = list.map(item => `
+    // Filter out items where all key values are 0
+    const filtered = list.filter(item => {
+      return !(
+        Number(item.avgDailyUnits) === 0 &&
+        Number(item.forecastUnits) === 0 &&
+        Number(item.currentStock) === 0 &&
+        Number(item.projectedBalance) === 0
+      );
+    });
+    if (filtered.length === 0) {
+      forecastList.innerHTML = `<li style="padding:1rem;color:var(--text-sub,#888);list-style:none;">No forecast data for this period.</li>`;
+      return;
+    }
+
+    forecastList.innerHTML = filtered.map(item => `
       <li class="recommendation-item">
         <div><strong>${item.name}</strong> <span style="color:#6b7280">(${item.category || "Other"})</span></div>
         <div>Avg/day: <strong>${item.avgDailyUnits}</strong> unit(s)</div>
