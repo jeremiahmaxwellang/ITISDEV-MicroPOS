@@ -33,13 +33,16 @@ INSERT INTO `customers` (`first_name`, `last_name`, `phone_number`, `debt_limit`
 ('Nena',  'Flores',     '09991112233', 1000.00, 'F', NULL);                                    -- customer_id = 5 (Paid)
 
 
+
 INSERT INTO `products` (`name`, `product_type`, `selling_price`, `photo`) VALUES
 ('Softdrinks (330ml)',    'Beverages',    25.00, NULL),   -- product_id = 1
 ('Rice (1kg)',            'Canned Goods', 55.00, '/uploads/product-photos/product-1774422315762-a11cbb68.jpg'),   -- product_id = 2
 ('Cooking Oil (500ml)',   'Canned Goods', 78.00, '/uploads/product-photos/product-1774422092154-719198de.jpg'),   -- product_id = 3
 ('Instant Noodles',       'Instant Foods',15.00, '/uploads/product-photos/product-1774422223277-d1401c11.png'),   -- product_id = 4
 ('Load / E-Load',         'Services',       10.00, '/uploads/product-photos/product-1774422267145-a8724701.png'),   -- product_id = 5
-('Photocopy (per page)',  'Services',        3.00, NULL);   -- product_id = 6
+('Photocopy (per page)',  'Services',        3.00, NULL),   -- product_id = 6
+('GCash Cash-In',         'Services',       15.00, NULL),   -- product_id = 7 (example id)
+('GCash Cash-Out',        'Services',       15.00, NULL);   -- product_id = 8 (example id)
 
 -- LOW-STOCKED HOT SELLER PRODUCT FOR TESTING
 INSERT INTO `products` (`name`, `product_type`, `selling_price`, `photo`) VALUES
