@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Inputs
   const amountPaidInput = document.getElementById("amountPaid");
+  const cashCustomerNameInput = document.getElementById("cashCustomerName");
   const changeDisplay = document.getElementById("changeDisplay");
   const gcashReference = document.getElementById("gcashReference");
   const gcashCustomerNumber = document.getElementById("gcashCustomerNumber");
@@ -182,7 +183,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (state.paymentMethod === "Cash") {
       const amountPaid = parseFloat(amountPaidInput.value) || 0;
       const totals = calculateTotals();
-      return amountPaid >= totals.total;
+      const hasCustomerName = !cashCustomerNameInput || cashCustomerNameInput.value.trim() !== "";
+      return hasCustomerName && amountPaid >= totals.total;
     } else if (state.paymentMethod === "GCash") {
       return (
         state.gcashQRImage && // QR code must be uploaded
@@ -275,6 +277,9 @@ document.addEventListener("DOMContentLoaded", () => {
         payment_method: state.paymentMethod,
         customer_id: null, // Can be set if customer is known
         staff_id: null, // Will be set by backend
+        customer_name: state.paymentMethod === "Cash" && cashCustomerNameInput
+          ? cashCustomerNameInput.value.trim()
+          : undefined,
         // GCash details
         gcash_reference: state.paymentMethod === "GCash" ? gcashReference.value.trim() : undefined,
         gcash_customer_number: state.paymentMethod === "GCash" ? gcashCustomerNumber.value.trim() : undefined,
@@ -333,6 +338,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Cash input
   amountPaidInput.addEventListener("input", updateConfirmationMessage);
+  if (cashCustomerNameInput) {
+    cashCustomerNameInput.addEventListener("input", updateConfirmationMessage);
+  }
 
   // GCash inputs
   gcashReference.addEventListener("input", updateConfirmationMessage);

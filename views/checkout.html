@@ -118,6 +118,9 @@
 
           <!-- Cash input -->
           <div id="cashInputBox" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;">
+            <label style="display:block;font-weight:600;color:#1a2035;margin-bottom:0.3rem;font-size:0.9rem;">Customer Name *</label>
+            <input type="text" id="cashCustomerName" placeholder="Enter customer name"
+              style="width:100%;padding:0.875rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:1rem;box-sizing:border-box;margin-bottom:0.75rem;">
             <label style="display:block;font-weight:600;color:#1a2035;margin-bottom:0.5rem;font-size:0.9rem;">Amount Paid (₱)</label>
             <input type="number" id="amountPaid" placeholder="0.00" step="0.01" min="0"
               style="width:100%;padding:0.875rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:1rem;box-sizing:border-box;">
@@ -371,7 +374,8 @@
 
       if (state.paymentMethod === 'Cash') {
         const paid = parseFloat(document.getElementById('amountPaid').value) || 0;
-        canPay = paid >= total && (serviceItems.length === 0 || loadAmountsValid);
+        const hasCashCustomerName = document.getElementById('cashCustomerName').value.trim() !== '';
+        canPay = hasCashCustomerName && paid >= total && (serviceItems.length === 0 || loadAmountsValid);
         const changeDiv = document.getElementById('changeDisplay');
         if (paid > 0) {
           const change = paid - total;
@@ -385,7 +389,9 @@
           changeDiv.style.display = 'none';
         }
       } else if (state.paymentMethod === 'GCash') {
-        canPay = state.gcashReceived && document.getElementById('gcashReference').value.trim() !== '' && (serviceItems.length === 0 || loadAmountsValid);
+        const hasScreenshot = !!(document.getElementById('gcashQRUpload').files || [])[0];
+        const hasGcashName = document.getElementById('gcashCustomerName').value.trim() !== '';
+        canPay = state.gcashReceived && document.getElementById('gcashReference').value.trim() !== '' && hasGcashName && hasScreenshot && (serviceItems.length === 0 || loadAmountsValid);
       } else if (state.paymentMethod === 'Utang') {
         canPay = !!state.selectedCustomer && (serviceItems.length === 0 || loadAmountsValid);
       }
@@ -414,6 +420,28 @@
       document.getElementById('qrUploadLabel').style.display = 'flex';
       document.getElementById('gcashQRUpload').value = '';
       document.getElementById('uploadLabel').textContent = 'Click to upload GCash screenshot';
+      updateConfirmBtn();
+    }
+
+    async function uploadProofImage(file) {
+      const formData = new FormData();
+      formData.append('proofImage', file);
+
+      const response = await fetch('/transaction-verification/api/upload-proof', {
+        method: 'POST',
+        body: formData
+      });
+
+      const payload = await response.json().catch(() => ({ message: 'Invalid upload response.' }));
+      if (!response.ok) {
+        throw new Error(payload.message || 'Failed to upload proof image.');
+      }
+
+      if (!payload.fileName) {
+        throw new Error('Proof upload succeeded but file reference is missing.');
+      }
+
+      return payload.fileName;
     }
 
     async function searchCustomers(query) {
@@ -468,6 +496,15 @@
       document.getElementById('confirmPaymentBtn').style.display = 'none';
 
       try {
+        let gcashProofFilename = null;
+        if (state.paymentMethod === 'GCash') {
+          const gcashProofFile = (document.getElementById('gcashQRUpload').files || [])[0] || null;
+          if (!gcashProofFile) {
+            throw new Error('Please upload the GCash screenshot proof before confirming payment.');
+          }
+          gcashProofFilename = await uploadProofImage(gcashProofFile);
+        }
+
         const body = {
           items: state.cart.items.map(i => ({
             product_id: i.id,
@@ -476,7 +513,16 @@
           })),
           payment_method: state.paymentMethod,
           customer_id: state.selectedCustomer ? state.selectedCustomer.customer_id : null,
-          staff_id: null
+          staff_id: null,
+          customer_name: state.paymentMethod === 'Cash'
+            ? document.getElementById('cashCustomerName').value.trim()
+            : (state.selectedCustomer ? state.selectedCustomer.name : null),
+          gcash_reference: state.paymentMethod === 'GCash' ? document.getElementById('gcashReference').value.trim() : null,
+          gcash_customer_number: state.paymentMethod === 'GCash' ? document.getElementById('gcashCustomerNumber').value.trim() : null,
+          gcash_customer_name: state.paymentMethod === 'GCash'
+            ? document.getElementById('gcashCustomerName').value.trim()
+            : null,
+          gcash_proof_filename: state.paymentMethod === 'GCash' ? gcashProofFilename : null
         };
 
         const res = await fetch('/pos/api/checkout', {
@@ -513,7 +559,10 @@
       selectPaymentMethod('Cash');
 
       document.getElementById('amountPaid').addEventListener('input', updateConfirmBtn);
+      document.getElementById('cashCustomerName').addEventListener('input', updateConfirmBtn);
       document.getElementById('gcashReference').addEventListener('input', updateConfirmBtn);
+      document.getElementById('gcashCustomerNumber').addEventListener('input', updateConfirmBtn);
+      document.getElementById('gcashCustomerName').addEventListener('input', updateConfirmBtn);
 
       document.getElementById('gcashQRUpload').addEventListener('change', function(e) {
         const file = e.target.files[0];

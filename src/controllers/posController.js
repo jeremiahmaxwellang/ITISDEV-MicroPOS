@@ -236,11 +236,13 @@ exports.searchCustomers = async (req, res) => {
 
 // Process a complete transaction
 exports.processTransaction = async (req, res) => {
+  const sessionStaffId = req.session && req.session.user ? req.session.user.staff_id : null;
   const {
     items,
     customer_id = null,
     staff_id = null,
     payment_method = "Cash",
+    customer_name = null,
     gcash_reference = null,
     gcash_customer_number = null,
     gcash_customer_name = null,
@@ -282,11 +284,12 @@ exports.processTransaction = async (req, res) => {
 
       const status = isUtang ? "Unpaid" : "Paid";
       const storedPaymentMethod = isUtang ? "Other" : payment_method;
+      const effectiveStaffId = Number(staff_id || sessionStaffId || 1);
 
       const [transactionResult] = await connection.query(
         `INSERT INTO transactions (customer_id, staff_id, total_price, status, payment_method, date_ordered)
          VALUES (?, ?, ?, ?, ?, NOW())`,
-        [customer_id, staff_id || 1, total_price, status, storedPaymentMethod]
+        [customer_id, effectiveStaffId, total_price, status, storedPaymentMethod]
       );
 
       const transaction_id = transactionResult.insertId;
@@ -341,10 +344,41 @@ exports.processTransaction = async (req, res) => {
            VALUES (?, ?, ?, 'GCash', ?, ?)`,
           [
             transaction_id,
-            staff_id || 1,
+            effectiveStaffId,
             total_price,
             gcash_proof_filename || null,
             `Ref: ${gcash_reference || ''}; Name: ${gcash_customer_name || ''}; Number: ${gcash_customer_number || ''}`
+          ]
+        );
+      }
+
+      if (payment_method === "Cash" || payment_method === "GCash") {
+        const preferredCustomerName = payment_method === "GCash"
+          ? (gcash_customer_name || customer_name)
+          : customer_name;
+
+        const normalizedCustomerName = String(
+          preferredCustomerName || "Walk-in Customer"
+        ).trim() || "Walk-in Customer";
+
+        const normalizedPaymentNumber = payment_method === "GCash"
+          ? (String(gcash_customer_number || "N/A").trim() || "N/A")
+          : "CASH";
+
+        const proofImageUrl = payment_method === "GCash" && gcash_proof_filename
+          ? `/uploads/payment-proof/${gcash_proof_filename}`
+          : null;
+
+        await connection.query(
+          `INSERT INTO payment_proofs
+           (staff_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url)
+           VALUES (?, ?, ?, ?, CURRENT_DATE, ?)`,
+          [
+            effectiveStaffId,
+            normalizedCustomerName,
+            normalizedPaymentNumber,
+            total_price,
+            proofImageUrl
           ]
         );
       }

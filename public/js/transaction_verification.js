@@ -141,6 +141,7 @@
 					id: payment.proof_id,
 					customerName: payment.customer_name,
 					gcashNumber: payment.gcash_number,
+					paymentMethod: String(payment.gcash_number || "").toUpperCase() === "CASH" ? "Cash" : "GCash",
 					amountPaid: payment.amount_paid,
 					datePaid: payment.date_paid,
 					imageUrl: payment.proof_image_url
@@ -200,6 +201,7 @@
 		paymentsList.innerHTML = payments
 			.map((payment) => {
 				const paidDate = formatPaymentDate(payment.datePaid);
+				const methodBadge = payment.paymentMethod === "Cash" ? "CASH" : "GCASH";
 				return `
 					<article class="payment-card" data-payment-id="${payment.id}">
 						<div class="card-top">
@@ -207,7 +209,7 @@
 								<h3 class="customer-name">${escapeHtml(payment.customerName)}</h3>
 								<p class="amount-paid">${formatCurrency(payment.amountPaid)}</p>
 							</div>
-							<span class="gcash-badge">GCASH</span>
+							<span class="gcash-badge">${methodBadge}</span>
 						</div>
 						<div class="card-meta">
 							<span>${escapeHtml(paidDate)}</span>
@@ -295,6 +297,9 @@
 
 	function openDetailPopup(payment) {
 		const imageSrc = payment.imageUrl || "";
+		const isCash = payment.paymentMethod === "Cash";
+		const methodLabel = isCash ? "Payment Method" : "GCash Number";
+		const methodValue = isCash ? "Cash" : (payment.gcashNumber || "Not provided");
 		const imageHtml = imageSrc
 			? `<img src="${imageSrc}" alt="Payment proof image for ${escapeHtml(payment.customerName)}">`
 			: '<div class="proof-image-empty">No proof image available</div>';
@@ -312,8 +317,8 @@
 					<div class="detail-value">${escapeHtml(payment.customerName)}</div>
 				</div>
 				<div class="detail-row">
-					<span class="detail-label">GCash Number</span>
-					<div class="detail-value">${escapeHtml(payment.gcashNumber || "Not provided")}</div>
+					<span class="detail-label">${methodLabel}</span>
+					<div class="detail-value">${escapeHtml(methodValue)}</div>
 				</div>
 				<div class="detail-row">
 					<span class="detail-label">Amount Paid</span>
