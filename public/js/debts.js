@@ -13,8 +13,11 @@ function formatCurrency(amount) {
     return '₱' + parseFloat(amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+let selectedCustomerDebtLimit = null;
+
 // Select customer for the Create Debts Modal
-function selectCustomer(customer_id, first_name, last_name, phone_number) {
+function selectCustomer(customer_id, first_name, last_name, phone_number, debt_limit) {
+
     // Set hidden customer ID for the payload
     document.getElementById('selectedCustomerId').value = customer_id;
 
@@ -33,6 +36,17 @@ function selectCustomer(customer_id, first_name, last_name, phone_number) {
     // Hide dropdown
     document.getElementById('customerSearchResults').style.display = 'none';
     document.getElementById('customerSearchInput').value = '';
+
+    selectedCustomerDebtLimit = debt_limit ? parseFloat(debt_limit) : null;
+
+    // Show debt limit hint below the preview
+    const hint = document.getElementById('debtLimitHint');
+    if (hint) {
+        hint.textContent = debt_limit
+            ? `Debt limit: ${formatCurrency(debt_limit)}`
+            : 'No debt limit set';
+        hint.style.display = 'block';
+    }
 }
 
 // Mode toggle
@@ -587,7 +601,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     resultsEl.innerHTML = customers.map(c => `
                     <div 
                         class="customer-search-result"
-                        onclick="selectCustomer(${c.customer_id}, '${c.first_name}', '${c.last_name}', '${c.phone_number || ''}')"
+                        onclick="selectCustomer(${c.customer_id}, '${c.first_name}', '${c.last_name}', '${c.phone_number || ''}', ${c.debt_limit || null})"
                         style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;transition:background .1s;"
                         onmouseover="this.style.background='#F3F3F5'"
                         onmouseout="this.style.background='white'"
@@ -622,7 +636,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveDebtBtn = document.getElementById('saveDebtBtn');
     if (saveDebtBtn) {
         saveDebtBtn.addEventListener('click', async () => {
-            const phone_number = document.getElementById('debtContact').value.trim();
             const totalDebt = parseFloat(document.getElementById('debtTotalAmount').value);
             const debt_due = document.getElementById('debtDueDate').value;
             const existingCustomerId = document.getElementById('selectedCustomerId').value;
@@ -633,29 +646,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Build payload depending on mode
+            // Frontend debt limit check for existing customers
+            if (isExistingMode && selectedCustomerDebtLimit !== null) {
+                if (totalDebt > selectedCustomerDebtLimit) {
+                    alert(`Debt amount (${formatCurrency(totalDebt)}) exceeds this customer's limit of ${formatCurrency(selectedCustomerDebtLimit)}.`);
+                    return;
+                }
+            }
+
             let payload = { debt_amount: totalDebt, debt_due };
 
             if (isExistingMode) {
-                if (!existingCustomerId) {
-                    alert('Please select an existing customer');
-                    return;
-                }
+                if (!existingCustomerId) { alert('Please select an existing customer'); return; }
                 payload.customer_id = existingCustomerId;
             } else {
                 const first_name = document.getElementById('first_name').value.trim();
                 const last_name = document.getElementById('last_name').value.trim();
-                if (!first_name || !last_name) {
-                    alert('Please enter the customer name');
-                    return;
-                }
-                if (!phone_number) {
-                    alert('Phone number is required');
-                    return;
-                }
+                const phone_number = document.getElementById('debtContact').value.trim();
+                if (!first_name || !last_name) { alert('Please enter the customer name'); return; }
+                if (!phone_number) { alert('Phone number is required'); return; }
                 payload.first_name = first_name;
                 payload.last_name = last_name;
-                payload.phone_number = document.getElementById('debtContact').value.trim();
+                payload.phone_number = phone_number;
             }
 
             try {
@@ -666,14 +678,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Failed to save');
+
+                // Show specific error if limit exceeded
+                if (!response.ok) {
+                    if (data.over_by) {
+                        alert(`Cannot save: ${data.error}\n\nOver by: ₱${data.over_by}`);
+                    } else {
+                        throw new Error(data.error || 'Failed to save');
+                    }
+                    return;
+                }
 
                 showToast('Debt record saved!');
                 document.getElementById('debtModal').style.display = 'none';
                 document.getElementById('debtForm').reset();
                 document.getElementById('selectedCustomerId').value = '';
                 document.getElementById('selectedCustomerPreview').style.display = 'none';
+                selectedCustomerDebtLimit = null;
                 loadDebts();
+
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error saving debt record: ' + error.message);

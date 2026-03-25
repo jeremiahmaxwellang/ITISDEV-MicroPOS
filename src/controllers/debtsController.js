@@ -85,7 +85,6 @@ exports.createDebt = async (req, res) => {
     try {
         let finalCustomerId = customer_id;
 
-        // Only create new customer if no existing customer_id provided
         if (!finalCustomerId) {
             if (!first_name || !last_name) {
                 return res.status(400).json({ error: 'first_name and last_name are required for new customers' });
@@ -97,6 +96,32 @@ exports.createDebt = async (req, res) => {
             `, [first_name, last_name, phone_number]);
 
             finalCustomerId = insertResult.insertId;
+
+        } else {
+            // ✅ Check existing customer's debt limit
+            const [customers] = await db.query(`
+                SELECT c.debt_limit, COALESCE(SUM(d.debt_amount), 0) AS total_active_debt
+                FROM customers c
+                LEFT JOIN debts d ON d.customer_id = c.customer_id AND d.status != 'Paid'
+                WHERE c.customer_id = ?
+                GROUP BY c.customer_id
+            `, [finalCustomerId]);
+
+            if (customers.length === 0) {
+                return res.status(404).json({ error: 'Customer not found' });
+            }
+
+            const { debt_limit, total_active_debt } = customers[0];
+            const newTotal = parseFloat(total_active_debt) + parseFloat(debt_amount);
+
+            if (debt_limit !== null && newTotal > parseFloat(debt_limit)) {
+                return res.status(400).json({
+                    error: `Debt limit exceeded. Current debt: ₱${parseFloat(total_active_debt).toFixed(2)}, Limit: ₱${parseFloat(debt_limit).toFixed(2)}, Attempted: ₱${parseFloat(debt_amount).toFixed(2)}`,
+                    debt_limit: debt_limit,
+                    total_active_debt: total_active_debt,
+                    over_by: (newTotal - parseFloat(debt_limit)).toFixed(2)
+                });
+            }
         }
 
         await db.query(`
