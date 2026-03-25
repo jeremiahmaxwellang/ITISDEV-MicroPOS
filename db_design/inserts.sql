@@ -88,6 +88,69 @@ INSERT INTO `transaction_orders` (`transaction_id`, `product_id`, `price_each`, 
 (7, 4, '15.00', 1, '0.00'),
 (8, 2, '55.00', 1, '0.00'),
 (9, 7, '8.00', 10, '0.00');
+-- ─────────────────────────────────────────
+INSERT INTO `customers` (`first_name`, `last_name`, `phone_number`, `debt_limit`, `is_blacklisted`, `facebook_profile`) VALUES
+('Charles', 'Duelas',    '09208070262', 1000.00, 'F', 'https://facebook.com/kaloy.mendoza'),   -- customer_id = 1 (Unpaid)
+('Baby',  'Aquino',     '09601385340', 1000.00, 'F', 'https://facebook.com/ate.baby'),         -- customer_id = 2 (Unpaid)
+('Rosie', 'Villanueva', '09213845024', 1000.00, 'T', 'https://facebook.com/rosie.villanueva'),-- customer_id = 3 (Overdue)
+('Choy',  'Garcia',     '09171941380', 1000.00, 'F', 'https://facebook.com/kuya.choy'),        -- customer_id = 4 (Paid)
+('Nena',  'Flores',     '09991112233', 1000.00, 'F', NULL);                                    -- customer_id = 5 (Paid)
+
+
+
+INSERT INTO `products` (`name`, `product_type`, `selling_price`, `photo`) VALUES
+('Softdrinks (330ml)',    'Beverages',    25.00, NULL),   -- product_id = 1
+('Rice (1kg)',            'Canned Goods', 55.00, '/uploads/product-photos/product-1774422315762-a11cbb68.jpg'),   -- product_id = 2
+('Cooking Oil (500ml)',   'Canned Goods', 78.00, '/uploads/product-photos/product-1774422092154-719198de.jpg'),   -- product_id = 3
+('Instant Noodles',       'Instant Foods',15.00, '/uploads/product-photos/product-1774422223277-d1401c11.png'),   -- product_id = 4
+('Load / E-Load',         'Services',       10.00, '/uploads/product-photos/product-1774422267145-a8724701.png'),   -- product_id = 5
+('Photocopy (per page)',  'Services',        3.00, NULL),   -- product_id = 6
+('GCash Cash-In',         'Services',       15.00, NULL),   -- product_id = 7 (example id)
+('GCash Cash-Out',        'Services',       15.00, NULL);   -- product_id = 8 (example id)
+
+-- LOW-STOCKED HOT SELLER PRODUCT FOR TESTING
+INSERT INTO `products` (`name`, `product_type`, `selling_price`, `photo`) VALUES
+('Coffee Sachet', 'Beverages', 8.00, NULL); -- product_id = 7
+
+
+-- ─────────────────────────────────────────
+-- PRODUCT BATCHES
+-- ─────────────────────────────────────────
+INSERT INTO `product_batches` (`product_id`, `stock_quantity`, `purchase_date`, `expiry_date`, `status`) VALUES
+(1, 120, '2026-02-01 08:00:00', '2027-02-01 00:00:00', 'On Shelves'),
+(1,  60, '2026-02-15 08:00:00', '2027-02-15 00:00:00', 'Inventory'),
+(2, 200, '2026-02-05 08:00:00',  NULL,                 'On Shelves'),
+(3,  50, '2026-01-20 08:00:00', '2027-01-20 00:00:00', 'On Shelves'),
+(4, 300, '2026-02-10 08:00:00', '2026-08-10 00:00:00', 'On Shelves'),
+(4, 100, '2026-01-01 08:00:00', '2026-03-01 00:00:00', 'Discontinued');
+
+
+-- LOW STOCK BATCH FOR COFFEE SACHET
+INSERT INTO `product_batches` (`product_id`, `stock_quantity`, `purchase_date`, `expiry_date`, `status`) VALUES
+(7, 2, '2026-03-20 08:00:00', '2027-03-20 00:00:00', 'On Shelves');
+
+-- INITIAL STOCK FOR GCASH CASH-OUT (product_id = 8)
+INSERT INTO `product_batches` (`product_id`, `stock_quantity`, `purchase_date`, `expiry_date`, `status`) VALUES
+(8, 5, '2026-03-25 08:00:00', NULL, 'On Shelves');
+
+
+
+INSERT INTO `transactions` (`customer_id`, `staff_id`, `total_price`, `date_ordered`) VALUES
+-- Kaloy (Unpaid debt) — 2 transactions bundled into 1 debt  [within last 7 days]
+(1, 2, 300.00, '2026-03-10 10:00:00'),   -- transaction_id = 1 (13 days ago)
+(1, 2, 150.00, '2026-03-12 11:00:00'),   -- transaction_id = 2 (11 days ago)
+-- Ate Baby (Unpaid debt) — 1 transaction  [within last 30 days]
+(2, 2, 700.00, '2026-02-28 09:30:00'),   -- transaction_id = 3 (24 days ago)
+-- Rosie (Overdue debt) — 2 transactions bundled into 1 debt  [within last 60 days]
+(3, 1, 500.00, '2026-01-23 14:00:00'),   -- transaction_id = 4 (60 days ago)
+(3, 1, 450.00, '2026-01-31 15:00:00'),   -- transaction_id = 5 (52 days ago)
+-- Kuya Choy (Paid debt) — 1 transaction  [within last 2 months]
+(4, 2, 580.00, '2026-01-25 10:00:00'),   -- transaction_id = 6 (58 days ago)
+-- Nena (Paid debt) — 2 transactions bundled into 1 debt  [within last 30 days]
+(5, 3,  93.00, '2026-03-01 13:00:00'),   -- transaction_id = 7 (22 days ago)
+(5, 3,  55.00, '2026-03-05 14:00:00'),   -- transaction_id = 8 (18 days ago)
+-- TRANSACTION FOR COFFEE SACHET (recent, hot seller)
+(1, 2, 80.00, '2026-03-24 09:00:00'); -- transaction_id = 9 (1 day ago)
 
 -- DEBTS
 INSERT INTO `debts` (`debt_id`, `customer_id`, `debt_amount`, `mode_of_payment`, `status`, `debt_started`, `debt_due`) VALUES

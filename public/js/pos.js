@@ -97,7 +97,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Enable/disable checkout buttons
     const hasItems = state.cart.length > 0;
     checkoutBtn.disabled = !hasItems;
-    listAsDebtBtn.disabled = !hasItems;
+
+    // Disable 'List as Debt' if cart contains GCash Cash-In or Cash-Out
+    const containsGcashCash = state.cart.some(item =>
+      item.name && (item.name.toLowerCase().includes('gcash cash-in') || item.name.toLowerCase().includes('gcash cash-out'))
+    );
+    listAsDebtBtn.disabled = !hasItems || containsGcashCash;
   }
 
   // ═══════════════════════════════════════════════════════════════════════

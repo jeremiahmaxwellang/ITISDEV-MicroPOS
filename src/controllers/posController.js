@@ -248,7 +248,9 @@ exports.processTransaction = async (req, res) => {
     gcash_customer_name = null,
     gcash_proof_filename = null,
     amount_paid = null   // for Partial / Split payment
+    gcash_cash_type = null // 'cash-in' or 'cash-out', optional
   } = req.body;
+
 
   if (!items || items.length === 0) {
     return res.status(400).json({ error: "Cart is empty" });
@@ -262,6 +264,33 @@ exports.processTransaction = async (req, res) => {
   }
   if (isPartial && (amount_paid === null || Number(amount_paid) <= 0)) {
     return res.status(400).json({ error: "amount_paid must be greater than 0 for Partial transactions" });
+  // Detect if cart contains GCash Cash-In or Cash-Out product
+  let containsGcashCashIn = false;
+  let containsGcashCashOut = false;
+  let gcashProductItem = null;
+  for (const item of items) {
+    if (item.name && typeof item.name === 'string') {
+      if (item.name.toLowerCase().includes('gcash cash-in')) {
+        containsGcashCashIn = true;
+        gcashProductItem = item;
+      }
+      if (item.name.toLowerCase().includes('gcash cash-out')) {
+        containsGcashCashOut = true;
+        gcashProductItem = item;
+      }
+    }
+  }
+
+  // If either, require gcash_customer_number and proof
+  if ((containsGcashCashIn || containsGcashCashOut)) {
+    if (!gcash_customer_number || !gcash_proof_filename) {
+      return res.status(400).json({ error: "GCash number and proof of transaction are required for GCash Cash-In/Cash-Out." });
+    }
+  }
+
+  const isUtang = payment_method === "Utang";
+  if (isUtang && !customer_id) {
+    return res.status(400).json({ error: "A customer must be selected for Utang transactions" });
   }
 
   try {
@@ -444,6 +473,17 @@ exports.processTransaction = async (req, res) => {
             normalizedPaymentNumber,
             total_price,
             proofImageUrl
+      // If GCash Cash-In or Cash-Out, store in payment_proofs table
+      if ((containsGcashCashIn || containsGcashCashOut)) {
+        await connection.query(
+          `INSERT INTO payment_proofs (staff_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url)
+           VALUES (?, ?, ?, ?, CURDATE(), ?)`,
+          [
+            staff_id || 1,
+            gcash_customer_name || 'N/A',
+            gcash_customer_number,
+            total_price,
+            gcash_proof_filename
           ]
         );
       }
