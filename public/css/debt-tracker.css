@@ -4,6 +4,35 @@ body {
   font-family: 'Poppins', sans-serif;
   background: #F7F7F7;
 }
+
+.main-header-title,
+.main-header-subtitle,
+.navbar-user,
+.navbar-user #headerUserName,
+.navbar-user #headerUserRole {
+  font-family: 'Outfit', sans-serif;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b5bdb, #5a7ae8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
 .debt-tab-toggle {
   width: 404px;
   height: 36px;

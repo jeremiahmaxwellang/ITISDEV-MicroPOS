@@ -10,7 +10,7 @@ const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 const mySqlPool = require('../config/database'); // your MySQL pool
-const { getSessionUser, requireStaffSession } = require('../middleware/auth');
+const { getSessionUser, requireStoreOwnerSession } = require('../middleware/auth');
 const router = express.Router();
 
 const viewsPath = path.join(__dirname, '../../views');
@@ -26,7 +26,7 @@ router.get('/signup', (req, res) => {
 });
 
 // Reports page
-router.get('/reports', requireStaffSession, (req, res) => {
+router.get('/reports', requireStoreOwnerSession, (req, res) => {
     res.sendFile(path.join(viewsPath, 'reports.html'));
 });
 

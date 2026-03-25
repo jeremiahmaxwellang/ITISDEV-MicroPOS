@@ -2,6 +2,32 @@
 let allDebts = { active: [], paid: [] };
 let currentTab = 'active';
 
+function initHeaderUser() {
+    const nameEl = document.getElementById('headerUserName');
+    const roleEl = document.getElementById('headerUserRole');
+    const avatarEl = document.getElementById('headerUserAvatar');
+
+    if (!nameEl || !roleEl || !avatarEl) return;
+
+    try {
+        const rawUser = localStorage.getItem('user');
+        const user = rawUser ? JSON.parse(rawUser) : null;
+
+        if (!user) return;
+
+        const firstName = (user.first_name || '').trim();
+        const lastName = (user.last_name || '').trim();
+        const fullName = `${firstName} ${lastName}`.trim() || user.email || 'Staff User';
+        const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.trim();
+
+        nameEl.textContent = fullName;
+        roleEl.textContent = user.role || 'Employee';
+        avatarEl.textContent = initials || fullName.slice(0, 2).toUpperCase();
+    } catch (error) {
+        console.error('Failed to load user details:', error);
+    }
+}
+
 function formatDate(dateStr) {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
@@ -520,6 +546,7 @@ function showToast(msg) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initHeaderUser();
 
     document.getElementById('debtForm').addEventListener('submit', async (e) => {
         e.preventDefault();

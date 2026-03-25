@@ -3,8 +3,11 @@ const path = require("path");
 const router = express.Router();
 
 const productsController = require("../controllers/productsController");
+const { requireStaffSession } = require("../middleware/auth");
 
 const viewsPath = path.join(__dirname, "../../views");
+
+router.use(requireStaffSession);
 
 // Products inventory page
 router.get("/", (req, res) => {

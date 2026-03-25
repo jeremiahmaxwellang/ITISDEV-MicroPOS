@@ -12,7 +12,7 @@
     { href: '/products', icon: 'package',        label: 'Products'      },
     { href: '/debts',    icon: 'file-text',      label: 'Debt Tracker'  },
     { href: '/transaction-verification', icon: 'badge-check', label: 'Transaction Verification' },
-    { href: '/reports',  icon: 'bar-chart-2',    label: 'Reports'       },
+    { href: '/reports',  icon: 'bar-chart-2',    label: 'Reports', ownerOnly: true },
   ];
 
   /** Items pinned to the bottom of the sidebar */
@@ -53,10 +53,41 @@
     }
   }
 
+  async function getCurrentUser() {
+    try {
+      const response = await fetch('/session', {
+        headers: {
+          Accept: 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+      return data && data.user ? data.user : null;
+    } catch (err) {
+      console.error('Session lookup failed:', err);
+      return null;
+    }
+  }
+
+  function canAccessNavItem(item, user) {
+    if (item.ownerOnly) {
+      return Boolean(user && user.role === 'Store Owner');
+    }
+
+    return true;
+  }
+
   /** Build and inject the full sidebar markup */
-  function render() {
+  async function render() {
     const aside = document.querySelector('aside.sidebar');
     if (!aside) return;
+
+    const user = await getCurrentUser();
+    const visibleNavItems = NAV_ITEMS.filter((item) => canAccessNavItem(item, user));
 
     aside.innerHTML = `
       <!-- Logo / Brand -->
@@ -75,7 +106,7 @@
 
       <!-- Main navigation -->
       <nav class="sidebar-nav">
-        ${NAV_ITEMS.map(buildLink).join('\n        ')}
+        ${visibleNavItems.map(buildLink).join('\n        ')}
       </nav>
 
       <!-- Bottom utilities -->

@@ -8,9 +8,12 @@ const path = require("path");
 const router = express.Router();
 
 const posController = require("../controllers/posController");
+const { requireStaffSession } = require("../middleware/auth");
 
 // View path
 const viewsPath = path.join(__dirname, "../../views");
+
+router.use(requireStaffSession);
 
 // Main POS interface
 router.get("/", (req, res) => {
