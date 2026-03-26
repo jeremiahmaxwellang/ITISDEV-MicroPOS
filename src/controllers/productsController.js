@@ -364,7 +364,7 @@ exports.addProduct = async (req, res) => {
 // Update an existing product
 exports.updateProduct = async (req, res) => {
   const { product_id } = req.params;
-  const { name, volume, category, price, barcode, photo, reorderThreshold, nearExpiryDays } = req.body;
+  const { name, volume, category, price, barcode, photo, reorderThreshold, nearExpiryDays, stock } = req.body;
   const normalizedReorderThreshold = Math.max(0, Number.isFinite(Number(reorderThreshold)) ? Number(reorderThreshold) : 5);
   const normalizedNearExpiryDays = Math.max(1, Number.isFinite(Number(nearExpiryDays)) ? Number(nearExpiryDays) : 14);
 
@@ -405,6 +405,39 @@ exports.updateProduct = async (req, res) => {
       );
     }
 
+    // Handle stock update if provided
+    if (typeof stock !== 'undefined' && stock !== null) {
+      const newStock = parseInt(stock);
+      if (!isNaN(newStock) && newStock >= 0) {
+        // Get current total stock from batches
+        const [batches] = await db.query(
+          `SELECT batch_id, stock_quantity FROM product_batches WHERE product_id = ? AND status != 'Discontinued' ORDER BY expiry_date IS NULL ASC, expiry_date ASC, purchase_date ASC`,
+          [product_id]
+        );
+        let currentStock = batches.reduce((sum, b) => sum + (b.stock_quantity || 0), 0);
+        if (newStock !== currentStock) {
+          let diff = newStock - currentStock;
+          if (diff > 0) {
+            // Add to the most recent batch or create a new batch if none exist
+            if (batches.length > 0) {
+              const lastBatch = batches[batches.length - 1];
+              await db.query(`UPDATE product_batches SET stock_quantity = stock_quantity + ? WHERE batch_id = ?`, [diff, lastBatch.batch_id]);
+            } else {
+              await db.query(`INSERT INTO product_batches (product_id, stock_quantity, status, purchase_date) VALUES (?, ?, 'On Shelves', NOW())`, [product_id, diff]);
+            }
+          } else if (diff < 0) {
+            // Remove from batches FIFO (earliest first)
+            let toRemove = -diff;
+            for (const batch of batches) {
+              if (toRemove <= 0) break;
+              const deduct = Math.min(toRemove, batch.stock_quantity);
+              await db.query(`UPDATE product_batches SET stock_quantity = stock_quantity - ? WHERE batch_id = ?`, [deduct, batch.batch_id]);
+              toRemove -= deduct;
+            }
+          }
+        }
+      }
+    }
     res.json({ success: true, message: `Product updated successfully` });
   } catch (err) {
     console.error("updateProduct error:", err);

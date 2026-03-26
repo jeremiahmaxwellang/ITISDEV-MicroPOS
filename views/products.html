@@ -788,7 +788,8 @@
       document.getElementById('productPrice').value = p.price || '';
       document.getElementById('productCategory').value = p.category || '';
       document.getElementById('barcodeHint').textContent = '';
-      document.getElementById('stockField').style.display = 'none';
+      document.getElementById('stockField').style.display = '';
+      document.getElementById('productStock').value = p.stock || 0;
       document.getElementById('reorderThreshold').value = (p.reorderThreshold || 5);
       document.getElementById('nearExpiryDays').value = (p.nearExpiryDays || 14);
       document.getElementById('productPhotoData').value = p.photo || '';
@@ -963,9 +964,9 @@
         barcode: barcode,
         photo: photo || null,
         reorderThreshold: reorderThreshold,
-        nearExpiryDays: nearExpiryDays
+        nearExpiryDays: nearExpiryDays,
+        stock: stock // Always send stock for both add and edit
       };
-      if (!editId) body.stock = stock;
 
       fetch(url, {
         method: method,
