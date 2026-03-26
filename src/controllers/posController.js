@@ -242,6 +242,7 @@ exports.processTransaction = async (req, res) => {
     customer_id = null,
     staff_id = null,
     payment_method = "Cash",
+    debt_payment_method = null,
     customer_name = null,
     gcash_reference = null,
     gcash_customer_number = null,
@@ -251,18 +252,28 @@ exports.processTransaction = async (req, res) => {
   } = req.body;
 
   const normalizedPaymentMethod = payment_method === "QRPH" ? "GCash" : payment_method;
+  const normalizedDebtPaymentMethod = debt_payment_method === "QRPH" ? "GCash" : debt_payment_method;
   if (!items || items.length === 0) {
     return res.status(400).json({ error: "Cart is empty" });
   }
 
   const isUtang   = normalizedPaymentMethod === "Utang";
   const isPartial = normalizedPaymentMethod === "Partial";
+  const effectiveDebtPaymentMethod = (isUtang || isPartial)
+    ? (normalizedDebtPaymentMethod || "Cash")
+    : null;
 
   if ((isUtang || isPartial) && !customer_id) {
     return res.status(400).json({ error: "A customer must be selected for Utang/Partial transactions" });
   }
+  if ((isUtang || isPartial) && !["Cash", "GCash"].includes(effectiveDebtPaymentMethod)) {
+    return res.status(400).json({ error: "debt_payment_method must be Cash or QRPH for Utang/Partial transactions" });
+  }
   if (isPartial && (amount_paid === null || Number(amount_paid) <= 0)) {
     return res.status(400).json({ error: "amount_paid must be greater than 0 for Partial transactions" });
+  }
+  if (isPartial && effectiveDebtPaymentMethod === "GCash" && !gcash_proof_filename) {
+    return res.status(400).json({ error: "GCash proof is required for QRPH partial payments" });
   }
 
   try {
@@ -307,10 +318,14 @@ exports.processTransaction = async (req, res) => {
       if (hasCashInService && hasCashOutService) {
         throw new Error("Cannot process both Cash In and Cash Out services in one transaction");
       }
-      if (hasCashInService && normalizedPaymentMethod !== "Cash") {
+      const effectiveMethodForRestriction = (isUtang || isPartial)
+        ? effectiveDebtPaymentMethod
+        : normalizedPaymentMethod;
+
+      if (hasCashInService && effectiveMethodForRestriction !== "Cash") {
         throw new Error("Cash In service requires Cash payment method");
       }
-      if (hasCashOutService && normalizedPaymentMethod !== "GCash") {
+      if (hasCashOutService && effectiveMethodForRestriction !== "GCash") {
         throw new Error("Cash Out service requires QRPH payment method");
       }
 
@@ -381,8 +396,8 @@ exports.processTransaction = async (req, res) => {
         // Payment record for the amount paid upfront
         await connection.query(
           `INSERT INTO payments (transaction_id, staff_id, amount_paid, payment_method, notes)
-           VALUES (?, ?, ?, 'Cash', 'Partial / Split payment — upfront portion')`,
-          [transaction_id, effectiveStaffId, paidNow]
+           VALUES (?, ?, ?, ?, 'Partial / Split payment — upfront portion')`,
+          [transaction_id, effectiveStaffId, paidNow, effectiveDebtPaymentMethod]
         );
 
         // Debt record for the remaining balance (merge with existing active debt if present)
@@ -420,11 +435,28 @@ exports.processTransaction = async (req, res) => {
           [debtId, transaction_id]
         );
 
-        // Payment proof record for the upfront cash
+        // Payment proof record for the upfront amount
+        const partialProofCustomerName = String(
+          gcash_customer_name || customer_name || "Walk-in Customer"
+        ).trim() || "Walk-in Customer";
+        const partialProofNumber = effectiveDebtPaymentMethod === "GCash"
+          ? (String(gcash_customer_number || "N/A").trim() || "N/A")
+          : "CASH";
+        const partialProofImageUrl = effectiveDebtPaymentMethod === "GCash" && gcash_proof_filename
+          ? `/uploads/payment-proof/${gcash_proof_filename}`
+          : null;
+
         await connection.query(
           `INSERT INTO payment_proofs (staff_id, customer_name, gcash_number, amount_paid, date_paid, proof_image_url, transaction_id)
-           VALUES (?, ?, 'CASH', ?, CURRENT_DATE, NULL, ?)`,
-          [effectiveStaffId, customer_name || "Walk-in Customer", paidNow, transaction_id]
+           VALUES (?, ?, ?, ?, CURRENT_DATE, ?, ?)`,
+          [
+            effectiveStaffId,
+            partialProofCustomerName,
+            partialProofNumber,
+            paidNow,
+            partialProofImageUrl,
+            transaction_id
+          ]
         );
       }
 

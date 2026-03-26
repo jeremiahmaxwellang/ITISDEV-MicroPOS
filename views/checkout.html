@@ -173,6 +173,14 @@
           <!-- Utang: customer lookup (hidden by default) -->
           <div id="utangBox" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;display:none;">
             <h3 style="font-size:0.95rem;font-weight:700;color:#1a2035;margin-bottom:0.75rem;">Customer (Utang)</h3>
+            <div style="margin-bottom:0.75rem;">
+              <label style="display:block;font-weight:600;color:#1a2035;margin-bottom:0.3rem;font-size:0.85rem;">Debt Payment Channel</label>
+              <select id="utangDebtMethod" onchange="setDebtPaymentMethod(this.value)"
+                style="width:100%;padding:0.65rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:0.9rem;box-sizing:border-box;">
+                <option value="Cash">Cash</option>
+                <option value="QRPH">QRPH</option>
+              </select>
+            </div>
             <input type="text" id="customerSearch" placeholder="Search by name or phone…"
               oninput="searchCustomers(this.value)"
               style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:0.9rem;box-sizing:border-box;">
@@ -184,6 +192,14 @@
           <div id="partialBox" style="background:white;border-radius:0.75rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:1.5rem;display:none;">
             <h3 style="font-size:0.95rem;font-weight:700;color:#1a2035;margin-bottom:0.75rem;">Split / Partial Payment</h3>
             <div style="font-size:0.8rem;color:#718096;margin-bottom:1rem;">Select the customer who will carry the remaining debt.</div>
+            <div style="margin-bottom:0.75rem;">
+              <label style="display:block;font-weight:600;color:#1a2035;margin-bottom:0.3rem;font-size:0.85rem;">Upfront Payment Channel</label>
+              <select id="partialDebtMethod" onchange="setDebtPaymentMethod(this.value)"
+                style="width:100%;padding:0.65rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:0.9rem;box-sizing:border-box;">
+                <option value="Cash">Cash</option>
+                <option value="QRPH">QRPH</option>
+              </select>
+            </div>
             <input type="text" id="partialCustomerSearch" placeholder="Search customer by name or phone…"
               oninput="searchPartialCustomers(this.value)"
               style="width:100%;padding:0.75rem;border:1px solid #e2e8f0;border-radius:0.5rem;font-family:Outfit,sans-serif;font-size:0.9rem;box-sizing:border-box;margin-bottom:0.5rem;">
@@ -351,6 +367,7 @@
     let state = {
       cart: null,
       paymentMethod: 'Cash',
+      debtPaymentMethod: 'Cash',
       gcashQRImage: null,
       gcashReceived: false,
       gcashDetails: null,    // { reference, customerName, customerNumber, proofFilename }
@@ -411,6 +428,59 @@
       return { requiredMethod: null, hasConflict: false };
     }
 
+    function getDebtPaymentMethod() {
+      return state.debtPaymentMethod === 'QRPH' ? 'QRPH' : 'Cash';
+    }
+
+    function getEffectivePaymentMethod() {
+      if (state.paymentMethod === 'Utang' || state.paymentMethod === 'Partial') {
+        return getDebtPaymentMethod();
+      }
+      return state.paymentMethod;
+    }
+
+    function shouldShowQrphInput() {
+      if (state.paymentMethod === 'QRPH') return true;
+      if (state.paymentMethod === 'Partial' && getDebtPaymentMethod() === 'QRPH') return true;
+      return false;
+    }
+
+    function getQrPayAmount(total) {
+      if (state.paymentMethod === 'Partial' && getDebtPaymentMethod() === 'QRPH') {
+        const paid = parseFloat(document.getElementById('partialAmountPaid')?.value) || 0;
+        return paid > 0 ? paid : 0;
+      }
+      return total;
+    }
+
+    function syncDebtMethodControls() {
+      const utangMethod = document.getElementById('utangDebtMethod');
+      const partialMethod = document.getElementById('partialDebtMethod');
+      if (utangMethod) utangMethod.value = getDebtPaymentMethod();
+      if (partialMethod) partialMethod.value = getDebtPaymentMethod();
+    }
+
+    function setDebtPaymentMethod(method) {
+      state.debtPaymentMethod = method === 'QRPH' ? 'QRPH' : 'Cash';
+      syncDebtMethodControls();
+
+      if (getDebtPaymentMethod() !== 'QRPH' && state.paymentMethod !== 'QRPH') {
+        state.gcashReceived = false;
+        state.gcashDetails = null;
+      }
+
+      const showQr = shouldShowQrphInput();
+      const qrBox = document.getElementById('gcashInputBox');
+      if (qrBox) qrBox.style.display = showQr ? 'block' : 'none';
+
+      if (showQr && !state.gcashReceived) {
+        document.getElementById('gcashSummary').style.display = 'none';
+        openGcashModal();
+      }
+
+      updateConfirmBtn();
+    }
+
     function applyPaymentMethodRestrictions() {
       const restriction = getCashServiceRestriction();
       const allMethods = ['Cash', 'QRPH', 'Utang', 'Partial'];
@@ -419,8 +489,9 @@
         const card = document.getElementById(method.toLowerCase() + 'Card');
         if (!card) return;
 
+        const isDebtMode = method === 'Utang' || method === 'Partial';
         const shouldDisable = restriction.requiredMethod
-          ? method !== restriction.requiredMethod
+          ? (!isDebtMode && method !== restriction.requiredMethod)
           : false;
 
         card.style.opacity = shouldDisable ? '0.55' : '1';
@@ -613,11 +684,12 @@
         if (labelEl) labelEl.textContent = getServiceTotalLabel();
         document.getElementById('loadTotalAmount').textContent = formatPeso(loadTotal);
       }
-      document.getElementById('gcashAmountDisplay').textContent = formatPeso(total);
+      const qrAmount = getQrPayAmount(total);
+      document.getElementById('gcashAmountDisplay').textContent = formatPeso(qrAmount);
       const modalAmountEl = document.getElementById('gcashModalAmount');
-      if (modalAmountEl) modalAmountEl.textContent = formatPeso(total);
+      if (modalAmountEl) modalAmountEl.textContent = formatPeso(qrAmount);
       const qrModalAmountEl = document.getElementById('qrModalAmount');
-      if (qrModalAmountEl) qrModalAmountEl.textContent = formatPeso(total);
+      if (qrModalAmountEl) qrModalAmountEl.textContent = formatPeso(qrAmount);
       return { subtotal, loadTotal, total };
     }
 
@@ -627,17 +699,26 @@
       const restriction = getCashServiceRestriction();
       let requestedMethod = method;
 
+      const requestedEffectiveMethod = (method === 'Utang' || method === 'Partial')
+        ? getDebtPaymentMethod()
+        : method;
+
       if (restriction.hasConflict) {
         state.paymentMethod = requestedMethod;
-      } else if (restriction.requiredMethod && method !== restriction.requiredMethod) {
+      } else if (restriction.requiredMethod && requestedEffectiveMethod !== restriction.requiredMethod) {
         if (window.appDialog) {
           window.appDialog.alert(`This service only allows ${restriction.requiredMethod} payment.`, {
             title: 'Payment Method Restricted',
             type: 'warning'
           });
         }
-        requestedMethod = restriction.requiredMethod;
-        state.paymentMethod = restriction.requiredMethod;
+        if (method === 'Utang' || method === 'Partial') {
+          setDebtPaymentMethod(restriction.requiredMethod);
+          state.paymentMethod = requestedMethod;
+        } else {
+          requestedMethod = restriction.requiredMethod;
+          state.paymentMethod = restriction.requiredMethod;
+        }
       } else {
         state.paymentMethod = requestedMethod;
       }
@@ -654,16 +735,16 @@
       });
 
       document.getElementById('cashInputBox').style.display = state.paymentMethod === 'Cash' ? 'block' : 'none';
-      document.getElementById('gcashInputBox').style.display = state.paymentMethod === 'QRPH' ? 'block' : 'none';
+      document.getElementById('gcashInputBox').style.display = shouldShowQrphInput() ? 'block' : 'none';
       document.getElementById('utangBox').style.display = state.paymentMethod === 'Utang' ? 'block' : 'none';
       document.getElementById('partialBox').style.display = state.paymentMethod === 'Partial' ? 'block' : 'none';
 
-      if (state.paymentMethod !== 'QRPH') { state.gcashReceived = false; state.gcashDetails = null; }
+      if (!shouldShowQrphInput()) { state.gcashReceived = false; state.gcashDetails = null; }
       if (state.paymentMethod !== 'Utang') state.selectedCustomer = null;
       if (state.paymentMethod !== 'Partial') state.partialSelectedCustomer = null;
 
-      // Auto-open QRPH modal when QRPH is selected
-      if (state.paymentMethod === 'QRPH') {
+      // Auto-open QRPH modal when QRPH-backed flow is selected
+      if (shouldShowQrphInput()) {
         document.getElementById('gcashSummary').style.display = 'none';
         openGcashModal();
       }
@@ -674,6 +755,7 @@
     function updateConfirmBtn() {
       const btn = document.getElementById('confirmPaymentBtn');
       const { total } = calculateTotals();
+      const effectiveMethod = getEffectivePaymentMethod();
       let canPay = false;
 
       // All service items must have a load amount entered
@@ -704,13 +786,14 @@
         canPay = !!state.selectedCustomer && (serviceItemsWithAmount.length === 0 || loadAmountsValid);
       } else if (state.paymentMethod === 'Partial') {
         const paid = parseFloat(document.getElementById('partialAmountPaid').value) || 0;
-        canPay = !!state.partialSelectedCustomer && paid > 0 && paid < total && (serviceItemsWithAmount.length === 0 || loadAmountsValid);
+        const hasQrProof = getDebtPaymentMethod() !== 'QRPH' || (state.gcashReceived && !!state.gcashDetails);
+        canPay = !!state.partialSelectedCustomer && paid > 0 && paid < total && hasQrProof && (serviceItemsWithAmount.length === 0 || loadAmountsValid);
       }
 
       if (restriction.hasConflict) {
         canPay = false;
       }
-      if (restriction.requiredMethod && state.paymentMethod !== restriction.requiredMethod) {
+      if (restriction.requiredMethod && effectiveMethod !== restriction.requiredMethod) {
         canPay = false;
       }
 
@@ -745,7 +828,9 @@
           window.location.href = '/pos';
           return;
         }
-        selectPaymentMethod('Cash');
+        if (state.paymentMethod === 'QRPH') {
+          selectPaymentMethod('Cash');
+        }
       }
     }
 
@@ -958,19 +1043,20 @@
         if (restriction.hasConflict) {
           throw new Error('Cannot checkout with both Cash In and Cash Out services in one transaction.');
         }
-        if (restriction.requiredMethod && state.paymentMethod !== restriction.requiredMethod) {
+        if (restriction.requiredMethod && getEffectivePaymentMethod() !== restriction.requiredMethod) {
           throw new Error(`This service requires ${restriction.requiredMethod} as payment method.`);
         }
 
         let gcashProofFilename = null;
-        if (state.paymentMethod === 'QRPH') {
+        const isPartial = state.paymentMethod === 'Partial';
+        const requiresQrProof = state.paymentMethod === 'QRPH' || (isPartial && getDebtPaymentMethod() === 'QRPH');
+        if (requiresQrProof) {
           const gcashProofFile = (document.getElementById('gcashQRUpload').files || [])[0] || null;
           if (!gcashProofFile) throw new Error('Please upload the QRPH screenshot proof before confirming payment.');
           gcashProofFilename = await uploadProofImage(gcashProofFile);
         }
 
         const { total } = calculateTotals();
-        const isPartial = state.paymentMethod === 'Partial';
         const partialAmountPaid = isPartial ? (parseFloat(document.getElementById('partialAmountPaid').value) || 0) : null;
 
         const body = {
@@ -983,17 +1069,20 @@
               : 0
           })),
           payment_method: state.paymentMethod,
+          debt_payment_method: (state.paymentMethod === 'Utang' || state.paymentMethod === 'Partial') ? getDebtPaymentMethod() : null,
           customer_id: isPartial
             ? (state.partialSelectedCustomer ? state.partialSelectedCustomer.customer_id : null)
             : (state.selectedCustomer ? state.selectedCustomer.customer_id : null),
           staff_id: null,
           customer_name: state.paymentMethod === 'Cash'
             ? document.getElementById('cashCustomerName').value.trim()
-            : (state.selectedCustomer ? state.selectedCustomer.name : null),
-          gcash_reference: state.paymentMethod === 'QRPH' ? (state.gcashDetails?.reference || null) : null,
-          gcash_customer_number: state.paymentMethod === 'QRPH' ? (state.gcashDetails?.customerNumber || null) : null,
-          gcash_customer_name: state.paymentMethod === 'QRPH' ? (state.gcashDetails?.customerName || null) : null,
-          gcash_proof_filename: state.paymentMethod === 'QRPH' ? gcashProofFilename : null,
+            : (isPartial
+              ? (state.partialSelectedCustomer ? state.partialSelectedCustomer.name : null)
+              : (state.selectedCustomer ? state.selectedCustomer.name : null)),
+          gcash_reference: requiresQrProof ? (state.gcashDetails?.reference || null) : null,
+          gcash_customer_number: requiresQrProof ? (state.gcashDetails?.customerNumber || null) : null,
+          gcash_customer_name: requiresQrProof ? (state.gcashDetails?.customerName || null) : null,
+          gcash_proof_filename: requiresQrProof ? gcashProofFilename : null,
           amount_paid: partialAmountPaid
         };
 
@@ -1047,6 +1136,7 @@
       if (!loadCart()) return;
       renderOrder();
       calculateTotals();
+      syncDebtMethodControls();
       applyPaymentMethodRestrictions();
       selectPaymentMethod('Cash');
 
